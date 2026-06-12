@@ -1,0 +1,599 @@
+/* ─── ЛЕЙАУТ ─────────────────────────────────────────────────────────── */
+html, body {
+	height: 100%;
+	width: 100%;
+	margin: 0;
+	overflow: hidden;
+}
+
+#map {
+	position: fixed;
+	top: 0; left: 0;
+	width: 100%;
+	height: 100%;
+    flex: 1;
+	height: 100%;
+	position: relative;
+}
+
+#sidebar-wrapper {
+	position: fixed;
+	top: 0; left: 0;
+	height: 100%;
+	z-index: 1000;
+	display: flex;
+}
+
+#sidebar {
+	width: 280px;
+	height: 100%;
+	background: #030303d4;
+	backdrop-filter: blur(8px);
+	font-family: 'Arimo';
+	overflow-x: hidden;
+	transition: width 0.25s ease;
+	flex-shrink: 0;
+	box-shadow: 0 3px 14px rgba(0, 0, 0, 0.4);
+}
+
+#sidebar-inner {
+	width: 280px;
+	height: 100%;
+	overflow: hidden;
+	padding: 20px 17px;
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+}
+
+#location-list {
+	flex: 1;
+	overflow-y: auto;
+}
+
+/* Скроллбар */
+#location-list::-webkit-scrollbar       { width: 4px; } 
+#location-list::-webkit-scrollbar-track { background: transparent; }
+#location-list::-webkit-scrollbar-thumb { background: #3d3531; border-radius: 0px; }
+
+#sidebar.collapsed {
+	width: 0;
+}
+
+#sidebar-toggle {
+	align-self: center;
+	flex-shrink: 0;
+	width: 16px;
+	height: 52px;
+	background: #030303d4;
+	backdrop-filter: blur(8px);
+	border: none;
+	color: #787167;
+	cursor: pointer;
+	font-size: 9px;
+	border-radius: 0 5px 5px 0;
+	padding: 0;
+}
+
+#sidebar-toggle:hover { background: #36312c; color: #dcd0c0; }
+
+
+
+
+
+/* ─── САЙДБАР ────────────────────────────────────────────────────────── */
+#map-title {
+	font-family: 'El Messiri', sans-serif;
+	font-size: 1.3em;
+	font-weight: 600;
+	color: #dcd0c0;
+	line-height: 1.2;
+}
+
+.sidebar-divider {
+	border: none;
+	border-top: 1px solid #343130;
+	margin: 12px 0;
+}
+
+.sidebar-section-label {
+	font-size: 0.72em;
+	text-transform: uppercase;
+	color: #787167;
+	margin: 0 0 7px;
+}
+
+
+
+
+
+/* ─── ЧЕКБОКСЫ ───────────────────────────────────────────────────────── */
+.layer-checkbox {
+	display: flex;
+	align-items: center;
+	gap: 7px;
+	font-size: 0.84em;
+	color: #b8a898;
+	cursor: pointer;
+	padding: 2px 0;
+	user-select: none;
+}
+
+.layer-icons {
+	margin-left: auto;
+	display: flex;
+	align-items: center;
+	gap: 3px;
+	flex-shrink: 0;
+}
+
+.layer-icon {
+	width: 16px;
+	height: 16px;
+	object-fit: contain;
+	opacity: 0.75;
+}
+
+.layer-checkbox:hover { color: #dcd0c0; }
+
+.layer-checkbox input[type="checkbox"] {
+	cursor: pointer;
+	accent-color: #977b61;
+	flex-shrink: 0;
+	width: 13px;
+	height: 13px;
+}
+
+#master-row {
+	font-weight: 600;
+	color: #c8b8a0;
+	margin-bottom: 5px;
+}
+
+#individual-checkboxes {
+	padding-left: 18px;
+	display: flex;
+	flex-direction: column;
+	gap: 1px;
+}
+
+#map-layer-checkboxes {
+	display: flex;
+	flex-direction: column;
+	gap: 1px;
+}
+
+
+
+/* ─── ПУТЬ ───────────────────────────────────────────────────────────── */
+
+/* ─── КНОПКА ИЗМЕРЕНИЯ ─────────────────────────────────────────────────── */
+.leaflet-control-measure a::after {
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M3 21L21 3' stroke='%23000' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M3 21L7 21M3 21L3 17' stroke='%23000' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M21 3L17 3M21 3L21 7' stroke='%23000' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+    mask-image:         url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M3 21L21 3' stroke='%23000' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M3 21L7 21M3 21L3 17' stroke='%23000' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M21 3L17 3M21 3L21 7' stroke='%23000' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+    width: 18px;
+    height: 18px;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    content: '';
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    background-color: #dcd0c0;
+}
+
+.leaflet-control-measure a.active {
+    background-color: #2a1f14cf !important;
+}
+
+.leaflet-control-measure a.active::after {
+    background-color: #977b61;
+}
+
+/* ─── ЛЕЙБЛ РЯДОМ С КУРСОРОМ (суммарное расстояние) ───────────────────── */
+.measure-cursor-label {
+    pointer-events: none;
+}
+
+.measure-total {
+    display: inline-block;
+    background: #0f0f0fcf;
+    backdrop-filter: blur(6px);
+    color: #ff9999;
+    padding: 2px 7px;
+    border-radius: 3px;
+    font-family: 'Arimo', sans-serif;
+    font-size: 12px;
+    white-space: nowrap;
+    border: 1px solid rgba(255, 80, 80, 0.35);
+    pointer-events: none;
+}
+
+/* ─── ЛЕЙБЛ СЕГМЕНТА (по середине зафиксированной линии) ──────────────── */
+.measure-label {
+    background: #0f0f0fcf;
+    backdrop-filter: blur(6px);
+    color: #ff9999;
+    padding: 2px 7px;
+    border-radius: 3px;
+    font-family: 'Arimo', sans-serif;
+    font-size: 12px;
+    white-space: nowrap;
+    border: 1px solid rgba(255, 80, 80, 0.25);
+    pointer-events: none;
+}
+
+.measure-label-total {
+    color: #ffcccc;
+    border-color: rgba(255, 80, 80, 0.5);
+    font-weight: 600;
+}
+
+
+
+
+
+
+
+
+.leaflet-container {
+    height: 100%;
+	width: 100%;
+	max-width: 100%;
+	max-height: 100%;
+	background-color: #111111;
+}
+
+.leaflet-control-attribution,
+.leaflet-popup-tip {
+    display: none;
+}
+
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+    background: #0a0a0ac4;
+    background-color: #0a0a0ac4;
+    border-radius: 0px;
+    backdrop-filter: blur(8px);
+}
+
+.leaflet-popup-content-wrapper {
+    padding: 0px;
+}
+
+.leaflet-popup-content {
+    color: #dcd0c0;
+    margin: 0 !important;
+    width: auto !important;
+}
+
+h1, h2, h3 {
+    margin: 0;
+    line-height: 1.3;
+    min-height: 1px;
+    font-weight: 400;
+}
+
+.leaflet-control-search .search-tooltip {
+    max-height: 625px;
+}
+
+.leaflet-control-layers-base,
+.leaflet-control-layers-separator {
+    display: none;
+}
+
+/* ─── SEARCH ──────────────────────────────────────────────────────────── */
+	#sidebar-search {
+		width: 100%;
+		box-sizing: border-box;
+		background: #070707d4;
+		border: 1px solid #343130;
+		border-radius: 2px;
+		color: #dcd0c0;
+		font-family: 'Arimo', sans-serif;
+		font-size: 0.84em;
+		padding: 6px 10px;
+		outline: none;
+
+		transition: border-color 0.2s ease, box-shadow 0.2s ease;
+	}
+
+	#sidebar-search:focus {
+		border-color: #776d61;
+		box-shadow: inset 0 0 8px rgba(148, 111, 76, 0.35),
+					inset 0 0 2px rgba(153, 117, 83, 0.5);
+		animation: searchGlow 2s ease-in-out infinite;
+	}
+
+	@keyframes searchGlow {
+    0%   { box-shadow: inset 0 0 8px  rgba(151, 123, 97, 0.35),
+                       inset 0 0 2px  rgba(151, 123, 97, 0.5); }
+    50%  { box-shadow: inset 0 0 14px rgba(151, 123, 97, 0.55),
+                       inset 0 0 4px  rgba(151, 123, 97, 0.7); }
+    100% { box-shadow: inset 0 0 8px  rgba(151, 123, 97, 0.35),
+                       inset 0 0 2px  rgba(151, 123, 97, 0.5); }
+}
+	#sidebar-search::placeholder { color: #534f49; }
+
+	/* ─── LOCATION LIST ───────────────────────────────────────────────────── */
+	.province-group { margin-bottom: 4px; }
+
+	.province-header {
+		font-size: 0.72em;
+		color: #aca294;
+		font-weight: 600;
+		padding: 4px 0 5px;
+		cursor: pointer;
+		user-select: none;
+		display: flex;
+		align-items: center;
+		gap: 5px;
+	}
+
+	.province-header::before {
+		content: '▾';
+		font-size: 0.85em;
+		transition: transform 0.15s;
+		flex-shrink: 0;
+	}
+
+	.province-group.collapsed .province-header::before {
+		transform: rotate(-90deg);
+	}
+
+	.location-items {
+		list-style: none;
+		margin: 0 0 10px 0;
+		padding: 0 0 0 12px;
+	}
+
+	.province-group.collapsed .location-items { display: none; }
+
+	.location-item {
+		font-size: 0.85em;
+	    color: #998c7c;
+		padding: 2px 6px;
+		border-radius: 1px;
+		cursor: pointer;
+		transition: background 0.12s, color 0.12s;
+	}
+
+	.location-item:hover {
+		background: #272421;
+		color: #dcd0c0;
+	}
+
+	/* ─── RESET VIEW BUTTON ───────────────────────────────────────────────── */
+	/* Стилизуем как стандартный Leaflet-контрол */
+	.leaflet-control-reset a {
+		font-size: 16px;
+		line-height: 26px !important;
+		text-decoration: none;
+		color: #333 !important;
+	}
+
+
+
+	/* ─── ОБЩИЕ СТИЛИ ДЛЯ ВСЕХ КОНТРОЛОВ ─────────────────────────────────── */
+	.leaflet-bar a {
+		background-color: #0f0f0fcf !important;
+		backdrop-filter: blur(8px);
+		color: transparent !important;     /* скрываем текстовые символы */
+		border-bottom-color: #2a2a3a !important;
+		transition: background-color 0.15s ease;
+		position: relative;
+	}
+
+	.leaflet-bar a:hover {
+		background-color: #1e1e2ecf !important;
+	}
+
+	/* ─── ОБЩИЙ СТИЛЬ ПСЕВДОЭЛЕМЕНТА ──────────────────────────────────────── */
+	.leaflet-control-zoom-in::after,
+	.leaflet-control-zoom-out::after,
+	.leaflet-control-reset a::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		margin: auto;
+		width: 14px;
+		height: 14px;
+		background-color: #dcd0c0;
+		-webkit-mask-size: contain;
+		mask-size: contain;
+		-webkit-mask-repeat: no-repeat;
+		mask-repeat: no-repeat;
+		-webkit-mask-position: center;
+		mask-position: center;
+	}
+
+	.leaflet-control-zoom-in::after,
+	.leaflet-control-zoom-out::after {
+		width: 18px;
+		height: 18px;
+	}
+
+	/* ─── ПЛЮС ────────────────────────────────────────────────────────────── */
+	.leaflet-control-zoom-in::after {
+		-webkit-mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6 12H18M12 6V18' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+		mask-image:         url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6 12H18M12 6V18' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+	}
+
+	/* ─── МИНУС ───────────────────────────────────────────────────────────── */
+	.leaflet-control-zoom-out::after {
+		-webkit-mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6 12L18 12' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+		mask-image:         url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6 12L18 12' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+	}
+
+	/* ─── ЦЕНТРИРОВАНИЕ ───────────────────────────────────────────────────── */
+	.leaflet-control-reset a::after {
+		-webkit-mask-image: url("data:image/svg+xml,%3Csvg fill='%23000' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M8,2H3A1,1,0,0,0,2,3V8A1,1,0,0,0,4,8V4H8A1,1,0,0,0,8,2ZM8,20H4V16a1,1,0,0,0-2,0v5a1,1,0,0,0,1,1H8a1,1,0,0,0,0-2ZM21,2H16a1,1,0,0,0,0,2h4V8a1,1,0,0,0,2,0V3A1,1,0,0,0,21,2Zm0,13a1,1,0,0,0-1,1v4H16a1,1,0,0,0,0,2h5a1,1,0,0,0,1-1V16A1,1,0,0,0,21,15Z'/%3E%3C/svg%3E");
+		mask-image:         url("data:image/svg+xml,%3Csvg fill='%23000' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M8,2H3A1,1,0,0,0,2,3V8A1,1,0,0,0,4,8V4H8A1,1,0,0,0,8,2ZM8,20H4V16a1,1,0,0,0-2,0v5a1,1,0,0,0,1,1H8a1,1,0,0,0,0-2ZM21,2H16a1,1,0,0,0,0,2h4V8a1,1,0,0,0,2,0V3A1,1,0,0,0,21,2Zm0,13a1,1,0,0,0-1,1v4H16a1,1,0,0,0,0,2h5a1,1,0,0,0,1-1V16A1,1,0,0,0,21,15Z'/%3E%3C/svg%3E");
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.popup-content {
+    width: 270px;
+    font-family: 'Arimo';
+    color: #dcd0c0;
+    display: grid;
+    grid-template-areas: "stack";  /* один именованный слот */
+    overflow: hidden;
+}
+
+.location-img,
+.popup-text {
+    grid-area: stack;
+}
+
+.location-img {
+    width: 100%;
+    height: auto;          /* высота из самого изображения */
+    align-self: start;     /* прижата к верхнему краю */
+    display: block;
+    -webkit-mask-image: linear-gradient(to right, transparent 15%, black 65%);
+    mask-image:         linear-gradient(to right, transparent 15%, black 65%);
+}
+
+.popup-text {
+    position: relative;
+    /* padding: 10px 12px; */
+    margin: 14px 20px 17px 20px;
+}
+
+.popup-content h1 {
+    margin: 0 0 1px;
+    font-size: 1.35em;
+    font-weight: 700;
+    line-height: 1.2;
+    font-family: 'El Messiri';
+    mix-blend-mode: screen;
+}
+
+.popup-content .name-eng {
+    margin: 0 0 16px;
+    font-size: 0.72em;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #787167;
+    mix-blend-mode: screen;
+}
+
+.popup-content .description {
+    margin: 5px 0 9px;
+    font-size: 0.85em;
+    color: #aca294;
+    line-height: 1.4;
+    hyphens: auto;
+}
+
+.info-row {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-top: 1px;
+    font-size: 0.85em;
+    color: #998c7c;
+}
+
+.info-icon {
+    margin-left: -2px;
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+
+
+
+
+.title-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.traits {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.trait {
+    position: relative;
+    display: flex;
+    align-items: center;
+    cursor: default;
+}
+
+.trait img {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+    display: block;
+}
+
+.trait-tooltip {
+    position: fixed;
+    display: none;
+    box-sizing: border-box;
+    max-width: 270px;
+    background: #0a0a0aba;
+    backdrop-filter: blur(8px);
+    color: #aca294;
+    font-family: 'Arimo';
+    font-size: 0.75em;
+    white-space: normal;
+    padding: 7px 10px;
+    pointer-events: auto;
+    z-index: 9999;
+    box-shadow: 0 3px 14px rgba(0, 0, 0, 0.4);
+}
+
+
+
+
+
+
+
+
+.leaflet-control-layers-expanded {
+    padding: 6px 10px 6px 6px;
+    font-family: 'Arimo';
+    color: #dcd0c0;
+    background: #0a0a0ac4;
+    background-color: #0a0a0ac4;
+    border-radius: 0px;
+    backdrop-filter: blur(8px);
+}
+
+.leaflet-touch .leaflet-control-layers, .leaflet-touch .leaflet-bar {
+    border: none;
+}
