@@ -1,13 +1,69 @@
 var markerLocations = {
     "type":"FeatureCollection",
     "features": [
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Южные Врата Древних",
+                "engname": "Southern Gates of the Old Ones",
+                "traits": [],
+                "description": "",
+                "faction": "",
+                "province": "Южные пустоши",
+                "locationType": "polarGates"
+            },
+            "geometry":{
+                "coordinates": [1860,305],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Северные Врата Древних",
+                "engname": "Northern Gates of the Old Ones",
+                "traits": [],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Альбион",
+                "locationType": "polarGates"
+            },
+            "geometry":{
+                "coordinates": [1376,3389],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Сломанные Врата Древних",
+                "engname": "Broken Gates of the Old Ones",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Талабекланд",
+                "locationType": "polarGatesBroken"
+            },
+            "geometry":{
+                "coordinates": [2457,3038],
+                "type":"Point"
+            }
+        },
+
+
 
         // ТЁМНЫЕ ЭЛЬФЫ
         {
             "type":"Feature",
             "properties":{
-                "name":"Железные Льды",
-                "amenity": "Железные Льды, Тёмные эльфы"
+                "runame":"Железные Льды",
+                "engname": "Ironfrost",
+                "traits": [],
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Железные Льды",
+                "locationType": "fort",
+                "image": "images/locations/ironfrost_Irina_Grygorieva.png"
             },
             "geometry":{
                 "coordinates": [165,4061],
@@ -17,8 +73,14 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Лагерь во льдах",
-                "amenity": "Железные Льды, Тёмные эльфы"
+                "runame":"Лагерь во льдах",
+                "engname": "Glacier Encampment",
+                "traits": [],
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Железные Льды",
+                "locationType": "camp",
+                "image": "images/locations/naggaroth.png"
             },
             "geometry":{
                 "coordinates": [314,4172],
@@ -28,8 +90,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Смерть Даграка",
-                "amenity": "Железные Льды, Тёмные эльфы"
+                "runame":"Смерть Даграка",
+                "engname": "Dagrak's End",
+                "traits": [],
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Железные Льды",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [515,4204],
@@ -41,8 +108,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Ледяные сады",
-                "amenity": "Холодные пустоши, Тёмные эльфы"
+                "runame":"Ледяные сады",
+                "engname": "The Glacial Gardens",
+                "traits": [],
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Холодные пустоши",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [697,4124],
@@ -52,8 +124,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Дворец Разрушения",
-                "amenity": "Холодные пустоши, Тёмные эльфы"
+                "runame":"Дворец Разрушения",
+                "engname": "The Palace of Ruin",
+                "traits": [],
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Холодные пустоши",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [923,4176],
@@ -65,8 +142,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Твердыня Осколков",
-                "amenity": "Земли осколков, Тёмные эльфы"
+                "runame":"Твердыня Осколков",
+                "engname": "Shard Bastion",
+                "traits": [],
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Земли осколков",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [1259,4155],
@@ -76,8 +158,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Шаграт",
-                "amenity": "Земли осколков, Тёмные эльфы"
+                "runame":"Шаграт",
+                "engname": "Shagrath",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Земли осколков",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1279,3945],
@@ -87,8 +174,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Крепость Проклятых",
-                "amenity": "Земли осколков, Тёмные эльфы"
+                "runame":"Крепость Проклятых",
+                "engname": "Fortress of the Damned",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Земли осколков",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [1508,4029],
@@ -100,8 +192,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Хар-Кальдра",
-                "amenity": "Железные предгорья, Тёмные эльфы"
+                "runame":"Хар-Кальдра",
+                "engname": "Har Kaldra",
+                "traits": [],
+                "description": "Когда-то могущественная крепость тёмных эльфов теперь является израненным, разрушенным кратером, окружённым обломками собственных стен. Малекит, ответив на восстание внутри стен Хар-Кальдры всей колдовской мощью, стал причиной её гибели. <br> Тысячи погибли в ту ночь ужаса и ярости, а еще тысячи были взяты в рабство в Наггаронд, где им предстояло умереть в его огненных ямах и гладиаторских аренах.",
+                "faction": "Тёмные эльфы",
+                "province": "Железные предгорья",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [324,3910],
@@ -111,8 +208,14 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Наггаронд",
-                "amenity": "Железные предгорья, Тёмные эльфы"
+                "runame":"Наггаронд",
+                "engname": "Naggarond • Город Холода",
+                "traits": ["capital_def", "port"],
+                "description": "Наггаронд — старейший и крупнейший из городов тёмных эльфов. Его внешние стены образуют внушительный круг из черного камня высотой не менее ста футов. Вокруг крепостных стен возвышаются сто башен, каждая из которых поднимается над зубцами так же высоко, как стены города поднимаются над голой скалой. С этих башен развеваются тёмные знамёна Короля-Колдуна из содранной кожи. Отрубленные головы и измученные вороном конечности гниют на кольях вокруг стен — жуткое напоминание о цене неповиновения воле Малекита.",
+                "faction": "Тёмные эльфы",
+                "province": "Железные предгорья",
+                "locationType": "city",
+                "image": "images/locations/naggarond.png"
             },
             "geometry":{
                 "coordinates": [450,3758],
@@ -124,8 +227,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Ущелье Ракдо",
-                "amenity": "Железные горы, Тёмные эльфы"
+                "runame":"Ущелье Ракдо",
+                "engname": "Rackdo Gorge",
+                "traits": [],
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Железные горы",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [226,3754],
@@ -135,8 +243,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Гора Шроктак",
-                "amenity": "Железные горы, Тёмные эльфы"
+                "runame":"Гора Шроктак",
+                "engname": "Shroktak Mount",
+                "traits": [],
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Железные горы",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [230,3545],
@@ -148,8 +261,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Алтарь Великой тьмы",
-                "amenity": "Железное побережье, Тёмные эльфы"
+                "runame":"Алтарь Великой тьмы",
+                "engname": "Altar of Ultimate Darkness",
+                "traits": [],
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Железное побережье",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [172,3895],
@@ -159,8 +277,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Шпиль эльдар",
-                "amenity": "Железное побережье, Тёмные эльфы"
+                "runame":"Шпиль эльдар",
+                "engname": "Eldar Spire",
+                "traits": [],
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Железное побережье",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [57,3770],
@@ -170,8 +293,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Шпиль Дракла",
-                "amenity": "Железное побережье, Тёмные эльфы"
+                "runame":"Шпиль Дракла",
+                "engname": "Drackla Spire",
+                "traits": [],
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Железное побережье",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [81,3609],
@@ -183,8 +311,14 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Хаг Греф",
-                "amenity": "Чёрная пойма, Тёмные эльфы"
+                "runame":"Хаг Греф",
+                "engname": "Hag Graef • Город Теней",
+                "traits": ["port"],
+                "description": "Хаг Греф — мрачный город культов Кхейна, воздвигнутый на дне ущелья, куда никогда не проникает солнечный свет. Его восемь чёрных башен, соединённых мостами из кости, камня и паучьего шёлка, уходят в небо подобно окаменевшим щупальцам. Богатейший из городов Наггарота, чьи восемь великих семей могущественны настолько, что, объединись они, могли бы свергнуть самого Короля-Колдуна Малекита.",
+                "faction": "Тёмные эльфы",
+                "province": "Чёрная пойма",
+                "locationType": "city",
+                "image": "images/locations/hag-graef.png"
             },
             "geometry":{
                 "coordinates": [552,3636],
@@ -194,8 +328,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Храм Кейна",
-                "amenity": "Чёрная пойма, Тёмные эльфы"
+                "runame":"Храм Кхейна",
+                "engname": "Temple of Khaine",
+                "traits": [],
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Чёрная пойма",
+                "locationType": "shrine"
             },
             "geometry":{
                 "coordinates": [352,3640],
@@ -205,8 +344,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Крагротская бездна",
-                "amenity": "Чёрная пойма, Тёмные эльфы"
+                "runame":"Крагротская бездна",
+                "engname": "Cragroth Deep",
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Чёрная пойма",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [410,3537],
@@ -218,8 +361,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Гронд",
-                "amenity": "Коварные вершины, Тёмные эльфы"
+                "runame":"Гронд",
+                "engname": "Ghrond",
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Коварные вершины",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [633,3886],
@@ -229,8 +376,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Ашрак",
-                "amenity": "Коварные вершины, Тёмные эльфы"
+                "runame":"Ашрак",
+                "engname": "Ashrak",
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Коварные вершины",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [540,3980],
@@ -240,8 +391,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Ледяная дорога",
-                "amenity": "Коварные вершины, Тёмные эльфы"
+                "runame":"Ледяная дорога",
+                "engname": "Chill Road",
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Коварные вершины",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [527,3849],
@@ -251,8 +406,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Великая Арена",
-                "amenity": "Коварные вершины, Тёмные эльфы"
+                "runame":"Великая Арена",
+                "engname": "The Great Arena",
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Коварные вершины",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [621,3766],
@@ -264,8 +423,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Кауарк",
-                "amenity": "Дорога черепов, Тёмные эльфы"
+                "runame":"Кауарк",
+                "engname": "Kauark",
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Дорога черепов",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [810,4027],
@@ -275,8 +438,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Предел Злобы",
-                "amenity": "Дорога черепов, Тёмные эльфы"
+                "runame":"Предел Злобы",
+                "engname": "Spite Reach",
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Дорога черепов",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [759,3901],
@@ -286,8 +453,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Хар Ганет",
-                "amenity": "Дорога черепов, Тёмные эльфы"
+                "runame":"Хар Ганет",
+                "engname": "Har Ganeth",
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Дорога черепов",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [849,3819],
@@ -297,8 +468,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Чёрный Столп",
-                "amenity": "Дорога черепов, Тёмные эльфы"
+                "runame":"Чёрный Столп",
+                "engname": "The Black Pillar",
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Дорога черепов",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [860,3919],
@@ -310,8 +485,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Даргот",
-                "amenity": "Мертволесье, Тёмные эльфы"
+                "runame":"Даргот",
+                "engname": "Dargoth",
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Мертволесье",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1003,3962],
@@ -321,8 +500,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Награр",
-                "amenity": "Мертволесье, Тёмные эльфы"
+                "runame":"Награр",
+                "engname": "Nagrar",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Мертволесье",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1090,3869],
@@ -332,8 +516,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Замёрзший город",
-                "amenity": "Мертволесье, Тёмные эльфы"
+                "runame":"Замёрзший город",
+                "engname": "The Frozen City",
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Мертволесье",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1137,4023],
@@ -345,8 +533,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Шпиль Роткар",
-                "amenity": "Красная пустыня, Тёмные эльфы"
+                "runame":"Шпиль Роткар",
+                "engname": "Rothkar Spire",
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Красная пустыня",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [51,3388],
@@ -356,8 +548,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Шпиль Химерики",
-                "amenity": "Красная пустыня, Тёмные эльфы"
+                "runame":"Шпиль Химерики",
+                "engname": "Khymerica Spire",
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Красная пустыня",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [116,3257],
@@ -367,8 +563,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Паучья равнина",
-                "amenity": "Красная пустыня, Тёмные эльфы"
+                "runame":"Паучья равнина",
+                "engname": "Plain of Spiders",
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Красная пустыня",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [161,3126],
@@ -378,8 +578,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Пик Кларак",
-                "amenity": "Красная пустыня, Тёмные эльфы"
+                "runame":"Пик Кларак",
+                "engname": "Clarak Spire",
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Красная пустыня",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [67,3002],
@@ -391,8 +595,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Стораг Кор",
-                "amenity": "Обсидиановые горы, Тёмные эльфы"
+                "runame":"Стораг Кор",
+                "engname": "Storag Kor",
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Обсидиановые горы",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [289,3357],
@@ -402,8 +610,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Клар Каронд",
-                "amenity": "Обсидиановые горы, Тёмные эльфы"
+                "runame":"Клар Каронд",
+                "engname": "Clar Karond",
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Обсидиановые горы",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [464,3351],
@@ -413,8 +625,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Поляна Отравы",
-                "amenity": "Обсидиановые горы, Тёмные эльфы"
+                "runame":"Поляна Отравы",
+                "engname": "Venom Glade",
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Обсидиановые горы",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [568,3271],
@@ -424,8 +640,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Круг Разрушения",
-                "amenity": "Обсидиановые горы, Тёмные эльфы"
+                "runame":"Круг Разрушения",
+                "engname": "Circle of Destruction",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Обсидиановые горы",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [638,3496],
@@ -437,8 +658,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Столп Хотека",
-                "amenity": "Истерзанный берег, Тёмные эльфы"
+                "runame":"Столп Хотека",
+                "engname": "Hotek's Column",
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Истерзанный берег",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [690,3320],
@@ -448,8 +673,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Чёрные леса",
-                "amenity": "Истерзанный берег, Тёмные эльфы"
+                "runame":"Чёрные леса",
+                "engname": "The Black Forests",
+                "traits": ["forest"],
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Истерзанный берег",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [829,3348],
@@ -459,8 +689,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Зловещая поляна",
-                "amenity": "Истерзанный берег, Тёмные эльфы"
+                "runame":"Зловещая поляна",
+                "engname": "The Twisted Glade",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Истерзанный берег",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [833,3197],
@@ -472,8 +707,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Квинтекс",
-                "amenity": "Бересклет, Тёмные эльфы"
+                "runame":"Квинтекс",
+                "engname": "Quintex",
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Бересклет",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [269,3049],
@@ -485,8 +724,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Наковальня Ваула",
-                "amenity": "Роковые поляны, Тёмные эльфы"
+                "runame":"Наковальня Ваула",
+                "engname": "Vaul's Anvil",
+                "traits": [],
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Роковые поляны",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [504,3095],
@@ -496,8 +740,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Ведьмин Чертог",
-                "amenity": "Роковые поляны, Тёмные эльфы"
+                "runame":"Ведьмин Чертог",
+                "engname": "Hag Hall",
+                "traits": [],
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Роковые поляны",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [425,2974],
@@ -507,8 +756,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Храм Аддайота",
-                "amenity": "Роковые поляны, Тёмные эльфы"
+                "runame":"Храм Аддайота",
+                "engname": "Temple of Addaioth",
+                "traits": [],
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Роковые поляны",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [306,3185],
@@ -520,8 +774,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Мрачный Оплот",
-                "amenity": "Мрачный берег, Тёмные эльфы"
+                "runame":"Мрачный Оплот",
+                "engname": "Bleak Hold Fortress",
+                "traits": [],
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Мрачный берег",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [359,2852],
@@ -531,8 +790,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Лес Арнхейма",
-                "amenity": "Мрачный берег, Тёмные эльфы"
+                "runame":"Лес Арнхейма",
+                "engname": "Forest of Arnheim",
+                "traits": ["forest"],
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Мрачный берег",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [441,2777],
@@ -542,8 +806,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Осколок Луны",
-                "amenity": "Мрачный берег, Тёмные эльфы"
+                "runame":"Осколок Луны",
+                "engname": "The Moon Shard",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Мрачный берег",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [537,2622],
@@ -553,8 +822,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Арнхейм",
-                "amenity": "Мрачный берег, Тёмные эльфы"
+                "runame":"Арнхейм",
+                "engname": "Arnheim",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Мрачный берег",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [586,2717],
@@ -566,8 +840,14 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Святилище Кейна",
-                "amenity": "Нагарит, Тёмные эльфы"
+                "runame":"Святилище Кхейна",
+                "engname": "Shrine of Khaine",
+                "traits": [],
+                "description": "Над туманной пустыней Заражённого острова возвышается великое святилище Кхейна, эльфийского Бога Войны. Это место великой силы и глубокого значения как для высших эльфов, так и для тёмных. Обе расы поклоняются Кхейну как богу, и обе претендуют на его святилище.",
+                "faction": "Тёмные эльфы",
+                "province": "Нагарит",
+                "locationType": "shrine",
+                "image": "images/locations/shrine-of-khaine.png"
             },
             "geometry":{
                 "coordinates": [1035,3063],
@@ -577,8 +857,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Тор Анлек",
-                "amenity": "Нагарит, Тёмные эльфы"
+                "runame":"Тор Анлек",
+                "engname": "Tor Anlec",
+                "traits": ["port"],
+                "description": "Тор Анлек — некогда столица Нагарита, — был разрушен во время Эльфийской гражданской войны. Неоднократно укреплявшийся и вновь разрушавшийся город сегодня является одним из немногочисленных пристанищ для тёмных эльфов на земле их предков.",
+                "faction": "Тёмные эльфы",
+                "province": "Нагарит",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [938,2999],
@@ -588,8 +873,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Тор Драниль",
-                "amenity": "Нагарит, Тёмные эльфы"
+                "runame":"Тор Драниль",
+                "engname": "Tor Dranil",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Нагарит",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [797,2894],
@@ -601,8 +891,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Врата Единорога",
-                "amenity": "Тёмные эльфы"
+                "runame":"Врата Единорога",
+                "engname": "Unicorn Gate",
+                "traits": [],
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Врата Единорога",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [867,2819],
@@ -614,8 +909,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Тор Анрок",
-                "amenity": "Тиранок, Тёмные эльфы"
+                "runame":"Тор Анрок",
+                "engname": "Tor Anroc",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Тиранок",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [713,2738],
@@ -625,8 +925,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Белый пик",
-                "amenity": "Тиранок, Тёмные эльфы"
+                "runame":"Белый пик",
+                "engname": "Whitepeak",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Тиранок",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [684,2642],
@@ -636,8 +941,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Аветир",
-                "amenity": "Тиранок, Тёмные эльфы"
+                "runame":"Аветир",
+                "engname": "Avethir",
+                "traits": [],
+                "description": "",
+                "faction": "Тёмные эльфы",
+                "province": "Тиранок",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [748,2524],
@@ -652,8 +962,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Серебряная башня чародеев",
-                "amenity": "Северные пустоши, Дикие племена"
+                "runame":"Серебряная башня чародеев",
+                "engname": "The Silvered Tower of Sorcerers",
+                "traits": [],
+                "description": "",
+                "faction": "Дикие племена",
+                "province": "Северные пустоши",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [1512,4325],
@@ -663,8 +978,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Кровавая гора",
-                "amenity": "Северные пустоши, Дикие племена"
+                "runame":"Кровавая гора",
+                "engname": "Blood Mountain",
+                "traits": ["mountain"],
+                "description": "",
+                "faction": "Дикие племена",
+                "province": "Северные пустоши",
+                "locationType": "camp"
             },
             "geometry":{
                 "coordinates": [1685,4259],
@@ -674,8 +994,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Инферний",
-                "amenity": "Северные пустоши, Дикие племена"
+                "runame":"Инферний",
+                "engname": "Infernius",
+                "traits": [],
+                "description": "Земля вокруг Инферния представляет собой почерневший от сажи ландшафт, испещрённый реками лавы. Действующий вулкан неподалёку питает эти расплавленные реки.",
+                "faction": "Дикие племена",
+                "province": "Северные пустоши",
+                "locationType": "camp"
             },
             "geometry":{
                 "coordinates": [1722,4366],
@@ -687,8 +1012,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Дворец Принцев",
-                "amenity": "Холодные топи, Дикие племена"
+                "runame":"Дворец Принцев",
+                "engname": "Palace of Princes",
+                "traits": [],
+                "description": "",
+                "faction": "Дикие племена",
+                "province": "Холодные топи",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1617,4124],
@@ -698,8 +1028,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Смрадные Катакомбы",
-                "amenity": "Холодные топи, Дикие племена"
+                "runame":"Смрадные Катакомбы",
+                "engname": "The Foetid Catacombs",
+                "traits": [],
+                "description": "",
+                "faction": "Дикие племена",
+                "province": "Холодные топи",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [1765,4137],
@@ -709,8 +1044,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Руины Малофекса",
-                "amenity": "Холодные топи, Дикие племена"
+                "runame":"Руины Малофекса",
+                "engname": "The Folly of Malofex",
+                "traits": [],
+                "description": "",
+                "faction": "Дикие племена",
+                "province": "Холодные топи",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [1881,4197],
@@ -720,8 +1060,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Зловещие башни",
-                "amenity": "Холодные топи, Дикие племена"
+                "runame":"Зловещие башни",
+                "engname": "The Twisted Towers",
+                "traits": [],
+                "description": "",
+                "faction": "Дикие племена",
+                "province": "Холодные топи",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [1943,4340],
@@ -733,8 +1078,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Звериный утёс",
-                "amenity": "Лагуна вечности, Дикие племена"
+                "runame":"Звериный утёс",
+                "engname": "Cliff of Beasts",
+                "traits": ["mountain"],
+                "description": "",
+                "faction": "Дикие племена",
+                "province": "Лагуна вечности",
+                "locationType": "village"
             },
             "geometry":{
                 "coordinates": [2110,4306],
@@ -744,8 +1094,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Роща Погибели",
-                "amenity": "Лагуна вечности, Дикие племена"
+                "runame":"Роща Погибели",
+                "engname": "The Blighted Grove",
+                "traits": ["forest"],
+                "description": "",
+                "faction": "Дикие племена",
+                "province": "Лагуна вечности",
+                "locationType": "pointOfInterest"
             },
             "geometry":{
                 "coordinates": [2241,4396],
@@ -755,8 +1110,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Чёрная скала",
-                "amenity": "Лагуна вечности, Дикие племена"
+                "runame":"Чёрная скала",
+                "engname": "Black Rock",
+                "traits": ["mountain"],
+                "description": "",
+                "faction": "Дикие племена",
+                "province": "Лагуна вечности",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [2330,4321],
@@ -768,8 +1128,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Желчные утёсы",
-                "amenity": "Зловонная опухоль, Дикие племена"
+                "runame":"Желчные утёсы",
+                "engname": "Bilious Cliffs",
+                "traits": ["mountain"],
+                "description": "",
+                "faction": "Дикие племена",
+                "province": "Зловонная опухоль",
+                "locationType": "pointOfInterest"
             },
             "geometry":{
                 "coordinates": [2434,4260],
@@ -779,8 +1144,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Лес Разложения",
-                "amenity": "Зловонная опухоль, Дикие племена"
+                "runame":"Лес Разложения",
+                "engname": "The Forest of Decay",
+                "traits": ["forest"],
+                "description": "",
+                "faction": "Дикие племена",
+                "province": "Зловонная опухоль",
+                "locationType": "pointOfInterest"
             },
             "geometry":{
                 "coordinates": [2561,4337],
@@ -790,8 +1160,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Башня мух",
-                "amenity": "Зловонная опухоль, Дикие племена"
+                "runame":"Башня мух",
+                "engname": "The Tower of Flies",
+                "traits": [],
+                "description": "",
+                "faction": "Дикие племена",
+                "province": "Зловонная опухоль",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [2738,4250],
@@ -803,8 +1178,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Сердце вулкана",
-                "amenity": "Равнина иллюзий, Дикие племена"
+                "runame":"Сердце вулкана",
+                "engname": "Volcano's Heart",
+                "traits": [],
+                "description": "",
+                "faction": "Дикие племена",
+                "province": "Равнина иллюзий",
+                "locationType": "pointOfInterest"
             },
             "geometry":{
                 "coordinates": [2790,4350],
@@ -814,8 +1194,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Порт Тайн",
-                "amenity": "Равнина иллюзий, Дикие племена"
+                "runame":"Порт Тайн",
+                "engname": "Port of Secrets",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Дикие племена",
+                "province": "Равнина иллюзий",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2875,4154],
@@ -825,8 +1210,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Кристаллические Шпили",
-                "amenity": "Равнина иллюзий, Дикие племена"
+                "runame":"Кристаллические Шпили",
+                "engname": "The Crystal Spires",
+                "traits": [],
+                "description": "",
+                "faction": "Дикие племена",
+                "province": "Равнина иллюзий",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [2991,4274],
@@ -838,8 +1228,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Воющая цитадель",
-                "amenity": "Водопады Кровавого Пламени, Дикие племена"
+                "runame":"Воющая цитадель",
+                "engname": "The Howling Citadel",
+                "traits": [],
+                "description": "",
+                "faction": "Дикие племена",
+                "province": "Водопады Кровавого Пламени",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [3153,4225],
@@ -849,8 +1244,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Башня Страданий",
-                "amenity": "Водопады Кровавого Пламени, Дикие племена"
+                "runame":"Башня Страданий",
+                "engname": "The Tower of Torment",
+                "traits": [],
+                "description": "",
+                "faction": "Дикие племена",
+                "province": "Водопады Кровавого Пламени",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [3041,3963],
@@ -860,8 +1260,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Монолит Гнилодыха",
-                "amenity": "Водопады Кровавого Пламени, Дикие племена"
+                "runame":"Монолит Гнилодыха",
+                "engname": "Monolith of Festerlung",
+                "traits": [],
+                "description": "",
+                "faction": "Дикие племена",
+                "province": "Водопады Кровавого Пламени",
+                "locationType": "shrine"
             },
             "geometry":{
                 "coordinates": [3281,4006],
@@ -871,8 +1276,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Пылающий монолит",
-                "amenity": "Водопады Кровавого Пламени, Дикие племена"
+                "runame":"Пылающий монолит",
+                "engname": "The Burning Monolith",
+                "traits": [],
+                "description": "",
+                "faction": "Дикие племена",
+                "province": "Водопады Кровавого Пламени",
+                "locationType": "shrine"
             },
             "geometry":{
                 "coordinates": [3394,4140],
@@ -884,8 +1294,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Извивающаяся крепость",
-                "amenity": "Кровавые болота, Дикие племена"
+                "runame":"Извивающаяся крепость",
+                "engname": "The Writhing Fortress",
+                "traits": [],
+                "description": "",
+                "faction": "Дикие племена",
+                "province": "Кровавые болота",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [3660,4095],
@@ -895,8 +1310,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Монолит Бубоника",
-                "amenity": "Кровавые болота, Дикие племена"
+                "runame":"Монолит Бубоника",
+                "engname": "Monolith of Bubonicus",
+                "traits": [],
+                "description": "",
+                "faction": "Дикие племена",
+                "province": "Кровавые болота",
+                "locationType": "shrine"
             },
             "geometry":{
                 "coordinates": [3407,3909],
@@ -906,8 +1326,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Кровоточащий Шпиль",
-                "amenity": "Кровавые болота, Дикие племена"
+                "runame":"Кровоточащий Шпиль",
+                "engname": "The Bleeding Spire",
+                "traits": [],
+                "description": "",
+                "faction": "Дикие племена",
+                "province": "Кровавые болота",
+                "locationType": "shrine"
             },
             "geometry":{
                 "coordinates": [3694,3864],
@@ -919,8 +1344,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Гора Штормврак",
-                "amenity": "Тропа смерти, Дикие племена"
+                "runame":"Гора Штормврак",
+                "engname": "Stormvrack Mount",
+                "traits": ["mountain"],
+                "description": "",
+                "faction": "Дикие племена",
+                "province": "Путь смерти",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [3237,3826],
@@ -930,8 +1360,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Столб Черепов",
-                "amenity": "Тропа смерти, Дикие племена"
+                "runame":"Столб Черепов",
+                "engname": "Pillar of Skulls",
+                "traits": [],
+                "description": "",
+                "faction": "Дикие племена",
+                "province": "Путь смерти",
+                "locationType": "pointOfInterest"
             },
             "geometry":{
                 "coordinates": [3505,3702],
@@ -941,8 +1376,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Битва племени",
-                "amenity": "Тропа смерти, Дикие племена"
+                "runame":"Битва племени",
+                "engname": "Tribeslaughter",
+                "traits": [],
+                "description": "",
+                "faction": "Дикие племена",
+                "province": "Путь смерти",
+                "locationType": "pointOfInterest"
             },
             "geometry":{
                 "coordinates": [3390,3609],
@@ -952,8 +1392,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Карак Дум",
-                "amenity": "Тропа смерти, Дикие племена"
+                "runame":"Карак Дум",
+                "engname": "Karak Dum",
+                "traits": [],
+                "description": "",
+                "faction": "Дикие племена",
+                "province": "Путь смерти",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [3551,3527],
@@ -961,12 +1406,17 @@ var markerLocations = {
             }
         },
 
-
+        
         {
             "type":"Feature",
             "properties":{
-                "name":"Дерево-виселица",
-                "amenity": "К'дата, Дикие племена"
+                "runame":"Дерево-виселица",
+                "engname": "The Gallows Tree",
+                "traits": [],
+                "description": "",
+                "faction": "Дикие племена",
+                "province": "К'дата",
+                "locationType": "pointOfInterest"
             },
             "geometry":{
                 "coordinates": [3901,3783],
@@ -976,8 +1426,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Равнины Цзаньбайцзинь",
-                "amenity": "К'дата, Дикие племена"
+                "runame":"Равнины Цзаньбайцзинь",
+                "engname": "Zanbaijin",
+                "traits": [],
+                "description": "",
+                "faction": "Дикие племена",
+                "province": "К'дата",
+                "locationType": "pointOfInterest"
             },
             "geometry":{
                 "coordinates": [4002,3870],
@@ -989,8 +1444,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Плавучая гора",
-                "amenity": "Плато химера, Дикие племена"
+                "runame":"Плавучая гора",
+                "engname": "Floating Mountain",
+                "traits": ["mountain"],
+                "description": "",
+                "faction": "Дикие племена",
+                "province": "Плато химера",
+                "locationType": "pointOfInterest"
             },
             "geometry":{
                 "coordinates": [4104,3654],
@@ -1000,8 +1460,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Смерть дракона",
-                "amenity": "Плато химера, Дикие племена"
+                "runame":"Смерть дракона",
+                "engname": "Dragon's Death",
+                "traits": [],
+                "description": "",
+                "faction": "Дикие племена",
+                "province": "Плато химера",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [4142,3495],
@@ -1011,8 +1476,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Камень испытания",
-                "amenity": "Плато химера, Дикие племена"
+                "runame":"Камень испытания",
+                "engname": "The Challange Stone",
+                "traits": [],
+                "description": "",
+                "faction": "Дикие племена",
+                "province": "Плато химера",
+                "locationType": "shrine"
             },
             "geometry":{
                 "coordinates": [4084,3351],
@@ -1024,8 +1494,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Гранитные шипы",
-                "amenity": "Подгорья Каменного Небосвода, Дикие племена"
+                "runame":"Гранитные шипы",
+                "engname": "Granite Spikes",
+                "traits": [],
+                "description": "",
+                "faction": "Дикие племена",
+                "province": "Подгорья Каменного Небосвода",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [4301,3244],
@@ -1035,8 +1510,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Волари",
-                "amenity": "Подгорья Каменного Небосвода, Дикие племена"
+                "runame":"Волари",
+                "engname": "The Volary",
+                "traits": [],
+                "description": "",
+                "faction": "Дикие племена",
+                "province": "Подгорья Каменного Небосвода",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [4447,3309],
@@ -1046,8 +1526,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Глазная крепость",
-                "amenity": "Подгорья Каменного Небосвода, Дикие племена"
+                "runame":"Глазная крепость",
+                "engname": "Fortress of Eyes",
+                "traits": [],
+                "description": "",
+                "faction": "Дикие племена",
+                "province": "Подгорья Каменного Небосвода",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [4651,3249],
@@ -1059,8 +1544,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Железная буря",
-                "amenity": "Восточные степи, Дикие племена"
+                "runame":"Железная буря",
+                "engname": "Iron Storm",
+                "traits": [],
+                "description": "",
+                "faction": "Дикие племена",
+                "province": "Восточные степи",
+                "locationType": "pointOfInterest"
             },
             "geometry":{
                 "coordinates": [4790,3275],
@@ -1070,8 +1560,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Перекрёсток дракона",
-                "amenity": "Восточные степи, Дикие племена"
+                "runame":"Перекрёсток дракона",
+                "engname": "Dragon's Crossroad",
+                "traits": [],
+                "description": "",
+                "faction": "Дикие племена",
+                "province": "Восточные степи",
+                "locationType": "pointOfInterest"
             },
             "geometry":{
                 "coordinates": [4884,3156],
@@ -1081,8 +1576,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Твердыня Кровавого ветра",
-                "amenity": "Восточные степи, Дикие племена"
+                "runame":"Твердыня Кровавого ветра",
+                "engname": "Bloodwind Keep",
+                "traits": [],
+                "description": "",
+                "faction": "Дикие племена",
+                "province": "Восточные степи",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [4978,3326],
@@ -1094,8 +1594,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Плавильня костей",
-                "amenity": "Красные пустоши, Дикие племена"
+                "runame":"Плавильня костей",
+                "engname": "Foundry of Bones",
+                "traits": [],
+                "description": "",
+                "faction": "Дикие племена",
+                "province": "Красные пустоши",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [5186,3223],
@@ -1105,8 +1610,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Красная крепость",
-                "amenity": "Красные пустоши, Дикие племена"
+                "runame":"Красная крепость",
+                "engname": "Red Fortress",
+                "traits": [],
+                "description": "",
+                "faction": "Дикие племена",
+                "province": "Красные пустоши",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [5274,3064],
@@ -1118,8 +1628,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Гнилая скала",
-                "amenity": "Край гор, Дикие племена"
+                "runame":"Гнилая скала",
+                "engname": "Rotten Stone",
+                "traits": ["mountain"],
+                "description": "",
+                "faction": "Дикие племена",
+                "province": "Край гор",
+                "locationType": "camp"
             },
             "geometry":{
                 "coordinates": [4655,3382],
@@ -1129,8 +1644,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Молчащий хребет",
-                "amenity": "Край гор, Дикие племена"
+                "runame":"Молчащий хребет",
+                "engname": "Desolation Ridge",
+                "traits": ["mountain"],
+                "description": "",
+                "faction": "Дикие племена",
+                "province": "Край гор",
+                "locationType": "camp"
             },
             "geometry":{
                 "coordinates": [4786,3369],
@@ -1140,8 +1660,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Щербатая гора",
-                "amenity": "Край гор, Дикие племена"
+                "runame":"Щербатая гора",
+                "engname": "Broken Mount",
+                "traits": ["mountain"],
+                "description": "",
+                "faction": "Дикие племена",
+                "province": "Край гор",
+                "locationType": "pointOfInterest"
             },
             "geometry":{
                 "coordinates": [4934,3421],
@@ -1151,8 +1676,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Тёмная башня",
-                "amenity": "Край гор, Дикие племена"
+                "runame":"Тёмная башня",
+                "engname": "Dark Tower",
+                "traits": [],
+                "description": "",
+                "faction": "Дикие племена",
+                "province": "Край гор",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [5090,3345],
@@ -1161,11 +1691,183 @@ var markerLocations = {
         },
 
         // ВЫСШИЕ ЭЛЬФЫ
+        
         {
             "type":"Feature",
             "properties":{
-                "name":"Конкуата",
-                "amenity": "Альбион, Высшие эльфы"
+                "runame":"Рухнувшие врата",
+                "engname": "Fallen Gates",
+                "traits": [],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Люстерский перешеек",
+                "locationType": "pointOfInterest"
+            },
+            "geometry":{
+                "coordinates": [176,2355],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Вершины Маку",
+                "engname": "Macu Peaks",
+                "traits": [],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Люстерский перешеек",
+                "locationType": "fort"
+            },
+            "geometry":{
+                "coordinates": [209,2111],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Осьминный храм",
+                "engname": "Hexoatl",
+                "traits": [],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Люстерский перешеек",
+                "locationType": "shrine"
+            },
+            "geometry":{
+                "coordinates": [278,2256],
+                "type":"Point"
+            }
+        },
+
+
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Порт-Корсар",
+                "engname": "Port Reaver",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Берег перешейка",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [396,2225],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Скегги",
+                "engname": "Skeggi",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Берег перешейка",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [506,2373],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Рассветный зиккурат",
+                "engname": "Ziggurat of Dawn",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Берег перешейка",
+                "locationType": "fort"
+            },
+            "geometry":{
+                "coordinates": [370,2387],
+                "type":"Point"
+            }
+        },
+
+
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Пауакс",
+                "engname": "Pahuax",
+                "traits": [],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Джунгли Пауалаксы",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [366,1983],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Монумент Луны",
+                "engname": "Monument of The Moon",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Джунгли Пауалаксы",
+                "locationType": "village"
+            },
+            "geometry":{
+                "coordinates": [584,2101],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Болотный городок",
+                "engname": "Swamp Town",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Джунгли Пауалаксы",
+                "locationType": "village"
+            },
+            "geometry":{
+                "coordinates": [373,2117],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Святилище Иши",
+                "engname": "Shrine of Sotek",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Джунгли Пауалаксы",
+                "locationType": "shrine"
+            },
+            "geometry":{
+                "coordinates": [189,1976],
+                "type":"Point"
+            }
+        },
+        
+        
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Конкуата",
+                "engname": "Konquata",
+                "traits": [],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Альбион",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1382,3435],
@@ -1175,8 +1877,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Остров Мертвецов",
-                "amenity": "Альбион, Высшие эльфы"
+                "runame":"Остров Мертвецов",
+                "engname": "Isle of Wights",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Альбион",
+                "locationType": "camp"
             },
             "geometry":{
                 "coordinates": [1409,3341],
@@ -1186,8 +1893,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Цитадель Свинца",
-                "amenity": "Альбион, Высшие эльфы"
+                "runame":"Цитадель Свинца",
+                "engname": "Citadel of Lead",
+                "traits": [],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Альбион",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [1417,3527],
@@ -1199,8 +1911,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Башня Чёрного Света",
-                "amenity": "Гранитные холмы, Высшие эльфы"
+                "runame":"Башня Чёрного Света",
+                "engname": "Blacklight Tower",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Гранитные холмы",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [837,3660],
@@ -1210,8 +1927,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Святилище Ладриэль",
-                "amenity": "Гранитные холмы, Высшие эльфы"
+                "runame":"Святилище Ладриэль",
+                "engname": "Shrine of Ladrielle",
+                "traits": [],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Гранитные холмы",
+                "locationType": "shrine"
             },
             "geometry":{
                 "coordinates": [895,3588],
@@ -1221,8 +1943,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Монолиты",
-                "amenity": "Гранитные холмы, Высшие эльфы"
+                "runame":"Монолиты",
+                "engname": "The Monoliths",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Гранитные холмы",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [812,3487],
@@ -1234,8 +1961,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Каронд Кар",
-                "amenity": "Расколотые земли, Высшие эльфы"
+                "runame":"Каронд Кар",
+                "engname": "Karond Kar",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Расколотые земли",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1109,3680],
@@ -1245,8 +1977,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Пик Чёрного Ручья",
-                "amenity": "Расколотые земли, Высшие эльфы"
+                "runame":"Пик Чёрного Ручья",
+                "engname": "Black Creek Spire",
+                "traits": [],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Расколотые земли",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [1076,3550],
@@ -1256,8 +1993,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Мыс Работорговца",
-                "amenity": "Расколотые земли, Высшие эльфы"
+                "runame":"Мыс Работорговца",
+                "engname": "Slaver's Point",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Расколотые земли",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [957,3482],
@@ -1269,8 +2011,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Лотерн",
-                "amenity": "Эатайн, Высшие эльфы"
+                "runame":"Лотерн",
+                "engname": "Lothern",
+                "traits": ["capital_hef", "port"],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Эатайн",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1016,2365],
@@ -1280,8 +2027,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Ангерриаль",
-                "amenity": "Эатайн, Высшие эльфы"
+                "runame":"Ангерриаль",
+                "engname": "Angerrial",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Эатайн",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1078,2442],
@@ -1291,8 +2043,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Башня Лисеана",
-                "amenity": "Эатайн, Высшие эльфы"
+                "runame":"Башня Лисеана",
+                "engname": "Tower of Lysean",
+                "traits": [],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Эатайн",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [909,2431],
@@ -1302,8 +2059,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Святилище Асуриана",
-                "amenity": "Эатайн, Высшие эльфы"
+                "runame":"Святилище Асуриана",
+                "engname": "Shrine of Asuryan",
+                "traits": [],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Эатайн",
+                "locationType": "shrine"
             },
             "geometry":{
                 "coordinates": [1033,2497],
@@ -1315,8 +2077,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Наковальня Ваула",
-                "amenity": "Каледор, Высшие эльфы"
+                "runame":"Наковальня Ваула",
+                "engname": "Vaul's Anvil",
+                "traits": [],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Каледор",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [819,2358],
@@ -1326,8 +2093,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Тор Сетаи",
-                "amenity": "Каледор, Высшие эльфы"
+                "runame":"Тор Сетаи",
+                "engname": "Tor Sethai",
+                "traits": [],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Каледор",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [825,2450],
@@ -1339,8 +2111,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Тор Ашара",
-                "amenity": "Крейс, Высшие эльфы"
+                "runame":"Тор Ашара",
+                "engname": "Tor Achare",
+                "traits": [],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Крейс",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1179,2863],
@@ -1350,8 +2127,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Элизия",
-                "amenity": "Крейс, Высшие эльфы"
+                "runame":"Элизия",
+                "engname": "Elisia",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Крейс",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1201,2956],
@@ -1361,8 +2143,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Святилище Курнуса",
-                "amenity": "Крейс, Высшие эльфы"
+                "runame":"Святилище Курнуса",
+                "engname": "Shrine of Kurnous",
+                "traits": [],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Крейс",
+                "locationType": "shrine"
             },
             "geometry":{
                 "coordinates": [1062,2967],
@@ -1374,8 +2161,14 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Тор Коруали",
-                "amenity": "Кофик, Высшие эльфы"
+                "runame":"Тор Коруали",
+                "engname": "Tor Koruali",
+                "traits": ["port"],
+                "description": "Огромный портовый город, построенный на скалах, который также простирается глубоко под землей.",
+                "faction": "Высшие эльфы",
+                "province": "Кофик",
+                "locationType": "city",
+                "image": "images/locations/tor_koruali.png"
             },
             "geometry":{
                 "coordinates": [1325,2803],
@@ -1385,8 +2178,14 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Мистнар",
-                "amenity": "Кофик, Высшие эльфы"
+                "runame":"Мистнар",
+                "engname": "Mistnar",
+                "traits": ["port"],
+                "description": "Город высших эльфов на Перемещающихся островах.",
+                "faction": "Высшие эльфы",
+                "province": "Кофик",
+                "locationType": "city",
+                "image": "images/locations/mistnar.png"
             },
             "geometry":{
                 "coordinates": [1325,2930],
@@ -1398,8 +2197,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Тор Иврессе",
-                "amenity": "Северный Иврессе, Высшие эльфы"
+                "runame":"Тор Иврессе",
+                "engname": "Tor Yvresse",
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Северный Иврессе",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1267,2653],
@@ -1409,8 +2212,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Тралиния",
-                "amenity": "Северный Иврессе, Высшие эльфы"
+                "runame":"Тралиния",
+                "engname": "Tralinia",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Северный Иврессе",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1372,2599],
@@ -1422,8 +2230,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Элессаэли",
-                "amenity": "Южный Иврессе, Высшие эльфы"
+                "runame":"Элессаэли",
+                "engname": "Elessaeli",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Южный Иврессе",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1264,2454],
@@ -1433,8 +2246,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Курган Тель",
-                "amenity": "Южный Иврессе, Высшие эльфы"
+                "runame":"Курган Тель",
+                "engname": "Cairn Thel",
+                "traits": [],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Южный Иврессе",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1144,2389],
@@ -1444,8 +2262,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Святилище Лоэка",
-                "amenity": "Южный Иврессе, Высшие эльфы"
+                "runame":"Святилище Лоэка",
+                "engname": "Shrine of Loec",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Южный Иврессе",
+                "locationType": "shrine"
             },
             "geometry":{
                 "coordinates": [1245,2366],
@@ -1457,8 +2280,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Белая башня Хоэта",
-                "amenity": "Сафери, Высшие эльфы"
+                "runame":"Белая башня Хоэта",
+                "engname": "White Tower of Hoeth",
+                "traits": ["settlement"],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Сафери",
+                "locationType": "shrine"
             },
             "geometry":{
                 "coordinates": [1178,2598],
@@ -1468,8 +2296,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Порт Элистор",
-                "amenity": "Сафери, Высшие эльфы"
+                "runame":"Порт Элистор",
+                "engname": "Port Elistor",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Сафери",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1138,2502],
@@ -1479,8 +2312,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Тор Фину",
-                "amenity": "Сафери, Высшие эльфы"
+                "runame":"Тор Фину",
+                "engname": "Tor Finu",
+                "traits": [],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Сафери",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1199,2706],
@@ -1492,8 +2330,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Тор Элир",
-                "amenity": "Эллирион, Высшие эльфы"
+                "runame":"Тор Элир",
+                "engname": "Tor Elyr",
+                "traits": [],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Эллирион",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [823,2575],
@@ -1503,8 +2346,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Оплот Белого Огня",
-                "amenity": "Эллирион, Высшие эльфы"
+                "runame":"Оплот Белого Огня",
+                "engname": "Whitefire Tor",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Эллирион",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [876,2688],
@@ -1516,8 +2364,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Лютая скала",
-                "amenity": "Драконьи острова, Высшие эльфы"
+                "runame":"Лютая скала",
+                "engname": "Dread Rock",
+                "traits": ["port", "colony"],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Драконьи острова",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [3891,1841],
@@ -1527,8 +2380,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Гора Клык Дракона",
-                "amenity": "Драконьи острова, Высшие эльфы"
+                "runame":"Гора Клык Дракона",
+                "engname": "Dragon Fang Mount",
+                "traits": ["port", "colony", "mountian"],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Драконьи острова",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [3880,1621],
@@ -1538,8 +2396,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Залив Расколотого Камня",
-                "amenity": "Драконьи острова, Высшие эльфы"
+                "runame":"Залив Расколотого Камня",
+                "engname": "Shattered Stone Bay",
+                "traits": ["port", "colony"],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Драконьи острова",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [4000,1930],
@@ -1549,8 +2412,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Остров Расколотого Камня",
-                "amenity": "Драконьи острова, Высшие эльфы"
+                "runame":"Остров Расколотого Камня",
+                "engname": "Shattered Stone Isle",
+                "traits": ["port", "colony"],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Драконьи острова",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [4002,1776],
@@ -1562,8 +2430,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Тор Элазор",
-                "amenity": "Восточные колонии, Высшие эльфы"
+                "runame":"Тор Элазор",
+                "engname": "Tor Elasor",
+                "traits": ["port", "colony"],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Восточные колонии",
+                "locationType": "village"
             },
             "geometry":{
                 "coordinates": [3639,365],
@@ -1573,8 +2446,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Башня Звёзд",
-                "amenity": "Восточные колонии, Высшие эльфы"
+                "runame":"Башня Звёзд",
+                "engname": "Tower of The Stars",
+                "traits": ["port", "colony"],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Восточные колонии",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [3743,798],
@@ -1584,8 +2462,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Башня Солнца",
-                "amenity": "Восточные колонии, Высшие эльфы"
+                "runame":"Башня Солнца",
+                "engname": "Tower of The Sun",
+                "traits": ["port", "colony"],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Восточные колонии",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [3926,615],
@@ -1597,8 +2480,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Золотой путевой храм",
-                "amenity": "Джунгли Богов, Высшие эльфы"
+                "runame":"Золотой путевой храм",
+                "engname": "Temple Avenue of Gold",
+                "traits": ["colony"],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Джунгли Богов",
+                "locationType": "shrine"
             },
             "geometry":{
                 "coordinates": [2874,560],
@@ -1608,32 +2496,48 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Тропа Сотека",
-                "amenity": "Джунгли Богов, Высшие эльфы"
-            },
-            "geometry":{
-                "coordinates": [2844,765],
-                "type":"Point"
-            }
-        },
-        {
-            "type":"Feature",
-            "properties":{
-                "name":"Пещеры Сотека",
-                "amenity": "Джунгли Богов, Высшие эльфы"
+                "runame":"Пещеры Курнуса",
+                "engname": "Caverns of Sotek",
+                "traits": ["colony"],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Джунгли Богов",
+                "locationType": "pointOfInterest"
             },
             "geometry":{
                 "coordinates": [2696,487],
                 "type":"Point"
             }
         },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Тропа Курнуса",
+                "engname": "Sotek's Trail",
+                "traits": ["colony"],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Джунгли Богов",
+                "locationType": "pointOfInterest"
+            },
+            "geometry":{
+                "coordinates": [2844,765],
+                "type":"Point"
+            }
+        },
 
 
         {
             "type":"Feature",
             "properties":{
-                "name":"Рассветная крепость",
-                "amenity": "Берег Рассвета, Высшие эльфы"
+                "runame":"Рассветная крепость",
+                "engname": "Fortress of Dawn",
+                "traits": ["port", "colony"],
+                "description": "Укрепленный форпост высших эльфов. Шпили этого портового города построены вокруг колоссального путевого камня — редкого и ценного пережитка дней, когда солнце никогда не заходило над империей Короля-Феникса.",
+                "faction": "Высшие эльфы",
+                "province": "Берег Рассвета",
+                "locationType": "fort",
+                "image": "images/locations/fortress_of_dawn.png"
             },
             "geometry":{
                 "coordinates": [2185,320],
@@ -1643,8 +2547,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Утренний Свет",
-                "amenity": "Берег Рассвета, Высшие эльфы"
+                "runame":"Утренний Свет",
+                "engname": "Dawn's Light",
+                "traits": ["port", "colony"],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Берег Рассвета",
+                "locationType": "village"
             },
             "geometry":{
                 "coordinates": [2337,266],
@@ -1654,8 +2563,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Тор Сурпиндар",
-                "amenity": "Берег Рассвета, Высшие эльфы"
+                "runame":"Тор Сурпиндар",
+                "engname": "Tor Surpindar",
+                "traits": ["colony"],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Берег Рассвета",
+                "locationType": "village"
             },
             "geometry":{
                 "coordinates": [2454,357],
@@ -1667,8 +2581,14 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Сумеречные вершины",
-                "amenity": "Выступы, Высшие эльфы"
+                "runame":"Сумеречные вершины",
+                "engname": "Dusk Peaks",
+                "traits": ["colony"],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Выступы",
+                "locationType": "village",
+                "image": "images/locations/dusk_peaks_william-trost-richards.png"
             },
             "geometry":{
                 "coordinates": [1124,493],
@@ -1678,8 +2598,14 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Сумеречная цитадель",
-                "amenity": "Выступы, Высшие эльфы"
+                "runame":"Сумеречная цитадель",
+                "engname": "Citadel of Dusk",
+                "traits": ["port", "colony"],
+                "description": "Поселение высших эльфов, расположенное на самом южном берегу Люстрии. Хотя это изящное сооружение и построено эльфами, оно возведено на месте гораздо более древнего места силы.",
+                "faction": "Высшие эльфы",
+                "province": "Выступы",
+                "locationType": "city",
+                "image": "images/locations/citadel_of_dusk.png"
             },
             "geometry":{
                 "coordinates": [1211,419],
@@ -1691,8 +2617,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Священные пруды",
-                "amenity": "Высшие эльфы"
+                "runame":"Священные пруды",
+                "engname": "The Sacred Pools",
+                "traits": ["colony"],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Священные пруды",
+                "locationType": "village"
             },
             "geometry":{
                 "coordinates": [616,1205],
@@ -1704,8 +2635,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Врата Грифона",
-                "amenity": "Высшие эльфы"
+                "runame":"Врата Грифона",
+                "engname": "Griffon Gate",
+                "traits": [],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Врата Грифона",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [787,2743],
@@ -1715,8 +2651,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Врата Орла",
-                "amenity": "Высшие эльфы"
+                "runame":"Врата Орла",
+                "engname": "Eagle Gate",
+                "traits": [],
+                "description": "",
+                "faction": "Высшие эльфы",
+                "province": "Врата Орла",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [762,2646],
@@ -1729,8 +2670,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Долина Геан",
-                "amenity": "Авелорн, Вечная Королева"
+                "runame":"Долина Геан",
+                "engname": "Gaean Vale",
+                "traits": ["settlement", "sword_of_khaine"],
+                "description": "",
+                "faction": "Вечная Королева",
+                "province": "Авелорн",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [1029,2674],
@@ -1740,8 +2686,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Вечные Глины",
-                "amenity": "Авелорн, Вечная Королева"
+                "runame":"Вечные Глины",
+                "engname": "Evershale",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Вечная Королева",
+                "province": "Авелорн",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [965,2752],
@@ -1751,8 +2702,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Тор Сароир",
-                "amenity": "Авелорн, Вечная Королева"
+                "runame":"Тор Сароир",
+                "engname": "Tor Saroir",
+                "traits": [],
+                "description": "",
+                "faction": "Вечная Королева",
+                "province": "Авелорн",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1083,2775],
@@ -1764,8 +2720,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Врата Феникса",
-                "amenity": "Вечная Королева"
+                "runame":"Врата Феникса",
+                "engname": "Phoenix Gate",
+                "traits": [],
+                "description": "",
+                "faction": "Вечная Королева",
+                "province": "Врата Феникса",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [982,2851],
@@ -1779,8 +2740,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Нан-Гау",
-                "amenity": "Пороховая тропа, Катай"
+                "runame":"Нан-Гау",
+                "engname": "Nan-Gau • Город дыма",
+                "description": "Нан-Гау, столица северных провинций – главная цитадель западной Великой твердыни, в которой размещаются элитные войска Мяо Ин прямо на пути вторжений, идущих из степей стылого севера.",
+                "faction": "Великий Катай",
+                "province": "Пороховая тропа",
+                "locationType": "city",
+                "image": "images/locations/nan-gau.png"
             },
             "geometry":{
                 "coordinates": [4555,3031],
@@ -1790,8 +2756,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Нан-Ли",
-                "amenity": "Пороховая тропа, Катай"
+                "runame":"Нан-Ли",
+                "engname": "Nan-Li",
+                "description": "Нан-Ли — город в северных провинциях Великого Катая, расположенный вдоль Пороховой тропы между Шан-Яном и Нан-Гау. Он возвышается над глубинами Пустыни варп-камня, где по земле проносятся зловещие ветры из проклятого региона.",
+                "faction": "Великий Катай",
+                "province": "Пороховая тропа",
+                "locationType": "city",
+                "image": "images/locations/nan-li.png"
             },
             "geometry":{
                 "coordinates": [4575,2894],
@@ -1803,8 +2774,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Змеиные врата",
-                "amenity": "Западная Великая твердыня, Катай"
+                "runame":"Змеиные врата",
+                "engname": "Snake Gate",
+                "description": "",
+                "faction": "Великий Катай",
+                "province": "Западная Великая твердыня",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [4703,3075],
@@ -1814,8 +2789,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Драконьи врата",
-                "amenity": "Центральная Великая твердыня, Катай"
+                "runame":"Драконьи врата",
+                "engname": "Dragon Gate",
+                "description": "",
+                "faction": "Великий Катай",
+                "province": "Центральная Великая твердыня",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [4839,3078],
@@ -1825,8 +2804,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Черепашьи врата",
-                "amenity": "Восточная Великая твердыня, Катай"
+                "runame":"Черепашьи врата",
+                "engname": "Turtle Gate",
+                "description": "",
+                "faction": "Великий Катай",
+                "province": "Восточная Великая твердыня",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [4986,3071],
@@ -1838,8 +2821,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Терракотовое кладбище",
-                "amenity": "Страная камней и стали, Катай"
+                "runame":"Терракотовое кладбище",
+                "engname": "Terracotta Graveyard",
+                "description": "",
+                "faction": "Великий Катай",
+                "province": "Страная камней и стали",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [4798,2915],
@@ -1849,8 +2836,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"По-Мей",
-                "amenity": "Страная камней и стали, Катай"
+                "runame":"По-Мей",
+                "engname": "Po Mei",
+                "description": "",
+                "faction": "Великий Катай",
+                "province": "Страная камней и стали",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [4909,2998],
@@ -1860,8 +2851,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Вэн-Чан",
-                "amenity": "Страная камней и стали, Катай"
+                "runame":"Вэн-Чан",
+                "engname": "Weng Chang",
+                "description": "",
+                "faction": "Великий Катай",
+                "province": "Страная камней и стали",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [4687,2813],
@@ -1873,8 +2868,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Вей-Цзинь<h3>Дворец Императора-Дракона</h3>",
-                "amenity": "Имперская тропа, Катай"
+                "runame":"Вей-Цзинь",
+                "engname": "Wei-Jin • Дворец Императора-Дракона",
+                "description": "",
+                "faction": "Великий Катай",
+                "province": "Имперская тропа",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [5101,2994],
@@ -1884,8 +2883,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Мин-Чжу",
-                "amenity": "Имперская тропа, Катай"
+                "runame":"Мин-Чжу",
+                "engname": "Ming Zhu",
+                "description": "",
+                "faction": "Великий Катай",
+                "province": "Имперская тропа",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [4964,2833],
@@ -1895,8 +2898,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Город шугэньганцев",
-                "amenity": "Имперская тропа, Катай"
+                "runame":"Город шугэньганцев",
+                "engname": "City of The Shugengan",
+                "description": "",
+                "faction": "Великий Катай",
+                "province": "Имперская тропа",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [5181,2840],
@@ -1908,8 +2915,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Святилище алхимика",
-                "amenity": "Пустыня варп-камня, Катай"
+                "runame":"Святилище алхимика",
+                "engname": "Shrine of The Alchemist",
+                "description": "",
+                "faction": "Великий Катай",
+                "province": "Пустыня варп-камня",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [4500,2769],
@@ -1919,8 +2930,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Шан-Ян",
-                "amenity": "Пустыня варп-камня, Катай"
+                "runame":"Шан-Ян",
+                "engname": "Shang Yang",
+                "description": "",
+                "faction": "Великий Катай",
+                "province": "Пустыня варп-камня",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [4507,2559],
@@ -1930,8 +2945,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Тай-Цзу",
-                "amenity": "Пустыня варп-камня, Катай"
+                "runame":"Тай-Цзу",
+                "engname": "Tai Tzu",
+                "description": "",
+                "faction": "Великий Катай",
+                "province": "Пустыня варп-камня",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [4700,2556],
@@ -1943,8 +2962,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Син-По",
-                "amenity": "Леса Луны, Катай"
+                "runame":"Син-По",
+                "engname": "Xing Po",
+                "description": "",
+                "faction": "Великий Катай",
+                "province": "Леса Луны",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [4803,2638],
@@ -1954,8 +2977,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Кунлан",
-                "amenity": "Леса Луны, Катай"
+                "runame":"Кунлан",
+                "engname": "Kunlan",
+                "description": "",
+                "faction": "Великий Катай",
+                "province": "Леса Луны",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [5006,2712],
@@ -1965,8 +2992,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Селение Луны",
-                "amenity": "Леса Луны, Катай"
+                "runame":"Селение Луны",
+                "engname": "Village of The Moon",
+                "description": "",
+                "faction": "Великий Катай",
+                "province": "Леса Луны",
+                "locationType": "village"
             },
             "geometry":{
                 "coordinates": [5004,2545],
@@ -1976,8 +3007,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Гора Нефритового ветра",
-                "amenity": "Леса Луны, Катай"
+                "runame":"Гора Нефритового ветра",
+                "engname": "Jade Wind Mountain",
+                "traits": ["mountain"],
+                "description": "",
+                "faction": "Великий Катай",
+                "province": "Леса Луны",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [5135,2577],
@@ -1989,8 +3025,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Чжи-Чжу",
-                "amenity": "Равнины Сэнь, Катай"
+                "runame":"Чжи-Чжу",
+                "engname": "Zhizhu",
+                "description": "",
+                "faction": "Великий Катай",
+                "province": "Равнины Сэнь",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [5284,2702],
@@ -2000,8 +3040,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Хайчай",
-                "amenity": "Равнины Сэнь, Катай"
+                "runame":"Хайчай",
+                "engname": "Haichai",
+                "description": "",
+                "faction": "Великий Катай",
+                "province": "Равнины Сэнь",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [5412,2874],
@@ -2013,8 +3057,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Сэнь-У",
-                "amenity": "Пустоши Цзиньшэня, Катай"
+                "runame":"Сэнь-У",
+                "engname": "Xen Wu",
+                "description": "",
+                "faction": "Великий Катай",
+                "province": "Пустоши Цзиньшэня",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [4493,2425],
@@ -2024,8 +3072,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Порт Ханью",
-                "amenity": "Пустоши Цзиньшэня, Катай"
+                "runame":"Порт Ханью",
+                "engname": "Hanyu Port",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Великий Катай",
+                "province": "Пустоши Цзиньшэня",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [4501,2287],
@@ -2035,8 +3088,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Цян",
-                "amenity": "Пустоши Цзиньшэня, Катай"
+                "runame":"Цян",
+                "engname": "Qiang",
+                "description": "",
+                "faction": "Великий Катай",
+                "province": "Пустоши Цзиньшэня",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [4451,2156],
@@ -2048,8 +3105,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Шань-Ву",
-                "amenity": "Речные земли Поднебесной Империи, Катай"
+                "runame":"Шань-Ву",
+                "engname": "Shang-Wu",
+                "description": "",
+                "faction": "Великий Катай",
+                "province": "Речные земли Поднебесной Империи",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [4656,2212],
@@ -2059,8 +3120,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Ши-Лун",
-                "amenity": "Речные земли Поднебесной Империи, Катай"
+                "runame":"Ши-Лун",
+                "engname": "Shi Long",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Великий Катай",
+                "province": "Речные земли Поднебесной Империи",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [4959,2130],
@@ -2070,8 +3136,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Мост Небес",
-                "amenity": "Речные земли Поднебесной Империи, Катай"
+                "runame":"Мост Небес",
+                "engname": "Bridge of Heaven",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Великий Катай",
+                "province": "Речные земли Поднебесной Империи",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [4927,2297],
@@ -2081,8 +3152,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Гибельные холмы",
-                "amenity": "Речные земли Поднебесной Империи, Катай"
+                "runame":"Гибельные холмы",
+                "engname": "Baleful Hills",
+                "description": "",
+                "faction": "Великий Катай",
+                "province": "Речные земли Поднебесной Империи",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [4764,2322],
@@ -2094,8 +3169,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Нончан",
-                "amenity": "Низина Нончан, Катай"
+                "runame":"Нончан",
+                "engname": "Nonchang",
+                "description": "",
+                "faction": "Великий Катай",
+                "province": "Низина Нончан",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [5081,2271],
@@ -2105,8 +3184,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Привал Шиямы",
-                "amenity": "Низина Нончан, Катай"
+                "runame":"Привал Шиямы",
+                "engname": "Shiyama's Rest",
+                "description": "",
+                "faction": "Великий Катай",
+                "province": "Низина Нончан",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [5076,2125],
@@ -2118,8 +3201,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Небесный монастырь",
-                "amenity": "Небесное озеро, Катай"
+                "runame":"Небесный монастырь",
+                "engname": "Celestial Monastery",
+                "description": "",
+                "faction": "Великий Катай",
+                "province": "Небесное озеро",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [4934,2454],
@@ -2129,8 +3216,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Чжаньши",
-                "amenity": "Небесное озеро, Катай"
+                "runame":"Чжаньши",
+                "engname": "Zhanshi",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Великий Катай",
+                "province": "Небесное озеро",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [5099,2397],
@@ -2142,8 +3234,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Чимай",
-                "amenity": "Дельта Нефритовой реки, Катай"
+                "runame":"Чимай",
+                "engname": "Chimai",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Великий Катай",
+                "province": "Дельта Нефритовой реки",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [5254,2409],
@@ -2153,8 +3250,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Бэйчай",
-                "amenity": "Дельта Нефритовой реки, Катай"
+                "runame":"Бэйчай",
+                "engname": "Beichai",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Великий Катай",
+                "province": "Дельта Нефритовой реки",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [5427,2564],
@@ -2164,8 +3266,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Фу-Чоу",
-                "amenity": "Дельта Нефритовой реки, Катай"
+                "runame":"Фу-Чоу",
+                "engname": "Fu Chow",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Великий Катай",
+                "province": "Дельта Нефритовой реки",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [5419,2331],
@@ -2177,8 +3284,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Ли-Чжу",
-                "amenity": "Гора Ли, Катай"
+                "runame":"Ли-Чжу",
+                "engname": "Li Zhu",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Великий Катай",
+                "province": "Гора Ли",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [5473,2171],
@@ -2188,8 +3300,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Храм Ли",
-                "amenity": "Гора Ли, Катай"
+                "runame":"Храм Ли",
+                "engname": "Li Temple",
+                "description": "",
+                "faction": "Великий Катай",
+                "province": "Гора Ли",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [5358,2076],
@@ -2199,8 +3315,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Ши-Ву",
-                "amenity": "Гора Ли, Катай"
+                "runame":"Ши-Ву",
+                "engname": "Shi Wu",
+                "description": "",
+                "faction": "Великий Катай",
+                "province": "Гора Ли",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [5460,1927],
@@ -2212,8 +3332,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Дай-Чэн",
-                "amenity": "Змеиный эстуарий, Катай"
+                "runame":"Дай-Чэн",
+                "engname": "Dai Cheng",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Великий Катай",
+                "province": "Змеиный эстуарий",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [5485,1764],
@@ -2223,8 +3348,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Башня Ашунга",
-                "amenity": "Змеиный эстуарий, Катай"
+                "runame":"Башня Ашунга",
+                "engname": "Tower of Ashung",
+                "description": "",
+                "faction": "Великий Катай",
+                "province": "Змеиный эстуарий",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [5320,1687],
@@ -2236,8 +3365,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Укромная пристань",
-                "amenity": "Катайские территории, Катай"
+                "runame":"Укромная пристань",
+                "engname": "Hidden Landing",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Великий Катай",
+                "province": "Катайские территории",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [5496,1509],
@@ -2247,8 +3381,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Горный перевал",
-                "amenity": "Катайские территории, Катай"
+                "runame":"Горный перевал",
+                "engname": "Mountain Pass",
+                "description": "",
+                "faction": "Великий Катай",
+                "province": "Катайские территории",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [5291,1548],
@@ -2258,8 +3396,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Врата в Куреш",
-                "amenity": "Катайские территории, Катай"
+                "runame":"Врата в Куреш",
+                "engname": "Gateway to Khuresh",
+                "description": "",
+                "faction": "Великий Катай",
+                "province": "Катайские территории",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [5030,1612],
@@ -2269,8 +3411,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Южный форпост",
-                "amenity": "Катайские территории, Катай"
+                "runame":"Южный форпост",
+                "engname": "",
+                "description": "",
+                "faction": "Великий Катай",
+                "province": "Катайские территории",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [5123,1516],
@@ -2282,8 +3428,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Джунгли Чи'Ан",
-                "amenity": "Катай"
+                "runame":"Джунгли Чи'Ан",
+                "engname": "Jungles of Chi'an",
+                "traits": ["jungles"],
+                "description": "",
+                "faction": "Великий Катай",
+                "province": "Джунгли Чи'Ан",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [5224,1774],
@@ -2295,8 +3446,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Бамбуковый перевал",
-                "amenity": "Великий канал, Катай"
+                "runame":"Бамбуковый перевал",
+                "engname": "Bamboo Crossing",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Великий Катай",
+                "province": "Великий канал",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [5058,2011],
@@ -2306,8 +3462,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Селение Вай-Ли",
-                "amenity": "Великий канал, Катай"
+                "runame":"Селение Вай-Ли",
+                "engname": "Wai-Li Village",
+                "description": "",
+                "faction": "Великий Катай",
+                "province": "Великий канал",
+                "locationType": "village"
             },
             "geometry":{
                 "coordinates": [5066,1772],
@@ -2319,8 +3479,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Храм Стихийных Ветров",
-                "amenity": "Расколотые земли Тянь-Ли, Катай"
+                "runame":"Храм Стихийных Ветров",
+                "engname": "Temple of Elemental Winds",
+                "description": "",
+                "faction": "Великий Катай",
+                "province": "Расколотые земли Тянь-Ли",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [4651,2010],
@@ -2330,8 +3494,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Селение тигролюдей",
-                "amenity": "Расколотые земли Тянь-Ли, Катай"
+                "runame":"Селение тигролюдей",
+                "engname": "Village of The Tigermen",
+                "description": "",
+                "faction": "Великий Катай",
+                "province": "Расколотые земли Тянь-Ли",
+                "locationType": "village"
             },
             "geometry":{
                 "coordinates": [4760,1913],
@@ -2341,8 +3509,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Фу-Хун",
-                "amenity": "Расколотые земли Тянь-Ли, Катай"
+                "runame":"Фу-Хун",
+                "engname": "Fu Hung",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Великий Катай",
+                "province": "Расколотые земли Тянь-Ли",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [4924,1744],
@@ -2351,11 +3524,238 @@ var markerLocations = {
         },
 
 
+
+
+
+        //ЗВЕРОЛЮДИ
         {
             "type":"Feature",
             "properties":{
-                "name":"Пик Йети",
-                "amenity": "Земли Древних Великанов, Катай"
+                "runame":"Водопады Рока",
+                "engname": "The Falls of Doom",
+                "traits": [],
+                "description": "",
+                "faction": "Зверолюди",
+                "province": "Жаркая равнина",
+                "locationType": "camp"
+            },
+            "geometry":{
+                "coordinates": [3639,3012],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Пагубная долина",
+                "engname": "Vale of Woe",
+                "traits": [],
+                "description": "",
+                "faction": "Зверолюди",
+                "province": "Жаркая равнина",
+                "locationType": "camp"
+            },
+            "geometry":{
+                "coordinates": [3776,2777],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Лавовая яма",
+                "engname": "Zharr Naggrund",
+                "traits": [],
+                "description": "",
+                "faction": "Зверолюди",
+                "province": "Жаркая равнина",
+                "locationType": "camp"
+            },
+            "geometry":{
+                "coordinates": [3772,2898],
+                "type":"Point"
+            }
+        },
+
+
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Великие озёра черепов",
+                "engname": "Great Skull Lakes",
+                "traits": [],
+                "description": "",
+                "faction": "Зверолюди",
+                "province": "Зорн-Узкул",
+                "locationType": "pointOfInterest"
+            },
+            "geometry":{
+                "coordinates": [3409,3194],
+                "type":"Point"
+            }
+        },
+
+
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Воющая скала",
+                "engname": "Howling Rock",
+                "traits": [],
+                "description": "",
+                "faction": "Зверолюди",
+                "province": "Проклятые пустоши",
+                "locationType": "camp"
+            },
+            "geometry":{
+                "coordinates": [3475,2735],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Проклятые просторы",
+                "engname": "The Blasted Expanse",
+                "traits": [],
+                "description": "",
+                "faction": "Зверолюди",
+                "province": "Проклятые пустоши",
+                "locationType": "camp"
+            },
+            "geometry":{
+                "coordinates": [3436,2926],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Дракенмурские пустоши",
+                "engname": "Desolation of Drakenmoor",
+                "traits": [],
+                "description": "",
+                "faction": "Зверолюди",
+                "province": "Проклятые пустоши",
+                "locationType": "camp"
+            },
+            "geometry":{
+                "coordinates": [3330,2821],
+                "type":"Point"
+            }
+        },
+
+
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Пень Демона",
+                "engname": "The Daemon's Stump",
+                "traits": [],
+                "description": "",
+                "faction": "Зверолюди",
+                "province": "Волчьи земли",
+                "locationType": "pointOfInterest"
+            },
+            "geometry":{
+                "coordinates": [3876,2524],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Волчьи дворы",
+                "engname": "The Gates of Zharr",
+                "traits": [],
+                "description": "",
+                "faction": "Зверолюди",
+                "province": "Волчьи земли",
+                "locationType": "camp"
+            },
+            "geometry":{
+                "coordinates": [3666,2607],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Башня Горгота",
+                "engname": "Tower of Gorgoth",
+                "traits": [],
+                "description": "",
+                "faction": "Зверолюди",
+                "province": "Волчьи земли",
+                "locationType": "fort"
+            },
+            "geometry":{
+                "coordinates": [3616,2435],
+                "type":"Point"
+            }
+        },
+
+
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Горбатая гора",
+                "engname": "Crookback Mountain",
+                "traits": ["mountain"],
+                "description": "",
+                "faction": "Зверолюди",
+                "province": "Пустоши Азгроха",
+                "locationType": "camp"
+            },
+            "geometry":{
+                "coordinates": [3372,2399],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Гора Серой Ведьмы",
+                "engname": "Mount Grey Hag",
+                "traits": ["mountain"],
+                "description": "",
+                "faction": "Зверолюди",
+                "province": "Пустоши Азгроха",
+                "locationType": "pointOfInterest"
+            },
+            "geometry":{
+                "coordinates": [3516,2380],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Гора Серебряное Копьё",
+                "engname": "Mount Silverspear",
+                "traits": ["mountain"],
+                "description": "",
+                "faction": "Зверолюди",
+                "province": "Пустоши Азгроха",
+                "locationType": "pointOfInterest"
+            },
+            "geometry":{
+                "coordinates": [3325,2497],
+                "type":"Point"
+            }
+        },
+
+
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Пик Йети",
+                "engname": "Yhetee Peak",
+                "traits": [],
+                "description": "",
+                "faction": "Зверолюди",
+                "province": "Земли Древних Великанов",
+                "locationType": "pointOfInterest"
             },
             "geometry":{
                 "coordinates": [4291,2855],
@@ -2365,11 +3765,66 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Зарубка титана",
-                "amenity": "Земли Древних Великанов, Катай"
+                "runame":"Зарубка титана",
+                "engname": "Titan's Notch",
+                "traits": [],
+                "description": "",
+                "faction": "Зверолюди",
+                "province": "Земли Древних Великанов",
+                "locationType": "pointOfInterest"
             },
             "geometry":{
                 "coordinates": [4190,2930],
+                "type":"Point"
+            }
+        },
+    
+
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Гора Сабля",
+                "engname": "Sabre Mountain",
+                "traits": ["mountain"],
+                "description": "",
+                "faction": "Зверолюди",
+                "province": "Путь на восток",
+                "locationType": "camp"
+            },
+            "geometry":{
+                "coordinates": [3739,3232],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Ледоиней",
+                "engname": "Icespewer",
+                "traits": [],
+                "description": "",
+                "faction": "Зверолюди",
+                "province": "Путь на восток",
+                "locationType": "fort"
+            },
+            "geometry":{
+                "coordinates": [3873,3294],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Пик Метели",
+                "engname": "Blizzardpeak",
+                "traits": [],
+                "description": "",
+                "faction": "Зверолюди",
+                "province": "Путь на восток",
+                "locationType": "fort"
+            },
+            "geometry":{
+                "coordinates": [4067,3231],
                 "type":"Point"
             }
         },
@@ -2381,8 +3836,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Монолит Биоркила Кровавой Руки",
-                "amenity": "Ванахаймские горы, Монстры"
+                "runame":"Монолит Бьоркила Кроворукого",
+                "engname": "engname",
+                "traits": [],
+                "description": "",
+                "faction": "Монстры",
+                "province": "Ванахаймские горы",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1800,3704],
@@ -2392,8 +3852,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Троллий фьорд",
-                "amenity": "Ванахаймские горы, Монстры"
+                "runame":"Троллий фьорд",
+                "engname": "engname",
+                "traits": [],
+                "description": "",
+                "faction": "Монстры",
+                "province": "Ванахаймские горы",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1548,3680],
@@ -2405,8 +3870,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Вече грелингов",
-                "amenity": "Горы Нагльфари, Монстры"
+                "runame":"Вече грелингов",
+                "engname": "engname",
+                "traits": [],
+                "description": "",
+                "faction": "Монстры",
+                "province": "Горы Нагльфари",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1918,3840],
@@ -2416,8 +3886,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Цитадель Рока",
-                "amenity": "Горы Нагльфари, Монстры"
+                "runame":"Цитадель Рока",
+                "engname": "engname",
+                "traits": [],
+                "description": "",
+                "faction": "Монстры",
+                "province": "Горы Нагльфари",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2058,3864],
@@ -2427,8 +3902,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Равнина Нагльфари",
-                "amenity": "Горы Нагльфари, Монстры"
+                "runame":"Равнина Нагльфари",
+                "engname": "engname",
+                "traits": [],
+                "description": "",
+                "faction": "Монстры",
+                "province": "Горы Нагльфари",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2207,3875],
@@ -2440,8 +3920,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Пристань Змея",
-                "amenity": "Горы Адского Пика, Монстры"
+                "runame":"Пристань Змея",
+                "engname": "engname",
+                "traits": [],
+                "description": "",
+                "faction": "Монстры",
+                "province": "Горы Адского Пика",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1671,3912],
@@ -2451,8 +3936,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Монолит Катама",
-                "amenity": "Горы Адского Пика, Монстры"
+                "runame":"Монолит Катама",
+                "engname": "engname",
+                "traits": [],
+                "description": "",
+                "faction": "Монстры",
+                "province": "Горы Адского Пика",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1807,3992],
@@ -2462,8 +3952,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Лагерь варгов",
-                "amenity": "Горы Адского Пика, Монстры"
+                "runame":"Лагерь варгов",
+                "engname": "engname",
+                "traits": [],
+                "description": "",
+                "faction": "Монстры",
+                "province": "Горы Адского Пика",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2062,4040],
@@ -2475,8 +3970,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Бухта Торосов",
-                "amenity": "Горы Ледяного Зуба, Монстры"
+                "runame":"Бухта Торосов",
+                "engname": "engname",
+                "traits": [],
+                "description": "",
+                "faction": "Монстры",
+                "province": "Горы Ледяного Зуба",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1815,3509],
@@ -2486,8 +3986,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Альтарь Багровой жатвы",
-                "amenity": "Горы Ледяного Зуба, Монстры"
+                "runame":"Альтарь Багровой жатвы",
+                "engname": "engname",
+                "traits": [],
+                "description": "",
+                "faction": "Монстры",
+                "province": "Горы Ледяного Зуба",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2016,3620],
@@ -2497,8 +4002,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Кладбище драккаров",
-                "amenity": "Горы Ледяного Зуба, Монстры"
+                "runame":"Кладбище драккаров",
+                "engname": "engname",
+                "traits": [],
+                "description": "",
+                "faction": "Монстры",
+                "province": "Горы Ледяного Зуба",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2171,3641],
@@ -2510,8 +4020,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Залив Клинков",
-                "amenity": "Тролльхаймские горы, Монстры"
+                "runame":"Залив Клинков",
+                "engname": "engname",
+                "traits": [],
+                "description": "",
+                "faction": "Монстры",
+                "province": "Тролльхаймские горы",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2337,3758],
@@ -2521,8 +4036,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Лагерь сарлов",
-                "amenity": "Тролльхаймские горы, Монстры"
+                "runame":"Лагерь сарлов",
+                "engname": "engname",
+                "traits": [],
+                "description": "",
+                "faction": "Монстры",
+                "province": "Тролльхаймские горы",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2344,3905],
@@ -2532,8 +4052,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Башня Хракка",
-                "amenity": "Тролльхаймские горы, Монстры"
+                "runame":"Башня Хракка",
+                "engname": "engname",
+                "traits": [],
+                "description": "",
+                "faction": "Монстры",
+                "province": "Тролльхаймские горы",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2527,3789],
@@ -2545,8 +4070,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Монолит Плоти",
-                "amenity": "Горы Хель, Монстры"
+                "runame":"Монолит отродий",
+                "engname": "engname",
+                "traits": [],
+                "description": "",
+                "faction": "Монстры",
+                "province": "Горы Хель",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2399,4128],
@@ -2556,8 +4086,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Запретная цитадель",
-                "amenity": "Горы Хель, Монстры"
+                "runame":"Запретная цитадель",
+                "engname": "engname",
+                "traits": [],
+                "description": "",
+                "faction": "Монстры",
+                "province": "Горы Хель",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2471,3919],
@@ -2567,8 +4102,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Altar of Spawns",
-                "amenity": "Горы Хель, Монстры"
+                "runame":"Мясной алтарь",
+                "engname": "Altar of Spawns",
+                "traits": [],
+                "description": "",
+                "faction": "Монстры",
+                "province": "Горы Хель",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2613,4025],
@@ -2578,8 +4118,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Зимний Костёр",
-                "amenity": "Горы Хель, Монстры"
+                "runame":"Зимний Костёр",
+                "engname": "engname",
+                "traits": [],
+                "description": "",
+                "faction": "Монстры",
+                "province": "Горы Хель",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2712,4002],
@@ -2591,8 +4136,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Логово короля троллей",
-                "amenity": "Горы Великанов, Монстры"
+                "runame":"Логово короля троллей",
+                "engname": "engname",
+                "traits": [],
+                "description": "",
+                "faction": "Монстры",
+                "province": "Горы Великанов",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2753,3808],
@@ -2602,8 +4152,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Крака Драк",
-                "amenity": "Горы Великанов, Монстры"
+                "runame":"Крака Драк",
+                "engname": "engname",
+                "traits": [],
+                "description": "",
+                "faction": "Монстры",
+                "province": "Горы Великанов",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2837,3891],
@@ -2613,8 +4168,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Сьоктракен",
-                "amenity": "Горы Великанов, Монстры"
+                "runame":"Сьоктракен",
+                "engname": "engname",
+                "traits": [],
+                "description": "",
+                "faction": "Монстры",
+                "province": "Горы Великанов",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2907,3830],
@@ -2626,8 +4186,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Чёртова яма",
-                "amenity": "Перевал Чёрной Крови, Монстры"
+                "runame":"Адская дыра",
+                "engname": "Hell Pit",
+                "traits": [],
+                "description": "",
+                "faction": "Монстры",
+                "province": "Перевал Чёрной Крови",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2821,3728],
@@ -2639,8 +4204,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Эренград",
-                "amenity": "Река Линск, Монстры"
+                "runame":"Эренград",
+                "engname": "engname",
+                "traits": [],
+                "description": "",
+                "faction": "Монстры",
+                "province": "Река Линск",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2537,3551],
@@ -2652,11 +4222,64 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Карак-Влаг",
-                "amenity": "Громадные горы, Монстры"
+                "runame":"Карак Влаг",
+                "engname": "Karak Vlag",
+                "traits": [],
+                "description": "",
+                "faction": "Монстры",
+                "province": "Громадные горы",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [3270,3487],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Форт Дваррслав",
+                "engname": "Fort Dwarrslav",
+                "traits": [],
+                "description": "",
+                "faction": "Монстры",
+                "province": "Громадные горы",
+                "locationType": "fort"
+            },
+            "geometry":{
+                "coordinates": [3444,3421],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Храм Хаймкелла",
+                "engname": "Temple of Heimkel",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Монстры",
+                "province": "Громадные горы",
+                "locationType": "shrine"
+            },
+            "geometry":{
+                "coordinates": [3156,3651],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Мёрзлый берег",
+                "engname": "Frozen Landing",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Монстры",
+                "province": "Громадные горы",
+                "locationType": "pointOfInterest"
+            },
+            "geometry":{
+                "coordinates": [3048,3795],
                 "type":"Point"
             }
         },
@@ -2666,8 +4289,14 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Прааг",
-                "amenity": "Проклятый город"
+                "runame":"Прааг",
+                "engname": "Praag",
+                "traits": [],
+                "description": "Один из древнейших и наиболее укреплённых городов севера Империи, некогда процветавший торговый и культурный центр с роскошными серебряными куполами, оперным театром и академиями магии. Во время Великой Войны армия демонов взяла его штурмом и полностью осквернила — с тех пор стены города покрылись демоническими мутациями, улицы источают безумие, а каждый второй рождённый становился мутантом. Несмотря на вечное проклятие, разруху и бесконечные осады, жители Праага раз за разом отстраивают город и не покидают его — этот несломленный дух и делает Прааг «Бастионом Севера».",
+                "faction": "Город-государство Прааг",
+                "province": "Проклятый город",
+                "locationType": "city",
+                "image": "images/locations/praag.png"
             },
             "geometry":{
                 "coordinates": [2894,3560],
@@ -2682,8 +4311,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Куронн",
-                "amenity": "Куроннские топи, Империя"
+                "runame":"Куронн",
+                "engname": "Couronne",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Куроннские топи",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1639,3122],
@@ -2693,8 +4327,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Л'Ангиль",
-                "amenity": "Куроннские топи, Империя"
+                "runame":"Л'Ангиль",
+                "engname": "L'Anguille",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Империя",
+                "province": "Куроннские топи",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1535,3058],
@@ -2706,8 +4345,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Лионесс",
-                "amenity": "Берег Лионесса, Империя"
+                "runame":"Лионесс",
+                "engname": "Lyonesse",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Империя",
+                "province": "Берег Лионесса",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1450,2922],
@@ -2717,8 +4361,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Музильон",
-                "amenity": "Берег Лионесса, Империя"
+                "runame":"Музильон",
+                "engname": "Mousillon",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Империя",
+                "province": "Берег Лионесса",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1527,2792],
@@ -2730,8 +4379,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Замок Артуа",
-                "amenity": "Арденский лес, Империя"
+                "runame":"Замок Артуа",
+                "engname": "Castle Artois",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Арденский лес",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1641,2949],
@@ -2741,8 +4395,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Гизоро",
-                "amenity": "Арденский лес, Империя"
+                "runame":"Гизоро",
+                "engname": "Gisoreux",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Арденский лес",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1755,2905],
@@ -2753,8 +4412,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Форт ???",
-                "amenity": "Ушелье Гизоро, Империя"
+                "runame":"Форт Бергбреш",
+                "engname": "Fort Bergbres",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Ущелье Гизоро",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [1797,2943],
@@ -2766,8 +4430,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Бордело",
-                "amenity": "Река Брианн, Империя"
+                "runame":"Бордело",
+                "engname": "Bordeleaux",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Империя",
+                "province": "Река Брианн",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1577,2675],
@@ -2777,8 +4446,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Аквитания",
-                "amenity": "Река Брианн, Империя"
+                "runame":"Аквитания",
+                "engname": "Aquitaine",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Река Брианн",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1690,2628],
@@ -2790,8 +4464,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Замок Бастонь",
-                "amenity": "Бастонь, Империя"
+                "runame":"Замок Бастонь",
+                "engname": "Castle Bastonne",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Бастонь",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1715,2781],
@@ -2801,8 +4480,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Монфор",
-                "amenity": "Бастонь, Империя"
+                "runame":"Монфор",
+                "engname": "Montfort",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Бастонь",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1900,2736],
@@ -2813,8 +4497,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Хельмгарт ???",
-                "amenity": "Перевал Кусачей Секиры, Империя"
+                "runame":"Хельмгарт",
+                "engname": "Helmgart",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Перевал Кусачей Секиры",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [1949,2797],
@@ -2826,8 +4515,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Массив Оркал",
-                "amenity": "Курганы Куилё, Империя"
+                "runame":"Массив Оркал",
+                "engname": "Massif Orcal",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Курганы Куилё",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1828,2615],
@@ -2839,8 +4533,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Замок Каркассон",
-                "amenity": "Каркассон, Империя"
+                "runame":"Замок Каркассон",
+                "engname": "Castle Carcassonne",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Каркассон",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1861,2326],
@@ -2850,8 +4549,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Брионна",
-                "amenity": "Каркассон, Империя"
+                "runame":"Брионна",
+                "engname": "Brionne",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Империя",
+                "province": "Каркассон",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1683,2432],
@@ -2863,8 +4567,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Парравон ???",
-                "amenity": "Шалонский лес, Империя"
+                "runame":"Парравон",
+                "engname": "Parravon",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Шалонский лес",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1935,2656],
@@ -2874,8 +4583,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Квенелль ???",
-                "amenity": "Шалонский лес, Империя"
+                "runame":"Квенель",
+                "engname": "Quenelles",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Шалонский лес",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1925,2502],
@@ -2887,8 +4601,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Арнау",
-                "amenity": "Пустоши, Империя"
+                "runame":"Арнау",
+                "engname": "Aarnau",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Пустоши",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1846,3348],
@@ -2898,8 +4617,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Горсель",
-                "amenity": "Пустоши, Империя"
+                "runame":"Горсель",
+                "engname": "Gorssel",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Пустоши",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1846,3144],
@@ -2909,8 +4633,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Мариенбург",
-                "amenity": "Пустоши, Империя"
+                "runame":"Мариенбург",
+                "engname": "Marienburg",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Империя",
+                "province": "Пустоши",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1810,3034],
@@ -2922,8 +4651,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Мыс Мародёра",
-                "amenity": "Туманные холмы, Империя"
+                "runame":"Мыс Мародёра",
+                "engname": "Wrecker's Point",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Империя",
+                "province": "Туманные холмы",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1896,3455],
@@ -2933,8 +4667,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Чёрная Яма",
-                "amenity": "Туманные холмы, Империя"
+                "runame":"Чёрная Яма",
+                "engname": "The Black Pit",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Туманные холмы",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2042,3253],
@@ -2946,8 +4685,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Дитерсхафен",
-                "amenity": "Нордланд, Империя"
+                "runame":"Дитерсхафен",
+                "engname": "Dietershafen",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Империя",
+                "province": "Нордланд",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2102,3519],
@@ -2957,8 +4701,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Зальцемюнд",
-                "amenity": "Нордланд, Империя"
+                "runame":"Зальцемюнд",
+                "engname": "Salzenmund",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Нордланд",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2227,3495],
@@ -2970,8 +4719,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Лаурелорнский лес",
-                "amenity": "Империя"
+                "runame":"Лаурелорнский лес",
+                "engname": "Laurelorn Forest",
+                "traits": ["forest"],
+                "description": "",
+                "faction": "Империя",
+                "province": "Лаурелорнский лес",
+                "locationType": "pointOfInterest"
             },
             "geometry":{
                 "coordinates": [2124,3357],
@@ -2983,8 +4737,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Мидденхайм",
-                "amenity": "Мидденланд, Империя"
+                "runame":"Мидденхайм",
+                "engname": "Middenheim",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Мидденланд",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2219,3258],
@@ -2994,8 +4753,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Мидденстаг",
-                "amenity": "Мидденланд, Империя"
+                "runame":"Мидденстаг",
+                "engname": "Middenstag",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Мидденланд",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2281,3184],
@@ -3005,8 +4769,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Вайсмунд",
-                "amenity": "Мидденланд, Империя"
+                "runame":"Вайсмунд",
+                "engname": "Weismund",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Мидденланд",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2117,3144],
@@ -3016,8 +4785,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Карробург",
-                "amenity": "Мидденланд, Империя"
+                "runame":"Карробург",
+                "engname": "Carroburg",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Мидденланд",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2037,3033],
@@ -3029,8 +4803,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Норден",
-                "amenity": "Остланд, Империя"
+                "runame":"Норден",
+                "engname": "Norden",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Империя",
+                "province": "Остланд",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2376,3559],
@@ -3040,8 +4819,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Замок фон Раукен",
-                "amenity": "Остланд, Империя"
+                "runame":"Замок фон Раукен",
+                "engname": "Castle Von Rauken",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Остланд",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2584,3471],
@@ -3051,8 +4835,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Вольфенбург",
-                "amenity": "Остланд, Империя"
+                "runame":"Вольфенбург",
+                "engname": "Wolfenburg",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Остланд",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2493,3361],
@@ -3064,8 +4853,79 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Медная Крепь",
-                "amenity": "Срединные горы, Империя"
+                "runame":"Горная обитель",
+                "engname": "Igerov",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Южная область",
+                "locationType": "fort"
+            },
+            "geometry":{
+                "coordinates": [3004,3372],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Форт Торбека",
+                "engname": "Fort Jakova",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Южная область",
+                "locationType": "fort"
+            },
+            "geometry":{
+                "coordinates": [2962,3247],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Витсбург",
+                "engname": "Vitevo",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Южная область",
+                "locationType": "village"
+            },
+            "geometry":{
+                "coordinates": [2837,3287],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Завастра",
+                "engname": "Zavastra",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Южная область",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [2695,3400],
+                "type":"Point"
+            }
+        },
+
+
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Медная Крепь",
+                "engname": "Brass Keep",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Срединные горы",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [2379,3403],
@@ -3077,8 +4937,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Хергиг",
-                "amenity": "Хохланд, Империя"
+                "runame":"Хергиг",
+                "engname": "Hergig",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Хохланд",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2404,3240],
@@ -3088,8 +4953,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Крюденвальд",
-                "amenity": "Хохланд, Империя"
+                "runame":"Крюденвальд",
+                "engname": "Krudenwald",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Хохланд",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2297,3308],
@@ -3101,8 +4971,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Лес грифонов",
-                "amenity": "Империя"
+                "runame":"Лес грифонов",
+                "engname": "Gryphon Wood",
+                "traits": ["forest"],
+                "description": "",
+                "faction": "Империя",
+                "province": "Лес грифонов",
+                "locationType": "pointOfInterest"
             },
             "geometry":{
                 "coordinates": [2685,3160],
@@ -3114,8 +4989,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Бекхафен",
-                "amenity": "Остермарк, Империя"
+                "runame":"Бекхафен",
+                "engname": "Bechafen",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Остермарк",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2713,3307],
@@ -3125,8 +5005,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Мордхайм",
-                "amenity": "Остермарк, Империя"
+                "runame":"Мордхайм",
+                "engname": "Mordheim",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Остермарк",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2702,3054],
@@ -3136,8 +5021,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Эссен",
-                "amenity": "Остермарк, Империя"
+                "runame":"Эссен",
+                "engname": "Essen",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Остермарк",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2773,3056],
@@ -3147,8 +5037,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Нагенхоф",
-                "amenity": "Остермарк, Империя"
+                "runame":"Нагенхоф",
+                "engname": "Nagenhof",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Остермарк",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2875,3152],
@@ -3160,8 +5055,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Фленсбург",
-                "amenity": "Штирланд, Империя"
+                "runame":"Фленсбург",
+                "engname": "Flensburg",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Штирланд",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2353,2860],
@@ -3171,8 +5071,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Вюртбад",
-                "amenity": "Штирланд, Империя"
+                "runame":"Вюртбад",
+                "engname": "Wurtbad",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Штирланд",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2430,2930],
@@ -3182,8 +5087,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Нидлинг",
-                "amenity": "Штирланд, Империя"
+                "runame":"Нидлинг",
+                "engname": "Niedling",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Штирланд",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2611,2958],
@@ -3195,8 +5105,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Форт Оберштир",
-                "amenity": "Северная Сильвания, Империя"
+                "runame":"Форт Оберштир",
+                "engname": "Fort Oberstyre",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Северная Сильвания",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [2670,2867],
@@ -3206,8 +5121,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Замок Темпельгоф",
-                "amenity": "Северная Сильвания, Империя"
+                "runame":"Замок Темпельгоф",
+                "engname": "Castle Templehof",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Северная Сильвания",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2749,2898],
@@ -3217,8 +5137,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Вальденгоф",
-                "amenity": "Северная Сильвания, Империя"
+                "runame":"Вальденгоф",
+                "engname": "Waldenhof",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Северная Сильвания",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2883,2995],
@@ -3230,8 +5155,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Шварцхафен",
-                "amenity": "Южная Сильвания, Империя"
+                "runame":"Шварцхафен",
+                "engname": "Swartzhafen",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Южная Сильвания",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2698,2735],
@@ -3241,8 +5171,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Эшен",
-                "amenity": "Южная Сильвания, Империя"
+                "runame":"Эшен",
+                "engname": "Eschen",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Южная Сильвания",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2859,2938],
@@ -3252,8 +5187,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Замок Дракенгоф",
-                "amenity": "Южная Сильвания, Империя"
+                "runame":"Замок Дракенгоф",
+                "engname": "Castle Drakenhof",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Южная Сильвания",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2863,2825],
@@ -3265,8 +5205,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Вече",
-                "amenity": "Мутланд, Империя"
+                "runame":"Вече",
+                "engname": "The Moot",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Мутланд",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2596,2777],
@@ -3278,8 +5223,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Аверхайм",
-                "amenity": "Аверланд, Империя"
+                "runame":"Аверхайм",
+                "engname": "Averheim",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Аверланд",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2461,2765],
@@ -3289,8 +5239,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Гренцштадт",
-                "amenity": "Аверланд, Империя"
+                "runame":"Гренцштадт",
+                "engname": "Grenzstadt",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Аверланд",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2595,2647],
@@ -3302,8 +5257,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Пфайльдорф",
-                "amenity": "Золланд, Империя"
+                "runame":"Пфайльдорф",
+                "engname": "Pfeildorf",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Золланд",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2352,2638],
@@ -3313,8 +5273,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Штайнгарт",
-                "amenity": "Золланд, Империя"
+                "runame":"Штайнгарт",
+                "engname": "Steingart",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Золланд",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2480,2602],
@@ -3326,8 +5291,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Нульн",
-                "amenity": "Виссенланд, Империя"
+                "runame":"Нульн",
+                "engname": "Nuln",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Виссенланд",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2214,2800],
@@ -3337,8 +5307,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Доттернбах",
-                "amenity": "Виссенланд, Империя"
+                "runame":"Доттернбах",
+                "engname": "Dotternbach",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Виссенланд",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2191,2690],
@@ -3348,8 +5323,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Виссенбург",
-                "amenity": "Виссенланд, Империя"
+                "runame":"Виссенбург",
+                "engname": "Wissenburg",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Виссенланд",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2310,2704],
@@ -3361,8 +5341,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Альтдорф",
-                "amenity": "Рейкланд, Империя"
+                "runame":"Альтдорф",
+                "engname": "Altdorf",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Империя",
+                "province": "Рейкланд",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2106,2994],
@@ -3372,8 +5357,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Айльхарт",
-                "amenity": "Рейкланд, Империя"
+                "runame":"Айльхарт",
+                "engname": "Eilhart",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Рейкланд",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1928,2955],
@@ -3383,8 +5373,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Юбершрайк",
-                "amenity": "Рейкланд, Империя"
+                "runame":"Ubersreik",
+                "engname": "engname",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Рейкланд",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2024,2839],
@@ -3394,8 +5389,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Грюнбург",
-                "amenity": "Рейкланд, Империя"
+                "runame":"Грюнбург",
+                "engname": "Grunburg",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Рейкланд",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2190,2877],
@@ -3407,8 +5407,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Кемпербад",
-                "amenity": "Талабекланд, Империя"
+                "runame":"Кемпербад",
+                "engname": "Kemperbad",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Талабекланд",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2264,2945],
@@ -3418,8 +5423,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Талабхайм",
-                "amenity": "Талабекланд, Империя"
+                "runame":"Талабхайм",
+                "engname": "Talabheim",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Талабекланд",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2414,3186],
@@ -3429,8 +5439,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Крюгенхайм",
-                "amenity": "Талабекланд, Империя"
+                "runame":"Крюгенхайм",
+                "engname": "Krugenheim",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Талабекланд",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2535,3023],
@@ -3440,8 +5455,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Каппельбург",
-                "amenity": "Талабекланд, Империя"
+                "runame":"Каппельбург",
+                "engname": "Kappelburg",
+                "traits": [],
+                "description": "",
+                "faction": "Империя",
+                "province": "Талабекланд",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2610,3273],
@@ -3454,8 +5474,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Билбали",
-                "amenity": "Горы Ирраны"
+                "runame":"Билбали",
+                "engname": "Bilbali",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Маркизат Билбали",
+                "province": "Горы Ирраны",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1595,2237],
@@ -3465,8 +5490,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Монтенас",
-                "amenity": "Горы Ирраны"
+                "runame":"Монтенас",
+                "engname": "Montenas",
+                "traits": [],
+                "description": "",
+                "faction": "Маркизат Билбали",
+                "province": "Горы Ирраны",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1655,2099],
@@ -3479,8 +5509,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Магритта",
-                "amenity": "Эсталия"
+                "runame":"Магритта",
+                "engname": "Magritta",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Графство Эсталия",
+                "province": "Эсталия",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1669,1980],
@@ -3490,8 +5525,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Нуджа",
-                "amenity": "Эсталия"
+                "runame":"Нуджа",
+                "engname": "Nuja",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Графство Эсталия",
+                "province": "Эсталия",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1529,1969],
@@ -3501,8 +5541,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Тобаро",
-                "amenity": "Эсталия"
+                "runame":"Тобаро",
+                "engname": "Tobaro",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Графство Эсталия",
+                "province": "Эсталия",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1868,2044],
@@ -3515,8 +5560,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Миральяно",
-                "amenity": "Тилея"
+                "runame":"Миральяно",
+                "engname": "Miragliano",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Герцогство Тилея",
+                "province": "Тилея",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1988,2098],
@@ -3526,8 +5576,13 @@ var markerLocations = {
                 {
             "type":"Feature",
             "properties":{
-                "name":"Риффраффа",
-                "amenity": "Тилея"
+                "runame":"Риффраффа",
+                "engname": "Rifraffa",
+                "traits": [],
+                "description": "",
+                "faction": "Герцогство Тилея",
+                "province": "Тилея",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2076,2006],
@@ -3542,8 +5597,62 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Собачья равнина",
-                "amenity": "Железные Пески, Гномы"
+                "runame":"Высокое Место",
+                "engname": "The High Place",
+                "traits": [],
+                "description": "",
+                "faction": "Клан Уллек",
+                "province": "Ущелье Мёртвых Скал",
+                "locationType": "village"
+            },
+            "geometry":{
+                "coordinates": [3179,2543],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Гора Гунбад",
+                "engname": "Mount Gunbad",
+                "traits": ["mountain"],
+                "description": "Главная крепость в Ущелье Мёртвых Скал, единственный источник чрезвычайно ценного бриндюраза («блестящего камня») во всем известном мире. Этот минерал настолько ценен, что когда началась Война Возмездия, и гномы всех крепостей были призваны сражаться с эльфами, жителей Гунбада пощадили, чтобы добыча полезных ископаемых могла продолжаться.",
+                "faction": "Клан Уллек",
+                "province": "Ущелье Мёртвых Скал",
+                "locationType": "fort"
+            },
+            "geometry":{
+                "coordinates": [3239,2718],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Арка Края Света",
+                "engname": "World's Edge Archway",
+                "traits": [],
+                "description": "",
+                "faction": "Клан Уллек",
+                "province": "Ущелье Мёртвых Скал",
+                "locationType": "pointOfInterest"
+            },
+            "geometry":{
+                "coordinates": [3275,2602],
+                "type":"Point"
+            }
+        },
+
+
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Собачья равнина",
+                "engname": "Plain of Dogs",
+                "description": "",
+                "faction": "Новаторы",
+                "province": "Пустыня Железные Пески",
+                "locationType": "pointOfInterest"
             },
             "geometry":{
                 "coordinates": [157,2923],
@@ -3553,8 +5662,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Ущелье Ледяных Скал",
-                "amenity": "Железные Пески, Гномы"
+                "runame":"Ущелье Ледяных Скал",
+                "engname": "Ice Rock Gorge",
+                "description": "",
+                "faction": "Новаторы",
+                "province": "Пустыня Железные Пески",
+                "locationType": "pointOfInterest"
             },
             "geometry":{
                 "coordinates": [297,2982],
@@ -3566,8 +5679,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Пик Тирана",
-                "amenity": "Янтарный берег, Гномы"
+                "runame":"Пик Тирана",
+                "engname": "Tyrant Peak",
+                "traits": ["mountain"],
+                "description": "",
+                "faction": "Новаторы",
+                "province": "Ясеневый берег",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [94,2652],
@@ -3577,8 +5695,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Железный Шип",
-                "amenity": "Янтарный берег, Гномы"
+                "runame":"Железный Шип",
+                "engname": "Ironspike",
+                "description": "",
+                "faction": "Новаторы",
+                "province": "Ясеневый берег",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [176,2522],
@@ -3588,8 +5710,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Логово Скарпела",
-                "amenity": "Янтарный берег, Гномы"
+                "runame":"Логово Скарпела",
+                "engname": "Scarpel's Lair",
+                "description": "",
+                "faction": "Новаторы",
+                "province": "Ясеневый берег",
+                "locationType": "pointOfInterest"
             },
             "geometry":{
                 "coordinates": [61,2770],
@@ -3599,8 +5725,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Серники",
-                "amenity": "Янтарный берег, Гномы"
+                "runame":"Серники",
+                "engname": "Sulpharets",
+                "description": "",
+                "faction": "Новаторы",
+                "province": "Ясеневый берег",
+                "locationType": "pointOfInterest"
             },
             "geometry":{
                 "coordinates": [87,2458],
@@ -3612,8 +5742,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Древний город Квинтекс",
-                "amenity": "Вершины Титана, Гномы"
+                "runame":"Древний город Квинтекс",
+                "engname": "Ancient City of Quintex",
+                "description": "",
+                "faction": "Новаторы",
+                "province": "Вершины Титана",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [295,2735],
@@ -3623,8 +5757,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Окаменевший лес",
-                "amenity": "Вершины Титана, Гномы"
+                "runame":"Окаменевший лес",
+                "engname": "Petrified Forest",
+                "traits": ["forest"],
+                "description": "",
+                "faction": "Новаторы",
+                "province": "Вершины Титана",
+                "locationType": "pointOfInterest"
             },
             "geometry":{
                 "coordinates": [306,2568],
@@ -3634,8 +5773,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Мыс Серой Скалы",
-                "amenity": "Вершины Титана, Гномы"
+                "runame":"Мыс Серой Скалы",
+                "engname": "Grey Rock Point",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Новаторы",
+                "province": "Вершины Титана",
+                "locationType": "village"
             },
             "geometry":{
                 "coordinates": [426,2507],
@@ -3645,8 +5789,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Сс'ильдра Тор",
-                "amenity": "Вершины Титана, Гномы"
+                "runame":"Сс'ильдра Тор",
+                "engname": "S'sildra Tor",
+                "description": "",
+                "faction": "Новаторы",
+                "province": "Вершины Титана",
+                "locationType": "village"
             },
             "geometry":{
                 "coordinates": [256,2472],
@@ -3658,8 +5806,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Карак Зорн",
-                "amenity": "Южные земли гор Края Света, Гномы"
+                "runame":"Карак Зорн",
+                "engname": "Karak Zorn",
+                "description": "Легендарная крепость гномов, построенная тысячи лет назад, контакт с которой был давно утрачен. Вопрос о том, существует ли до сих пор эта цитадель — да и существовала ли вообще, — так и остаётся открытым, однако подробности о сказочных сокровищах и невероятных богатствах её королей часто обсуждаются за кружкой доброго гномьего эля.",
+                "faction": "Экспедиция Железноброва",
+                "province": "Южная окраина Краесветных гор",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2727,1018],
@@ -3669,8 +5821,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Затерянное плато",
-                "amenity": "Южные земли гор Края Света, Гномы"
+                "runame":"Затерянное плато",
+                "engname": "Lost Plateau",
+                "description": "",
+                "faction": "Экспедиция Железноброва",
+                "province": "Южная окраина Краесветных гор",
+                "locationType": "pointOfInterest"
             },
             "geometry":{
                 "coordinates": [2816,1122],
@@ -3680,8 +5836,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Гора Арахнос",
-                "amenity": "Южные земли гор Края Света, Гномы"
+                "runame":"Гора Арахнос",
+                "engname": "Mount Arachnos",
+                "traits": ["mountain"],
+                "description": "",
+                "faction": "Экспедиция Железноброва",
+                "province": "Южная окраина Краесветных гор",
+                "locationType": "pointOfInterest"
             },
             "geometry":{
                 "coordinates": [2850,1232],
@@ -3693,8 +5854,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Карак Тхагг ???",
-                "amenity": "Болота Погибели, Гномы"
+                "runame":"Карак Тхагг",
+                "engname": "Karak Thagg",
+                "description": "",
+                "faction": "Клан Ангрунд",
+                "province": "Болота Погибели",
+                "locationType": "village"
             },
             "geometry":{
                 "coordinates": [1858,2125],
@@ -3706,8 +5871,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Карак Изор",
-                "amenity": "Подземелья, Гномы"
+                "runame":"Карак Изор",
+                "engname": "Karak Izor",
+                "description": "Первая и самая большая твердыня гномов, находящаяся за пределами Краесветных гор. Возраст и престиж этих владений таковы, что все прочие поселения гномов в Подземелье, Ирранских и Апуччинских горах обращаются к Карак-Изору за покровительством и защитой.",
+                "faction": "Клан Ангрунд",
+                "province": "Подземелья",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2240,2322],
@@ -3717,8 +5886,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Карак Буфдар",
-                "amenity": "Подземелья, Гномы"
+                "runame":"Карак Буфдар",
+                "engname": "Karak Bhufdar",
+                "description": "",
+                "faction": "Клан Ангрунд",
+                "province": "Подземелья",
+                "locationType": "village"
             },
             "geometry":{
                 "coordinates": [2129,2286],
@@ -3728,8 +5901,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Заракзил",
-                "amenity": "Подземелья, Гномы"
+                "runame":"Заракзил",
+                "engname": "Zarakzil",
+                "description": "",
+                "faction": "Клан Ангрунд",
+                "province": "Подземелья",
+                "locationType": "village"
             },
             "geometry":{
                 "coordinates": [2159,2083],
@@ -3741,8 +5918,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Грюнг Цинт",
-                "amenity": "Северные Серые горы, Гномы"
+                "runame":"Грюнг Цинт",
+                "engname": "Grung Zint",
+                "description": "",
+                "faction": "Клан Ангрунд",
+                "province": "Северные Серые горы",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [1738,3006],
@@ -3752,8 +5933,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Застава Чёрного Камня",
-                "amenity": "Северные Серые горы, Гномы"
+                "runame":"Застава Чёрного Камня",
+                "engname": "Blackstone Post",
+                "description": "",
+                "faction": "Клан Ангрунд",
+                "province": "Северные Серые горы",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1827,2880],
@@ -3763,8 +5948,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Карак Зифлин",
-                "amenity": "Северные Серые горы, Гномы"
+                "runame":"Карак Зифлин",
+                "engname": "Karak Ziflin",
+                "description": "",
+                "faction": "Клан Ангрунд",
+                "province": "Северные Серые горы",
+                "locationType": "village"
             },
             "geometry":{
                 "coordinates": [1909,2809],
@@ -3776,8 +5965,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Карак Азгараз",
-                "amenity": "Южные Серые горы, Гномы"
+                "runame":"Карак Азгараз",
+                "engname": "Karak Azgaraz",
+                "description": "Одна из главных крепостей гномов, расположенная недалеко от имперского торгового города Юбершрайк. Гномов этого региона их восточные сородичи называют «серыми гномами», что указывает не только на их местоположение, но и на суровый взгляд на жизнь и относительную аскетичность их крепостей.",
+                "faction": "Клан Ангрунд",
+                "province": "Южные Серые горы",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2024,2739],
@@ -3787,8 +5980,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Карак Норн",
-                "amenity": "Южные Серые горы, Гномы"
+                "runame":"Карак Норн",
+                "engname": "Karak Norn",
+                "description": "Карак-Норн является самым большим из поселений Серых гор. Его населяют лишившиеся своего дома кланы из павшей крепости Серебряный Пик и дозорных башен перевала Бешеного Пса. Карак-Норн находится на единственных крупных залежах металлов и полудрагоценных камней в Серых горах.",
+                "faction": "Клан Ангрунд",
+                "province": "Южные Серые горы",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2137,2635],
@@ -3798,8 +5995,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Гримхолд",
-                "amenity": "Южные Серые горы, Гномы"
+                "runame":"Гримхолд",
+                "engname": "Grimhold",
+                "description": "Приходящее в упадок поселение серых гномов.",
+                "faction": "Клан Ангрунд",
+                "province": "Южные Серые горы",
+                "locationType": "village"
             },
             "geometry":{
                 "coordinates": [2186,2450],
@@ -3809,8 +6010,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Долина Хрящей",
-                "amenity": "Южные Серые горы, Гномы"
+                "runame":"Долина Хрящей",
+                "engname": "Gristle Valley",
+                "description": "",
+                "faction": "Клан Ангрунд",
+                "province": "Южные Серые горы",
+                "locationType": "pointOfInterest"
             },
             "geometry":{
                 "coordinates": [2247,2530],
@@ -3822,8 +6027,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Форт Солл ???",
-                "amenity": "Перевал Пасти Зимы, Гномы"
+                "runame":"Форт Золл",
+                "engname": "Fort Soll",
+                "description": "",
+                "faction": "Клан Ангрунд",
+                "province": "Перевал Пасти Зимы",
+                "locationType": "fort"
             },
             "geometry":{
                 "coordinates": [2332,2508],
@@ -3835,8 +6044,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Карак Хирн",
-                "amenity": "Чёрные горы, Гномы"
+                "runame":"Карак Хирн",
+                "engname": "Karak Hirn",
+                "description": "Крупнейшая и важнейшая крепость гномов в Чёрных горах, расположенная между Восточными Пограничными княжествами и южными границами Империи. В настоящее время крепостью правит король Алрик Ранульфссон из клана Дражкарак и его жена, королева Виннифер Фальксенхейр.",
+                "faction": "Клан Ангрунд",
+                "province": "Чёрные горы",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2363,2481],
@@ -3846,8 +6059,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Мигдал Вонгалбарак",
-                "amenity": "Чёрные горы, Гномы"
+                "runame":"Мигдал Вонгалбарак",
+                "engname": "Mighdal Vongalbarak",
+                "description": "",
+                "faction": "Клан Ангрунд",
+                "province": "Чёрные горы",
+                "locationType": "village"
             },
             "geometry":{
                 "coordinates": [2599,2561],
@@ -3859,8 +6076,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Хазид Иркулаз",
-                "amenity": "Северные горы Края Света, Гномы"
+                "runame":"Хазид Иркулаз",
+                "engname": "Khazid Irkulaz",
+                "description": "Горнодобывающее поселение, принадлежащее Карак Разъяку.",
+                "faction": "Земли мстителей",
+                "province": "Северные Краесветные горы",
+                "locationType": "village"
             },
             "geometry":{
                 "coordinates": [3197,3121],
@@ -3870,8 +6091,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Карак Унгор",
-                "amenity": "Северные горы Края Света, Гномы"
+                "runame":"Карак Унгор",
+                "engname": "Karak Ungor",
+                "description": "Карак Унгор представляет собой огромную сеть глубоких пещер под горами, шахты которых являются самыми глубокими во всех старых владениях гномов.",
+                "faction": "Земли мстителей",
+                "province": "Северные Краесветные горы",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [3087,3206],
@@ -3881,8 +6106,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Карак Разъяк",
-                "amenity": "Северные горы Края Света, Гномы"
+                "runame":"Карак Разъяк",
+                "engname": "Karak Raziak",
+                "description": "Небольшая гномья крепость.",
+                "faction": "Земли мстителей",
+                "province": "Северные Краесветные горы",
+                "locationType": "village"
             },
             "geometry":{
                 "coordinates": [3039,3088],
@@ -3894,8 +6123,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Карак Кадрин",
-                "amenity": "Перевал Вершин, Гномы"
+                "runame":"Карак Кадрин",
+                "engname": "Karak Kadrin",
+                "description": "Карак Кадрин является вырезанной в холодных и зазубренных пиках внушительной цитаделью. Воинственные кланы, населяющие Карак-Кадрин, гордятся тем, что охраняют этот проход, отгоняя нарушителей и позволяя ему оставаться свободным.",
+                "faction": "Земли мстителей",
+                "province": "Перевал Вершин",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2987,2981],
@@ -3905,8 +6138,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Логова Гнашрака",
-                "amenity": "Перевал Вершин, Гномы"
+                "runame":"Логово Гнашрака",
+                "engname": "Gnashrak's Lair",
+                "description": "",
+                "faction": "Земли мстителей",
+                "province": "Перевал Вершин",
+                "locationType": "pointOfInterest"
             },
             "geometry":{
                 "coordinates": [3169,2969],
@@ -3914,11 +6151,62 @@ var markerLocations = {
             }
         },
 
+
         {
             "type":"Feature",
             "properties":{
-                "name":"Гора Гром",
-                "amenity": "Рёберные вершины, Гномы"
+                "runame":"Караг Дромар",
+                "engname": "Karag Dromar",
+                "description": "",
+                "faction": "Клан Уллек",
+                "province": "Черноводье",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [2701,2593],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Дубомолот",
+                "engname": "Oakenhammer",
+                "description": "",
+                "faction": "Клан Уллек",
+                "province": "Черноводье",
+                "locationType": "village"
+            },
+            "geometry":{
+                "coordinates": [2862,2724],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Жуфбар",
+                "engname": "Zhufbar",
+                "description": "",
+                "faction": "Клан Уллек",
+                "province": "Черноводье",
+                "locationType": "village"
+            },
+            "geometry":{
+                "coordinates": [2951,2749],
+                "type":"Point"
+            }
+        },
+
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Гора Гром",
+                "engname": "Grom Peak",
+                "description": "",
+                "faction": "Клан Уллек",
+                "province": "Рёберные вершины",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [3075,2720],
@@ -3928,8 +6216,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Гора Павшего Короля",
-                "amenity": "Рёберные вершины, Гномы"
+                "runame":"Гора Павшего Короля",
+                "engname": "Fallen King Mountain",
+                "description": "",
+                "faction": "Клан Уллек",
+                "province": "Рёберные вершины",
+                "locationType": "village"
             },
             "geometry":{
                 "coordinates": [3155,2898],
@@ -3941,8 +6233,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Караз-а-Карак",
-                "amenity": "Серебряная тропа, Гномы"
+                "runame":"Караз-а-Карак",
+                "engname": "Karaz-a-Karak",
+                "description": "Караз-а-Карак является цитаделью верховного короля Торгрима Злопамятного. Это самая большая, самая древняя и самая укреплённая твердыня гномов из всех. Караз-а-Карак — это подлинный центр культуры и древних традиций гномов: многие благородные кланы Караз-а-Карака могут похвастаться своей родословной, восходящей к самим богам-предкам. Внутри величественных стен и сводов твердыни расположены огромные храмы богов-предков; здесь также хранятся Великая Книга Обид, Книга Воспоминаний и великое множество бесценных сокровищ, каждое из которых является объектом благоговения и почитания для любого гнома.",
+                "faction": "Верховный король Торгрим Злопамятный из клана Уллек",
+                "province": "Серебряная тропа",
+                "locationType": "city",
+                "image": "images/locations/karaz-a-karak.png"
             },
             "geometry":{
                 "coordinates": [2948,2535],
@@ -3952,8 +6249,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Столпы Грунгни",
-                "amenity": "Серебряная тропа, Гномы"
+                "runame":"Столпы Грунгни",
+                "engname": "The Pillars of Grungni",
+                "description": "",
+                "faction": "Клан Уллек",
+                "province": "Серебряная тропа",
+                "locationType": "shrine"
             },
             "geometry":{
                 "coordinates": [3047,2523],
@@ -3963,8 +6264,14 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Гора Сквингорог",
-                "amenity": "Серебряная тропа, Гномы"
+                "runame":"Гора Сквингорог",
+                "engname": "Mount Squighorn",
+                "traits": ["mountain"],
+                "description": "",
+                "faction": "Клан Уллек",
+                "province": "Серебряная тропа",
+                "locationType": "pointOfInterest",
+                'image': "images/locations/mount_squighorn.png"
             },
             "geometry":{
                 "coordinates": [3118,2472],
@@ -3976,8 +6283,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Караг Дрон",
-                "amenity": "Перевал Смерти, Гномы"
+                "runame":"Караг Дрон",
+                "engname": "Karag Dron • Громовая гора",
+                "description": "",
+                "faction": "Клан Уллек",
+                "province": "Перевал Смерти",
+                "locationType": "village"
             },
             "geometry":{
                 "coordinates": [3008,2387],
@@ -3987,8 +6298,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Железная Скала",
-                "amenity": "Перевал Смерти, Гномы"
+                "runame":"Железная Скала",
+                "engname": "Iron Rock",
+                "description": "Масштабные шахтные выработки богатых залежей полезных ископаемых.",
+                "faction": "Клан Уллек",
+                "province": "Перевал Смерти",
+                "locationType": "village"
             },
             "geometry":{
                 "coordinates": [2915,2264],
@@ -3998,8 +6313,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Чёрный Утёс",
-                "amenity": "Перевал Смерти, Гномы"
+                "runame":"Чёрный Утёс",
+                "engname": "Black Crag • Карак Драж",
+                "description": "Третья по величине гномья твердыня, уступающая лишь Караз-а-Караку и Караку-Восьми-Вершин. Располагаясь на западном конце перевала Смерти, земли которого богаты месторождениями полезных ископаемых и металлов, рудники Карак Дража простираются как вдоль всего перевала, так и в окружающих горах.",
+                "faction": "Клан Уллек",
+                "province": "Перевал Смерти",
+                "locationType": "city",
+                "image": "images/locations/black_crag.png"
             },
             "geometry":{
                 "coordinates": [3013,2231],
@@ -4011,8 +6331,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Карак-Восемь-Вершин",
-                "amenity": "Восемь Вершин, Гномы"
+                "runame":"Карак-Восемь-Вершин",
+                "engname": "Karak Eight Peaks",
+                "description": "Карак-Восемь-Вершин — самая значительная из южных крепостей с бесчисленными шахтами, тоннелями, святилищами и храмами. Город построен в громадном природном амфитеатре в окружении восьми высоких вершин: Караг Зильфин, Караг Яр, Караг Монар, Кагрил (называемый также «Серебряный Рог»), Караг Лун, Караг Рин, Караг Нар и Квинн-Вир (на людском «Белая Госпожа»).",
+                "faction": "Гномы",
+                "province": "Восемь Вершин",
+                "locationType": "city",
+                "image": "images/locations/karak_ep.png"
             },
             "geometry":{
                 "coordinates": [3045,2120],
@@ -4022,8 +6347,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Скорбь Валайи",
-                "amenity": "Восемь Вершин, Гномы"
+                "runame":"Скорбь Валайи",
+                "engname": "Valaya's Sorrow",
+                "description": "",
+                "faction": "Клан Уллек",
+                "province": "Восемь Вершин",
+                "locationType": "village",
+                "image": "images/locations/valayas_sorrow.png"
             },
             "geometry":{
                 "coordinates": [2949,2065],
@@ -4035,8 +6365,63 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Карак Азгал",
-                "amenity": "Скверноводье, Гномы"
+                "runame":"Форт Кривой Клык",
+                "engname": "Crooked Fang Fort",
+                "traits": [],
+                "description": "",
+                "faction": "Клан Уллек",
+                "province": "Восточные бедные земли",
+                "locationType": "fort"
+            },
+            "geometry":{
+                "coordinates": [2927,1920],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Дрингоракказ",
+                "engname": "Dringorackaz",
+                "traits": [],
+                "description": "",
+                "faction": "Клан Уллек",
+                "province": "Восточные бедные земли",
+                "locationType": "village"
+            },
+            "geometry":{
+                "coordinates": [3025,1922],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Пик Злобы",
+                "engname": "Spitepeak",
+                "traits": [],
+                "description": "",
+                "faction": "Клан Уллек",
+                "province": "Восточные бедные земли",
+                "locationType": "pointOfInterest"
+            },
+            "geometry":{
+                "coordinates": [3157,1926],
+                "type":"Point"
+            }
+        },
+        
+
+
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Карак Азгал",
+                "engname": "Karak Azgal • Драконий утёс",
+                "description": "В прошлом чрезвычайно богатая цитадель гномов, ныне пришедшая в упадок.",
+                "faction": "Клан Уллек",
+                "province": "Скверноводье",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2858,1828],
@@ -4046,8 +6431,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Крадтоммен",
-                "amenity": "Скверноводье, Гномы"
+                "runame":"Крадтоммен",
+                "engname": "Kradtommen",
+                "description": "",
+                "faction": "Клан Уллек",
+                "province": "Скверноводье",
+                "locationType": "village"
             },
             "geometry":{
                 "coordinates": [2991,1809],
@@ -4057,8 +6446,14 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Туманные горы",
-                "amenity": "Скверноводье, Гномы"
+                "runame":"Туманная гора",
+                "engname": "Misty Mountain",
+                "traits": ["mountain"],
+                "description": "Большая гора, расположенная к западу от Кислого Моря в Краесветных горах, обращённая к Проклятой яме Нагашиззар.",
+                "faction": "Клан Уллек",
+                "province": "Скверноводье",
+                "locationType": "pointOfInterest",
+                "image": "images/locations/misty_mountain.png"
             },
             "geometry":{
                 "coordinates": [3129,1780],
@@ -4070,8 +6465,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Карак Азул",
-                "amenity": "Южные горы Края Света, Гномы"
+                "runame":"Карак Азул",
+                "engname": "Karak Azul",
+                "description": "Последняя уцелевшая твердыня из великих южных владений, оставшихся под контролем гномов в Краесветных горах.",
+                "faction": "Клан Уллек",
+                "province": "Южные Краесветные горы",
+                "locationType": "city",
+                "image": "images/locations/karak_azul.png"
             },
             "geometry":{
                 "coordinates": [3198,2088],
@@ -4081,8 +6481,12 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Чёрный Рудник",
-                "amenity": "Южные горы Края Света, Гномы"
+                "runame":"Чёрный Рудник",
+                "engname": "Black Iron Mine",
+                "description": "",
+                "faction": "Клан Уллек",
+                "province": "Южные Краесветные горы",
+                "locationType": "village"
             },
             "geometry":{
                 "coordinates": [3187,2225],
@@ -4092,11 +6496,63 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Сточный колодец",
-                "amenity": "Южные горы Края Света, Гномы"
+                "runame":"Сточный колодец",
+                "engname": "Sump Pit",
+                "description": "",
+                "faction": "Клан Уллек",
+                "province": "Южные Краесветные горы",
+                "locationType": "pointOfInterest"
             },
             "geometry":{
                 "coordinates": [3225,2004],
+                "type":"Point"
+            }
+        },
+
+
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Костяное ущелье",
+                "engname": "The Bone Gulch",
+                "description": "",
+                "faction": "Клан Уллек",
+                "province": "Равнина костей",
+                "locationType": "pointOfInterest"
+            },
+            "geometry":{
+                "coordinates": [3367,1951],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Пепельный Хребет",
+                "engname": "Ash Ridge Mountains",
+                "traits": ["mountain"],
+                "description": "",
+                "faction": "Клан Уллек",
+                "province": "Равнина костей",
+                "locationType": "pointOfInterest"
+            },
+            "geometry":{
+                "coordinates": [3450,2118],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Крепость Ворага",
+                "engname": "The Fortress of Vorag",
+                "description": "",
+                "faction": "Клан Уллек",
+                "province": "Равнина костей",
+                "locationType": "fort"
+            },
+            "geometry":{
+                "coordinates": [3555,2021],
                 "type":"Point"
             }
         },
@@ -4108,8 +6564,13 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Люччини",
-                "amenity": "Пиратское течение, Разбойничьи земли"
+                "runame":"Люччини",
+                "engname": "Luccini",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Разбойничьи земли",
+                "province": "Пиратское течение",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [2022,1900],
@@ -4119,11 +6580,1194 @@ var markerLocations = {
         {
             "type":"Feature",
             "properties":{
-                "name":"Сартоза",
-                "amenity": "Пиратское течение, Разбойничьи земли"
+                "runame":"Сартоза",
+                "engname": "Sartosa",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Разбойничьи земли",
+                "province": "Пиратское течение",
+                "locationType": "city"
             },
             "geometry":{
                 "coordinates": [1971,1805],
+                "type":"Point"
+            }
+        },
+
+
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Мирмиденс",
+                "engname": "Myrmidens",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Разбойничьи земли",
+                "province": "Западные Пограничные княжества",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [2291,2008],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Верданос",
+                "engname": "Verdanos",
+                "traits": [],
+                "description": "",
+                "faction": "Разбойничьи земли",
+                "province": "Западные Пограничные княжества",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [2225,2082],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Аргалис",
+                "engname": "Argalis",
+                "traits": [],
+                "description": "",
+                "faction": "Разбойничьи земли",
+                "province": "Западные Пограничные княжества",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [2154,1928],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Зворак",
+                "engname": "Zvorak",
+                "traits": [],
+                "description": "",
+                "faction": "Разбойничьи земли",
+                "province": "Западные Пограничные княжества",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [2320,2263],
+                "type":"Point"
+            }
+        },
+
+
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Акендорф",
+                "engname": "Akendorf",
+                "traits": [],
+                "description": "Город-крепость Акендорф был построен императором Ульрихом Первым как символ величия Рейкланда и его власти, простирающейся даже в Разбойничьи земли. Однако после его смерти этот некогда богатейший город окружающих земель стал пристанищем для бесконечных банд, превратившись в обитель контрабандистов. Чёрный рынок Акендорфа — место, где можно купить практически всё, если есть связи и золото.",
+                "faction": "Разбойничьи земли",
+                "province": "Восточные Пограничные княжества",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [2710,2495],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Карак Ангажар",
+                "engname": "Karak Angazhar",
+                "traits": [],
+                "description": "",
+                "faction": "Разбойничьи земли",
+                "province": "Восточные Пограничные княжества",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [2525,2450],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Маторка",
+                "engname": "Matorca",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Разбойничьи земли",
+                "province": "Восточные Пограничные княжества",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [2531,2335],
+                "type":"Point"
+            }
+        },
+
+
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Барак Варр",
+                "engname": "Barak Varr",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Разбойничьи земли",
+                "province": "Долина Кровавой реки",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [2690,2363],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Док Караз",
+                "engname": "Dok Karaz",
+                "traits": [],
+                "description": "",
+                "faction": "Разбойничьи земли",
+                "province": "Долина Кровавой реки",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [2675,2292],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Бараг Давазбаг",
+                "engname": "Barag Dawazbag",
+                "traits": [],
+                "description": "",
+                "faction": "Разбойничьи земли",
+                "province": "Долина Кровавой реки",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [2836,2348],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Варенкийские холмы",
+                "engname": "Varenka Hills",
+                "traits": [],
+                "description": "",
+                "faction": "Разбойничьи земли",
+                "province": "Долина Кровавой реки",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [2808,2443],
+                "type":"Point"
+            }
+        },
+
+
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Сумрачный лес",
+                "engname": "Forest of Gloom",
+                "traits": ["forest"],
+                "description": "",
+                "faction": "Разбойничьи земли",
+                "province": "Сумрачный лес",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [2812,2534],
+                "type":"Point"
+            }
+        },
+
+
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Экрунд",
+                "engname": "Ekrund",
+                "traits": [],
+                "description": "",
+                "faction": "Разбойничьи земли",
+                "province": "Западные бедные земли",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [2529,2052],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Рудник Горького Камня",
+                "engname": "Bitterstone Mine",
+                "traits": [],
+                "description": "",
+                "faction": "Разбойничьи земли",
+                "province": "Западные бедные земли",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [2638,2082],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Башня Каменной Шахты",
+                "engname": "Stonemine Tower",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Разбойничьи земли",
+                "province": "Западные бедные земли",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [2503,2225],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Рудники Драконьего Рога",
+                "engname": "Dragonhorn Mines",
+                "traits": [],
+                "description": "",
+                "faction": "Разбойничьи земли",
+                "province": "Западные бедные земли",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [2588,1955],
+                "type":"Point"
+            }
+        },
+
+
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Галбараз",
+                "engname": "Galbaraz",
+                "traits": [],
+                "description": "",
+                "faction": "Разбойничьи земли",
+                "province": "Южные бедные земли",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [2495,1742],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Гронти Мингол",
+                "engname": "Gronti Mingol",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Разбойничьи земли",
+                "province": "Южные бедные земли",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [2340,1908],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Штормхендж",
+                "engname": "Stormhenge",
+                "traits": [],
+                "description": "",
+                "faction": "Разбойничьи земли",
+                "province": "Южные бедные земли",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [2273,1636],
+                "type":"Point"
+            }
+        },
+
+
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Моргхайм",
+                "engname": "Morgheim",
+                "traits": [],
+                "description": "",
+                "faction": "Разбойничьи земли",
+                "province": "Топи безумия",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [2741,1891],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Затонувший Кернарх",
+                "engname": "Sunken Khernarch",
+                "traits": [],
+                "description": "",
+                "faction": "Разбойничьи земли",
+                "province": "Топи безумия",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [2590,1681],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Плавучая Деревня",
+                "engname": "Floating Village",
+                "traits": [],
+                "description": "",
+                "faction": "Разбойничьи земли",
+                "province": "Топи безумия",
+                "locationType": "village"
+            },
+            "geometry":{
+                "coordinates": [2732,1751],
+                "type":"Point"
+            }
+        },
+
+
+
+
+        // ЦАРИ ГРОБНИЦ
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Дохлое ущелье",
+                "engname": "Deff Gorge",
+                "traits": [],
+                "description": "",
+                "faction": "Цари гробниц",
+                "province": "Пограничные идолы",
+                "locationType": "pointOfInterest"
+            },
+            "geometry":{
+                "coordinates": [2870,1632],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Гор Газан",
+                "engname": "Gor Gazan",
+                "traits": [],
+                "description": "",
+                "faction": "Цари гробниц",
+                "province": "Пограничные идолы",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [2357,1540],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Аргул Мигдал",
+                "engname": "Agrul Migdhal",
+                "traits": [],
+                "description": "Крепость, возведённая Древними, стены которой сделаны из того же материала, что и идолы, расположенные вдоль границ этих земель.",
+                "faction": "Цари гробниц",
+                "province": "Пограничные идолы",
+                "locationType": "fort"
+            },
+            "geometry":{
+                "coordinates": [2611,1531],
+                "type":"Point"
+            }
+        },
+
+
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Зюденбург",
+                "engname": "Sudenburg",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Цари гробниц",
+                "province": "Страна Дервишей",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [2204,1178],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Равнина Клыкачей",
+                "engname": "Plain of Tuskers",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Цари гробниц",
+                "province": "Страна Дервишей",
+                "locationType": "village"
+            },
+            "geometry":{
+                "coordinates": [2239,1059],
+                "type":"Point"
+            }
+        },
+
+
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Ка-Сабар",
+                "engname": "Ka-Sabar",
+                "traits": [],
+                "description": "",
+                "faction": "Цари гробниц",
+                "province": "Зыбучие Пески",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [2566,1138],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Антох",
+                "engname": "Antoch",
+                "traits": [],
+                "description": "",
+                "faction": "Цари гробниц",
+                "province": "Зыбучие Пески",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [2417,1008],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Бхагар",
+                "engname": "Bhagar",
+                "traits": [],
+                "description": "",
+                "faction": "Цари гробниц",
+                "province": "Зыбучие Пески",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [2393,1138],
+                "type":"Point"
+            }
+        },
+
+
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Чёрная пирамида Нагаша",
+                "engname": "Black Pyramid of Nagash",
+                "traits": [],
+                "description": "",
+                "faction": "Цари гробниц",
+                "province": "Дельта Великой Мортис",
+                "locationType": "pointOfInterest"
+            },
+            "geometry":{
+                "coordinates": [2315,1307],
+                "type":"Point"
+            }
+        },
+
+
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Хемри",
+                "engname": "Khemri • Город Царей",
+                "traits": [],
+                "description": "Жемчужина в короне Нехакары. Это самый старый, большой, гордый и могущественный из всех древних городов. Монументы, возведённые в этом величественном некрополе, огромны и грандиозны на вид. Высеченные изображения богов и чудовищ смотрят со всех крыш, и статуи стоят на каждом углу запылённых улиц. На протяжении длинной истории Неехары самые великие из всех царей происходили из Хемри.",
+                "faction": "Цари гробниц",
+                "province": "Страна Мёртвых",
+                "locationType": "city",
+                "image": "images/locations/khemri.png"
+            },
+            "geometry":{
+                "coordinates": [2448,1332],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Источники Великой Жизни",
+                "engname": "Springs of Eternal Life",
+                "traits": [],
+                "description": "Источники Вечной Жизни когда-то были священным местом для жителей Нехекары, пока их не осквернили руки Великого Некроманта Нагаша.",
+                "faction": "Цари гробниц",
+                "province": "Страна Мёртвых",
+                "locationType": "pointOfInterest"
+            },
+            "geometry":{
+                "coordinates": [2510,1238],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Нумас",
+                "engname": "Numas",
+                "traits": [],
+                "description": "",
+                "faction": "Цари гробниц",
+                "province": "Страна Мёртвых",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [2606,1371],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Катар",
+                "engname": "Quatar",
+                "traits": [],
+                "description": "",
+                "faction": "Цари гробниц",
+                "province": "Страна Мёртвых",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [2715,1276],
+                "type":"Point"
+            }
+        },
+
+
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Лахмия",
+                "engname": "Lahmia • Город Проклятых",
+                "traits": [],
+                "description": "Лахмия, некогда известная как город Рассвета, была одним из древних городов-государств, которые вместе составляли великую человеческую империю Нехехара, ныне называемую Страной Мёртвых.",
+                "faction": "Цари гробниц",
+                "province": "Кратер Ходячих Мертвецов",
+                "locationType": "city",
+                "image": "images/locations/lahmia.png"
+            },
+            "geometry":{
+                "coordinates": [3194,1602],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Либарас",
+                "engname": "Lybaras • Город-гробница Асаф",
+                "traits": ["port"],
+                "description": "Когда-то Либарас был городом учёных и инженеров. Его жрецы-цари и знать были известны своим относительно скромным стилем одежды, предпочитая тратить свои богатства на свитки и технологии.",
+                "faction": "Цари гробниц",
+                "province": "Кратер Ходячих Мертвецов",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [3303,1471],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Расетра",
+                "engname": "Rasetra • Крепость Мстительных Душ",
+                "traits": [],
+                "description": "Расетра — один из древних городов-государств затерянной человеческой империи Нехекара, ныне Страны Мёртвых.",
+                "faction": "Цари гробниц",
+                "province": "Кратер Ходячих Мертвецов",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [3062,1330],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Роковая поляна",
+                "engname": "Doom Glade",
+                "traits": [],
+                "description": "",
+                "faction": "Цари гробниц",
+                "province": "Кратер Ходячих Мертвецов",
+                "locationType": "pointOfInterest"
+            },
+            "geometry":{
+                "coordinates": [3234,1307],
+                "type":"Point"
+            }
+        },
+
+
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Караг Орруд",
+                "engname": "Karag Orrud • Гора Красного Облака",
+                "traits": ["mountain"],
+                "description": "Самый южный действующих вулкан из трёх великих вулканов Краесветных гор — наряду с Громовой и Огненной горой. Землетрясения и подземные толчки мешали гномам создавать горные крепости в этом регионе, однако некоторые предприимчивые гномы-шахтёры иногда прибывают сюда в поисках сокровищ земли.",
+                "faction": "Цари гробниц",
+                "province": "Хребет Дьявола",
+                "locationType": "pointOfInterest"
+            },
+            "geometry":{
+                "coordinates": [2880,1422],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Гранитный массив",
+                "engname": "Granite Massif",
+                "traits": [],
+                "description": "",
+                "faction": "Цари гробниц",
+                "province": "Хребет Дьявола",
+                "locationType": "pointOfInterest"
+            },
+            "geometry":{
+                "coordinates": [3018,1413],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Маграк",
+                "engname": "Mahrak • Город Разложения",
+                "traits": [],
+                "description": "Махрак, некогда называемый Городом Надежды и считавшийся в древности колыбелью религии Нехекары, — один из древних городов-государств Страны Мёртвых, падшей человеческой империи Нехекара.",
+                "faction": "Цари гробниц",
+                "province": "Хребет Дьявола",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [3090,1476],
+                "type":"Point"
+            }
+        },
+
+
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Гора Грифов",
+                "engname": "Vulture Mountain",
+                "traits": ["mountain"],
+                "description": "",
+                "faction": "Цари гробниц",
+                "province": "Аталанские горы",
+                "locationType": "pointOfInterest"
+            },
+            "geometry":{
+                "coordinates": [1818,1337],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Мартек",
+                "engname": "Martek",
+                "traits": [],
+                "description": "Мартек — один из четырёх великих городов Аравии. Окружающие его земли образуют наиболее свободное княжество, управляемое монархом с титулом халифа.",
+                "faction": "Цари гробниц",
+                "province": "Аталанские горы",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [1956,1462],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Глаз Пантеры",
+                "engname": "Eye of The Panther",
+                "traits": [],
+                "description": "Регион Аталанских гор, давший название имперскому ордену Рыцарей Пантеры.",
+                "faction": "Цари гробниц",
+                "province": "Аталанские горы",
+                "locationType": "pointOfInterest"
+            },
+            "geometry":{
+                "coordinates": [1925,1419],
+                "type":"Point"
+            }
+        },
+
+
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Дворец халифа-мага",
+                "engname": "Wizard Caliph's Palace",
+                "traits": [],
+                "description": "Ходят слухи, что халиф-маг является одним из самых искусных мастеров по снятию и наложению проклятий, но цена за его услуги высока.",
+                "faction": "Цари гробниц",
+                "province": "Страна Ассасинов",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [1748,1237],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Лашайк",
+                "engname": "Lashiek",
+                "traits": ["port"],
+                "description": "Построенный как символ богатства и изысканности Аравии, Лашайк поражает своими прекрасными мраморными зданиями, балюстрадами и обширными садами. Это центр всей работорговли в регионе, где обучают новоприбывших или захваченных рабов, прежде чем продать их дальше по побережью.",
+                "faction": "Цари гробниц",
+                "province": "Страна Ассасинов",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [1796,1456],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Острова Чародеев",
+                "engname": "Sorcerers' Islands",
+                "traits": ["port"],
+                "description": "Место магии, где практикуют и экспериментируют с колдовскими искусствами, которые исторически позволяли жителям Аравии добиваться больших успехов на мировой арене.",
+                "faction": "Цари гробниц",
+                "province": "Страна Ассасинов",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [1682,1424],
+                "type":"Point"
+            }
+        },
+        
+
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Аль-Хаикк",
+                "engname": "Al Haikk",
+                "traits": ["port"],
+                "description": "Крупнейший мегаполис с рынками, садами, дворцами и разбойными промыслами, откуда халиф правит халифатом.",
+                "faction": "Цари гробниц",
+                "province": "Берег Аравии",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [2045,1537],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Кофер",
+                "engname": "Copher",
+                "traits": ["port"],
+                "description": "Кофер, возможно, ещё богаче Аль-Хаикка, поскольку ведет торговлю с высшими эльфами и даже с некоторыми отдалёнными регионами.",
+                "faction": "Цари гробниц",
+                "province": "Берег Аравии",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [1894,1578],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Фирус",
+                "engname": "Fyrus",
+                "traits": [],
+                "description": "Древний город, заселённый ещё со времен, когда побережье Аравии было колонией высших эльфов.",
+                "faction": "Цари гробниц",
+                "province": "Берег Аравии",
+                "locationType": "village"
+            },
+            "geometry":{
+                "coordinates": [1981,1615],
+                "type":"Point"
+            }
+        },
+
+
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Чёрная башня Архана",
+                "engname": "Black Tower of Arkhan",
+                "traits": [],
+                "description": "Чёрная башня Архана была построена доверенным визирем Нагаша. Изолированное глубоко в Треснувшей земле, это место служило убежищем, где Архан мог развивать своё мастерство тёмной магии. Сама башня и окружающие её земли пропитаны загадочной магией, а в тенях постройки обитает множество мерзких существ.",
+                "faction": "Цари гробниц",
+                "province": "Треснувшая земля",
+                "locationType": "fort"
+            },
+            "geometry":{
+                "coordinates": [2201,1360],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Зандри",
+                "engname": "Zandri",
+                "traits": ["port"],
+                "description": "Берег Зандри усеян обломками кораблей тех, кто нападал на порт, чтобы разграбить его богатства. Флоты до сих пор отплывают из города, чтобы завоевать земли живых.",
+                "faction": "Цари гробниц",
+                "province": "Треснувшая земля",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [2162,1502],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Эль-Калабад",
+                "engname": "El Kalabad",
+                "traits": [],
+                "description": "Аравийский торговый город.",
+                "faction": "Цари гробниц",
+                "province": "Треснувшая земля",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [2124,1261],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Пруды Отчаяния",
+                "engname": "Pools of Despair",
+                "traits": [],
+                "description": "Неизвестно, какая мерзкая магия породила это собрание миражей, которое привело к смерти многих. Легенды гласят, что когда запасы воды путников иссякают, здесь появляется пышный оазис. Фляги путешественников наполняются прохладной водой, которая затем сменяется горстями песка.",
+                "faction": "Цари гробниц",
+                "province": "Треснувшая земля",
+                "locationType": "pointOfInterest"
+            },
+            "geometry":{
+                "coordinates": [2094,1400],
+                "type":"Point"
+            }
+        },
+
+
+
+
+        // ЗЕЛЕНОКОЖИЕ
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Златлан",
+                "engname": "Zlatlan",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Зеленокожие",
+                "province": "Южные джунгли",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [2442,570],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Юатек",
+                "engname": "Yuatek",
+                "traits": [],
+                "description": "",
+                "faction": "Зеленокожие",
+                "province": "Южные джунгли",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [2405,465],
+                "type":"Point"
+            }
+        },
+
+
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Теотиква",
+                "engname": "Teotiqua",
+                "traits": [],
+                "description": "",
+                "faction": "Зеленокожие",
+                "province": "Золотой перевал",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [2962,864],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Золотая Башня",
+                "engname": "The Golden Tower",
+                "traits": [],
+                "description": "Древняя башня, облицованная чистым золотом, построенная, если верить легендам, безымянным эльфийским магом задолго до Катаклизма.",
+                "faction": "Зеленокожие",
+                "province": "Золотой перевал",
+                "locationType": "fort"
+            },
+            "geometry":{
+                "coordinates": [2722,909],
+                "type":"Point"
+            }
+        },
+
+
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Храм Черепов",
+                "engname": "Temple of Skulls",
+                "traits": [],
+                "description": "",
+                "faction": "Зеленокожие",
+                "province": "Звериное царство",
+                "locationType": "shrine"
+            },
+            "geometry":{
+                "coordinates": [3084,1145],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Проклятые джунгли",
+                "engname": "The Cursed Jungle",
+                "traits": [],
+                "description": "",
+                "faction": "Зеленокожие",
+                "province": "Звериное царство",
+                "locationType": "pointOfInterest"
+            },
+            "geometry":{
+                "coordinates": [2975,996],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Змеиный берег",
+                "engname": "Serpent Coast",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Зеленокожие",
+                "province": "Звериное царство",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [3175,1013],
+                "type":"Point"
+            }
+        },
+
+
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Кексотль",
+                "engname": "Cuexotl",
+                "traits": [],
+                "description": "",
+                "faction": "Зеленокожие",
+                "province": "Центральные джунгли",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [2560,778],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Солнечное Перелесье",
+                "engname": "Sun-Tree Glades",
+                "traits": [],
+                "description": "",
+                "faction": "Зеленокожие",
+                "province": "Центральные джунгли",
+                "locationType": "pointOfInterest"
+            },
+            "geometry":{
+                "coordinates": [2436,825],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Науонтль",
+                "engname": "Nahuontl",
+                "traits": ["port"],
+                "description": "",
+                "faction": "Зеленокожие",
+                "province": "Центральные джунгли",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [2250,680],
+                "type":"Point"
+            }
+        },
+
+
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Тлаква",
+                "engname": "Tlaqua",
+                "traits": [],
+                "description": "",
+                "faction": "Зеленокожие",
+                "province": "Западные джунгли",
+                "locationType": "city"
+            },
+            "geometry":{
+                "coordinates": [2175,933],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Монолиты Мёртвой Головы",
+                "engname": "Dead-Head Monoliths",
+                "traits": ["port"],
+                "description": "Говорят, если пройти между обсидиановыми головами монолитов в ночь, когда Моррслиб полон, они нашепчут тебе твою смерть.",
+                "faction": "Зеленокожие",
+                "province": "Западные джунгли",
+                "locationType": "shrine"
+            },
+            "geometry":{
+                "coordinates": [1991,929],
+                "type":"Point"
+            }
+        },
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Статуи богов",
+                "engname": "Statues of The Gods",
+                "traits": [],
+                "description": "",
+                "faction": "Зеленокожие",
+                "province": "Западные джунгли",
+                "locationType": "shrine"
+            },
+            "geometry":{
+                "coordinates": [2179,811],
+                "type":"Point"
+            }
+        },
+
+
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Стоянка Ореона",
+                "engname": "Oreon's Camp",
+                "traits": [],
+                "description": "",
+                "faction": "Зеленокожие",
+                "province": "Сердце джунглей",
+                "locationType": "camp"
+            },
+            "geometry":{
+                "coordinates": [2563,1000],
+                "type":"Point"
+            }
+        },
+
+
+
+        {
+            "type":"Feature",
+            "properties":{
+                "runame":"Залив Горечи",
+                "engname": "Bitter Bay",
+                "traits": ["port"],
+                "description": "Заброшенное поселение в сердце поражённых вампирской скверной земель.",
+                "province": "Сломанные зубы",
+                "locationType": "village"
+            },
+            "geometry":{
+                "coordinates": [3538,1867],
                 "type":"Point"
             }
         },
