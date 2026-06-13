@@ -67,7 +67,7 @@ const MARKER_LAYERS = [
     { label: 'Деревни',        group: villages,     defaultOn: true,  icons: ['images/icons/village.png'] },
     { label: 'Форты',          group: forts,        defaultOn: true,  icons: ['images/icons/fort.png'] },
     { label: 'Лагеря',         group: camps,        defaultOn: true,  icons: ['images/icons/camp.png'] },
-    { label: 'Точки интереса', group: shrines,      defaultOn: false,  icons: ['images/icons/shrine.png', 'images/icons/pointOfInterest.png'] },
+    { label: 'Точки интереса', group: shrines,      defaultOn: true,  icons: ['images/icons/shrine.png', 'images/icons/pointOfInterest.png'] },
     { label: 'Врата Древних',  group: polarGates,   defaultOn: false,  icons: ['images/icons/polarGates.png', 'images/icons/polarGatesBroken.png'] },
 ];
 
