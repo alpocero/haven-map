@@ -597,3 +597,19 @@ h1, h2, h3 {
 .leaflet-touch .leaflet-control-layers, .leaflet-touch .leaflet-bar {
     border: none;
 }
+
+
+
+
+
+
+
+
+
+.popup-content .description p {
+    margin: 0 0 8px;
+}
+
+.popup-content .description p:last-child {
+    margin-bottom: 0;
+}
