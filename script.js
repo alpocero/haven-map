@@ -63,12 +63,12 @@ var polarGates   	 = L.layerGroup();
 // defaultOn: true  → добавляется на карту при старте
 // defaultOn: false → выключен по умолчанию
 const MARKER_LAYERS = [
-    { label: 'Города',         		group: cities,			       defaultOn: true,  		icons: ['images/icons/city.png'] },
-    { label: 'Поселения',      		group: towns,					defaultOn: true,  		icons: ['images/icons/town.png'] },
-    { label: 'Форты',          		group: forts,        			defaultOn: true,  		icons: ['images/icons/fort.png'] },
-    { label: 'Лагеря',         		group: camps,			        defaultOn: true,  		icons: ['images/icons/camp.png'] },
-    { label: 'Святилища', 	   		group: shrines,      			defaultOn: true,		icons: ['images/icons/shrine.png'] },
-	{ label: 'Точки интереса',		group: pointsOfInterest, 		defaultOn: true,		icons: ['images/icons/pointOfInterest.png'] },
+    { label: 'Город',         		group: cities,			       defaultOn: true,  		icons: ['images/icons/city.png'] },
+    { label: 'Поселение',      		group: towns,					defaultOn: true,  		icons: ['images/icons/town.png'] },
+    { label: 'Форт',          		group: forts,        			defaultOn: true,  		icons: ['images/icons/fort.png'] },
+    { label: 'Лагерь',         		group: camps,			        defaultOn: true,  		icons: ['images/icons/camp.png'] },
+    { label: 'Святилище', 	   		group: shrines,      			defaultOn: true,		icons: ['images/icons/shrine.png'] },
+	{ label: 'Точка интереса',		group: pointsOfInterest, 		defaultOn: true,		icons: ['images/icons/pointOfInterest.png'] },
     { label: 'Врата Древних',  		group: polarGates,   			defaultOn: false,  		icons: ['images/icons/polarGates.png'] },
 ];
 
@@ -155,7 +155,7 @@ function buildPopupHTML(props) {
 					? `<p class="name-eng">${props.engname}</p>`
 					: ''}
 				${props.description
-					? `<p class="description">${props.description}</p>`
+					? `<div class="description">${props.description}</div>`
 					: ''}
 				${buildIconRow(FACTION_ICON,  props.faction)}
 				${buildIconRow(PROVINCE_ICON, props.province)}
