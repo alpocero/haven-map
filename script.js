@@ -50,24 +50,26 @@ var provinces = L.tileLayer('tiles_provinces/{z}/{x}/{y}.png', {
 
 
 // ─── MARKER GROUPS ────────────────────────────────────────────────────────
-var cities       = L.layerGroup();
-var towns  		 = L.layerGroup();
-var forts        = L.layerGroup();
-var camps        = L.layerGroup();
-var shrines      = L.layerGroup();
-var polarGates   = L.layerGroup();
+var cities       	 = L.layerGroup();
+var towns  		 	 = L.layerGroup();
+var forts        	 = L.layerGroup();
+var camps        	 = L.layerGroup();
+var shrines      	 = L.layerGroup();
+var pointsOfInterest = L.layerGroup();
+var polarGates   	 = L.layerGroup();
 
 
 // ─── КОНФИГ СЛОЁВ МАРКЕРОВ ────────────────────────────────────────────────
 // defaultOn: true  → добавляется на карту при старте
 // defaultOn: false → выключен по умолчанию
 const MARKER_LAYERS = [
-    { label: 'Города',         group: cities,       defaultOn: true,  icons: ['images/icons/city.png'] },
-    { label: 'Поселения',      group: towns,		defaultOn: true,  icons: ['images/icons/town.png'] },
-    { label: 'Форты',          group: forts,        defaultOn: true,  icons: ['images/icons/fort.png'] },
-    { label: 'Лагеря',         group: camps,        defaultOn: true,  icons: ['images/icons/camp.png'] },
-    { label: 'Точки интереса', group: shrines,      defaultOn: true,  icons: ['images/icons/shrine.png', 'images/icons/pointOfInterest.png'] },
-    { label: 'Врата Древних',  group: polarGates,   defaultOn: false,  icons: ['images/icons/polarGates.png', 'images/icons/polarGatesBroken.png'] },
+    { label: 'Города',         		group: cities,			       defaultOn: true,  		icons: ['images/icons/city.png'] },
+    { label: 'Поселения',      		group: towns,					defaultOn: true,  		icons: ['images/icons/town.png'] },
+    { label: 'Форты',          		group: forts,        			defaultOn: true,  		icons: ['images/icons/fort.png'] },
+    { label: 'Лагеря',         		group: camps,			        defaultOn: true,  		icons: ['images/icons/camp.png'] },
+    { label: 'Святилища', 	   		group: shrines,      			defaultOn: true,		icons: ['images/icons/shrine.png'] },
+	{ label: 'Точки интереса',		group: pointsOfInterest, 		defaultOn: true,		icons: ['images/icons/pointOfInterest.png'] },
+    { label: 'Врата Древних',  		group: polarGates,   			defaultOn: false,  		icons: ['images/icons/polarGates.png'] },
 ];
 
 const MAP_LAYERS = [
@@ -78,9 +80,9 @@ const MAP_LAYERS = [
 
 // ─── ТИПЫ ЛОКАЦИЙ ─────────────────────────────────────────────────────────
 const LOCATION_ICONS = {
-	'town':		       	   { url: 'images/icons/town.png',			     size: [26, 26] },
-	'city':       	   	   { url: 'images/icons/city.png',			     size: [26, 26] },
-	'fort':          	   { url: 'images/icons/fort.png',        		 size: [24, 24] },
+	'town':		       	   { url: 'images/icons/town.png',			     size: [28, 28] },
+	'city':       	   	   { url: 'images/icons/city.png',			     size: [30, 30] },
+	'fort':          	   { url: 'images/icons/fort.png',        		 size: [28, 28] },
 	'camp':          	   { url: 'images/icons/camp.png',        		 size: [24, 24] },
 	'pointOfInterest':	   { url: 'images/icons/pointOfInterest.png',	 size: [24, 24] },
 	'shrine':              { url: 'images/icons/shrine.png',             size: [24, 24] },
@@ -182,8 +184,8 @@ markerLocations.features.forEach(function(feature) {
 		case 'town':	 		 marker.addTo(towns); break;
 		case 'fort': 			 marker.addTo(forts); break;
 		case 'camp': 			 marker.addTo(camps); break;
-		case 'shrine':
-		case 'pointOfInterest':  marker.addTo(shrines); break;
+		case 'shrine':			 marker.addTo(shrines); break;
+		case 'pointOfInterest':  marker.addTo(pointsOfInterest); break;
 		case 'polarGates':
 		case 'polarGatesBroken': marker.addTo(polarGates); break;
 	}
