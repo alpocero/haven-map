@@ -1084,7 +1084,7 @@ var markerLocations = {
                 "description": "",
                 "faction": "Дикие племена",
                 "province": "Лагуна вечности",
-                "locationType": "village"
+                "locationType": "town"
             },
             "geometry":{
                 "coordinates": [2110,4306],
@@ -1817,7 +1817,7 @@ var markerLocations = {
                 "description": "",
                 "faction": "Высшие эльфы",
                 "province": "Джунгли Пауалаксы",
-                "locationType": "village"
+                "locationType": "town"
             },
             "geometry":{
                 "coordinates": [584,2101],
@@ -1833,7 +1833,7 @@ var markerLocations = {
                 "description": "",
                 "faction": "Высшие эльфы",
                 "province": "Джунгли Пауалаксы",
-                "locationType": "village"
+                "locationType": "town"
             },
             "geometry":{
                 "coordinates": [373,2117],
@@ -2436,7 +2436,7 @@ var markerLocations = {
                 "description": "",
                 "faction": "Высшие эльфы",
                 "province": "Восточные колонии",
-                "locationType": "village"
+                "locationType": "town"
             },
             "geometry":{
                 "coordinates": [3639,365],
@@ -2553,7 +2553,7 @@ var markerLocations = {
                 "description": "",
                 "faction": "Высшие эльфы",
                 "province": "Берег Рассвета",
-                "locationType": "village"
+                "locationType": "town"
             },
             "geometry":{
                 "coordinates": [2337,266],
@@ -2569,7 +2569,7 @@ var markerLocations = {
                 "description": "",
                 "faction": "Высшие эльфы",
                 "province": "Берег Рассвета",
-                "locationType": "village"
+                "locationType": "town"
             },
             "geometry":{
                 "coordinates": [2454,357],
@@ -2587,7 +2587,7 @@ var markerLocations = {
                 "description": "",
                 "faction": "Высшие эльфы",
                 "province": "Выступы",
-                "locationType": "village",
+                "locationType": "town",
                 "image": "images/locations/dusk_peaks_william-trost-richards.png"
             },
             "geometry":{
@@ -2623,7 +2623,7 @@ var markerLocations = {
                 "description": "",
                 "faction": "Высшие эльфы",
                 "province": "Священные пруды",
-                "locationType": "village"
+                "locationType": "town"
             },
             "geometry":{
                 "coordinates": [616,1205],
@@ -2997,7 +2997,7 @@ var markerLocations = {
                 "description": "",
                 "faction": "Великий Катай",
                 "province": "Леса Луны",
-                "locationType": "village"
+                "locationType": "town"
             },
             "geometry":{
                 "coordinates": [5004,2545],
@@ -3430,7 +3430,7 @@ var markerLocations = {
             "properties":{
                 "runame":"Джунгли Чи'Ан",
                 "engname": "Jungles of Chi'an",
-                "traits": ["jungles"],
+                "traits": ["forest"],
                 "description": "",
                 "faction": "Великий Катай",
                 "province": "Джунгли Чи'Ан",
@@ -3467,7 +3467,7 @@ var markerLocations = {
                 "description": "",
                 "faction": "Великий Катай",
                 "province": "Великий канал",
-                "locationType": "village"
+                "locationType": "town"
             },
             "geometry":{
                 "coordinates": [5066,1772],
@@ -3499,7 +3499,7 @@ var markerLocations = {
                 "description": "",
                 "faction": "Великий Катай",
                 "province": "Расколотые земли Тянь-Ли",
-                "locationType": "village"
+                "locationType": "town"
             },
             "geometry":{
                 "coordinates": [4760,1913],
@@ -4891,7 +4891,7 @@ var markerLocations = {
                 "description": "",
                 "faction": "Империя",
                 "province": "Южная область",
-                "locationType": "village"
+                "locationType": "town"
             },
             "geometry":{
                 "coordinates": [2837,3287],
@@ -5603,7 +5603,7 @@ var markerLocations = {
                 "description": "",
                 "faction": "Клан Уллек",
                 "province": "Ущелье Мёртвых Скал",
-                "locationType": "village"
+                "locationType": "town"
             },
             "geometry":{
                 "coordinates": [3179,2543],
@@ -5779,7 +5779,7 @@ var markerLocations = {
                 "description": "",
                 "faction": "Новаторы",
                 "province": "Вершины Титана",
-                "locationType": "village"
+                "locationType": "town"
             },
             "geometry":{
                 "coordinates": [426,2507],
@@ -5794,7 +5794,7 @@ var markerLocations = {
                 "description": "",
                 "faction": "Новаторы",
                 "province": "Вершины Титана",
-                "locationType": "village"
+                "locationType": "town"
             },
             "geometry":{
                 "coordinates": [256,2472],
@@ -5859,7 +5859,7 @@ var markerLocations = {
                 "description": "",
                 "faction": "Клан Ангрунд",
                 "province": "Болота Погибели",
-                "locationType": "village"
+                "locationType": "town"
             },
             "geometry":{
                 "coordinates": [1858,2125],
@@ -5891,7 +5891,7 @@ var markerLocations = {
                 "description": "",
                 "faction": "Клан Ангрунд",
                 "province": "Подземелья",
-                "locationType": "village"
+                "locationType": "town"
             },
             "geometry":{
                 "coordinates": [2129,2286],
@@ -5906,7 +5906,7 @@ var markerLocations = {
                 "description": "",
                 "faction": "Клан Ангрунд",
                 "province": "Подземелья",
-                "locationType": "village"
+                "locationType": "town"
             },
             "geometry":{
                 "coordinates": [2159,2083],
@@ -5953,7 +5953,7 @@ var markerLocations = {
                 "description": "",
                 "faction": "Клан Ангрунд",
                 "province": "Северные Серые горы",
-                "locationType": "village"
+                "locationType": "town"
             },
             "geometry":{
                 "coordinates": [1909,2809],
@@ -6000,7 +6000,7 @@ var markerLocations = {
                 "description": "Приходящее в упадок поселение серых гномов.",
                 "faction": "Клан Ангрунд",
                 "province": "Южные Серые горы",
-                "locationType": "village"
+                "locationType": "town"
             },
             "geometry":{
                 "coordinates": [2186,2450],
@@ -6064,7 +6064,7 @@ var markerLocations = {
                 "description": "",
                 "faction": "Клан Ангрунд",
                 "province": "Чёрные горы",
-                "locationType": "village"
+                "locationType": "town"
             },
             "geometry":{
                 "coordinates": [2599,2561],
@@ -6081,7 +6081,7 @@ var markerLocations = {
                 "description": "Горнодобывающее поселение, принадлежащее Карак Разъяку.",
                 "faction": "Земли мстителей",
                 "province": "Северные Краесветные горы",
-                "locationType": "village"
+                "locationType": "town"
             },
             "geometry":{
                 "coordinates": [3197,3121],
@@ -6111,7 +6111,7 @@ var markerLocations = {
                 "description": "Небольшая гномья крепость.",
                 "faction": "Земли мстителей",
                 "province": "Северные Краесветные горы",
-                "locationType": "village"
+                "locationType": "town"
             },
             "geometry":{
                 "coordinates": [3039,3088],
@@ -6175,7 +6175,7 @@ var markerLocations = {
                 "description": "",
                 "faction": "Клан Уллек",
                 "province": "Черноводье",
-                "locationType": "village"
+                "locationType": "town"
             },
             "geometry":{
                 "coordinates": [2862,2724],
@@ -6190,7 +6190,7 @@ var markerLocations = {
                 "description": "",
                 "faction": "Клан Уллек",
                 "province": "Черноводье",
-                "locationType": "village"
+                "locationType": "town"
             },
             "geometry":{
                 "coordinates": [2951,2749],
@@ -6221,7 +6221,7 @@ var markerLocations = {
                 "description": "",
                 "faction": "Клан Уллек",
                 "province": "Рёберные вершины",
-                "locationType": "village"
+                "locationType": "town"
             },
             "geometry":{
                 "coordinates": [3155,2898],
@@ -6288,7 +6288,7 @@ var markerLocations = {
                 "description": "",
                 "faction": "Клан Уллек",
                 "province": "Перевал Смерти",
-                "locationType": "village"
+                "locationType": "town"
             },
             "geometry":{
                 "coordinates": [3008,2387],
@@ -6303,7 +6303,7 @@ var markerLocations = {
                 "description": "Масштабные шахтные выработки богатых залежей полезных ископаемых.",
                 "faction": "Клан Уллек",
                 "province": "Перевал Смерти",
-                "locationType": "village"
+                "locationType": "town"
             },
             "geometry":{
                 "coordinates": [2915,2264],
@@ -6352,7 +6352,7 @@ var markerLocations = {
                 "description": "",
                 "faction": "Клан Уллек",
                 "province": "Восемь Вершин",
-                "locationType": "village",
+                "locationType": "town",
                 "image": "images/locations/valayas_sorrow.png"
             },
             "geometry":{
@@ -6387,7 +6387,7 @@ var markerLocations = {
                 "description": "",
                 "faction": "Клан Уллек",
                 "province": "Восточные бедные земли",
-                "locationType": "village"
+                "locationType": "town"
             },
             "geometry":{
                 "coordinates": [3025,1922],
@@ -6436,7 +6436,7 @@ var markerLocations = {
                 "description": "",
                 "faction": "Клан Уллек",
                 "province": "Скверноводье",
-                "locationType": "village"
+                "locationType": "town"
             },
             "geometry":{
                 "coordinates": [2991,1809],
@@ -6486,7 +6486,7 @@ var markerLocations = {
                 "description": "",
                 "faction": "Клан Уллек",
                 "province": "Южные Краесветные горы",
-                "locationType": "village"
+                "locationType": "town"
             },
             "geometry":{
                 "coordinates": [3187,2225],
@@ -6952,7 +6952,7 @@ var markerLocations = {
                 "description": "",
                 "faction": "Разбойничьи земли",
                 "province": "Топи безумия",
-                "locationType": "village"
+                "locationType": "town"
             },
             "geometry":{
                 "coordinates": [2732,1751],
@@ -7039,7 +7039,7 @@ var markerLocations = {
                 "description": "",
                 "faction": "Цари гробниц",
                 "province": "Страна Дервишей",
-                "locationType": "village"
+                "locationType": "town"
             },
             "geometry":{
                 "coordinates": [2239,1059],
@@ -7441,7 +7441,7 @@ var markerLocations = {
                 "description": "Древний город, заселённый ещё со времен, когда побережье Аравии было колонией высших эльфов.",
                 "faction": "Цари гробниц",
                 "province": "Берег Аравии",
-                "locationType": "village"
+                "locationType": "town"
             },
             "geometry":{
                 "coordinates": [1981,1615],
@@ -7764,7 +7764,7 @@ var markerLocations = {
                 "traits": ["port"],
                 "description": "Заброшенное поселение в сердце поражённых вампирской скверной земель.",
                 "province": "Сломанные зубы",
-                "locationType": "village"
+                "locationType": "town"
             },
             "geometry":{
                 "coordinates": [3538,1867],

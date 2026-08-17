@@ -1,4 +1,3 @@
-
 const imgWidth  = 5760;
 const imgHeight = 4480;
 
@@ -52,7 +51,7 @@ var provinces = L.tileLayer('tiles_provinces/{z}/{x}/{y}.png', {
 
 // ─── MARKER GROUPS ────────────────────────────────────────────────────────
 var cities       = L.layerGroup();
-var villages     = L.layerGroup();
+var towns  		 = L.layerGroup();
 var forts        = L.layerGroup();
 var camps        = L.layerGroup();
 var shrines      = L.layerGroup();
@@ -64,7 +63,7 @@ var polarGates   = L.layerGroup();
 // defaultOn: false → выключен по умолчанию
 const MARKER_LAYERS = [
     { label: 'Города',         group: cities,       defaultOn: true,  icons: ['images/icons/city.png'] },
-    { label: 'Деревни',        group: villages,     defaultOn: true,  icons: ['images/icons/village.png'] },
+    { label: 'Поселения',      group: towns,		defaultOn: true,  icons: ['images/icons/town.png'] },
     { label: 'Форты',          group: forts,        defaultOn: true,  icons: ['images/icons/fort.png'] },
     { label: 'Лагеря',         group: camps,        defaultOn: true,  icons: ['images/icons/camp.png'] },
     { label: 'Точки интереса', group: shrines,      defaultOn: true,  icons: ['images/icons/shrine.png', 'images/icons/pointOfInterest.png'] },
@@ -79,7 +78,7 @@ const MAP_LAYERS = [
 
 // ─── ТИПЫ ЛОКАЦИЙ ─────────────────────────────────────────────────────────
 const LOCATION_ICONS = {
-	'village':       	   { url: 'images/icons/village.png',		     size: [26, 26] },
+	'town':		       	   { url: 'images/icons/town.png',			     size: [26, 26] },
 	'city':       	   	   { url: 'images/icons/city.png',			     size: [26, 26] },
 	'fort':          	   { url: 'images/icons/fort.png',        		 size: [24, 24] },
 	'camp':          	   { url: 'images/icons/camp.png',        		 size: [24, 24] },
@@ -104,9 +103,8 @@ function getIcon(locationType) {
 // ─── ОСОБЕННОСТИ ──────────────────────────────────────────────────────────
 const TRAITS = {
 	'port':            { icon: 'images/icons/port.png',            tooltip: 'Порт'                             },
-	'settlement':      { icon: 'images/icons/village.png',         tooltip: 'Поселение'                        },
+	'settlement':      { icon: 'images/icons/town.png', 	       tooltip: 'Поселение'                        },
 	'mountain':        { icon: 'images/icons/mountain.png',        tooltip: 'Гора'                             },
-	'jungles':         { icon: 'images/icons/jungles.png',         tooltip: 'Джунгли'                          },
 	'colony':          { icon: 'images/icons/colony.png',          tooltip: 'Древняя колония высших эльфов'    },
 	'capital_hef':     { icon: 'images/icons/capital_hef.png',     tooltip: 'Столица высших эльфов'            },
 	'capital_def':     { icon: 'images/icons/capital_def.png',     tooltip: 'Столица тёмных эльфов'            },
@@ -181,7 +179,7 @@ markerLocations.features.forEach(function(feature) {
 
 	switch (feature.properties.locationType) {
 		case 'city': 			 marker.addTo(cities); break;
-		case 'village': 		 marker.addTo(villages); break;
+		case 'town':	 		 marker.addTo(towns); break;
 		case 'fort': 			 marker.addTo(forts); break;
 		case 'camp': 			 marker.addTo(camps); break;
 		case 'shrine':
