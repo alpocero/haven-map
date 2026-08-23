@@ -1349,7 +1349,7 @@ var markerLocations = {
                 "traits": ["mountain"],
                 "description": "",
                 "faction": "Дикие племена",
-                "province": "Путь смерти",
+                "province": "Тропа смерти",
                 "locationType": "fort"
             },
             "geometry":{
@@ -1365,7 +1365,7 @@ var markerLocations = {
                 "traits": [],
                 "description": "",
                 "faction": "Дикие племена",
-                "province": "Путь смерти",
+                "province": "Тропа смерти",
                 "locationType": "pointOfInterest"
             },
             "geometry":{
@@ -1381,7 +1381,7 @@ var markerLocations = {
                 "traits": [],
                 "description": "",
                 "faction": "Дикие племена",
-                "province": "Путь смерти",
+                "province": "Тропа смерти",
                 "locationType": "pointOfInterest"
             },
             "geometry":{
@@ -1397,7 +1397,7 @@ var markerLocations = {
                 "traits": [],
                 "description": "",
                 "faction": "Дикие племена",
-                "province": "Путь смерти",
+                "province": "Тропа смерти",
                 "locationType": "fort"
             },
             "geometry":{
@@ -1449,7 +1449,7 @@ var markerLocations = {
                 "traits": ["mountain"],
                 "description": "",
                 "faction": "Дикие племена",
-                "province": "Плато химера",
+                "province": "Плато химеры",
                 "locationType": "pointOfInterest"
             },
             "geometry":{
@@ -1465,7 +1465,7 @@ var markerLocations = {
                 "traits": [],
                 "description": "",
                 "faction": "Дикие племена",
-                "province": "Плато химера",
+                "province": "Плато химеры",
                 "locationType": "city"
             },
             "geometry":{
@@ -1481,7 +1481,7 @@ var markerLocations = {
                 "traits": [],
                 "description": "",
                 "faction": "Дикие племена",
-                "province": "Плато химера",
+                "province": "Плато химеры",
                 "locationType": "shrine"
             },
             "geometry":{
@@ -3291,7 +3291,7 @@ var markerLocations = {
                 "traits": ["port"],
                 "description": "Портовый город, а также крупная верфь и военно-морской порт захода для Великого Драконьего флота.",
                 "faction": "Великий Катай",
-                "province": "Гора Ли",
+                "province": "Гора ли",
                 "locationType": "town"
             },
             "geometry":{
@@ -3306,7 +3306,7 @@ var markerLocations = {
                 "engname": "Li Temple",
                 "description": "На горе Ли расположен крупный монастырь, уединённый храм, посвящённый изучению магических тайн Инь и Ян.",
                 "faction": "Великий Катай",
-                "province": "Гора Ли",
+                "province": "Гора ли",
                 "locationType": "shrine"
             },
             "geometry":{
@@ -3321,7 +3321,7 @@ var markerLocations = {
                 "engname": "Shi Wu • Город Рассвета",
                 "description": "На вершине горы Ли находится Ши-Ву, крупный торговый центр. Порт расположен на высоте сотен футов над уровнем моря, а Великая река впадает с горы Ли в океан. Массивные корабельные подъёмники поднимают и опускают суда в портовый город, где они могут загружать товар, разгружаться или подниматься вверх по Великой реке вглубь Небесной Империи.",
                 "faction": "Великий Катай",
-                "province": "Гора Ли",
+                "province": "Гора ли",
                 "locationType": "city"
             },
             "geometry":{
@@ -4296,7 +4296,7 @@ var markerLocations = {
                 "traits": [],
                 "description": "Один из древнейших и наиболее укреплённых городов севера Империи, некогда процветавший торговый и культурный центр с роскошными серебряными куполами, оперным театром и академиями магии. Во время Великой Войны армия демонов взяла его штурмом и полностью осквернила — с тех пор стены города покрылись демоническими мутациями, улицы источают безумие, а каждый второй рождённый становился мутантом. Несмотря на вечное проклятие, разруху и бесконечные осады, жители Праага раз за разом отстраивают город и не покидают его — этот несломленный дух и делает Прааг «Бастионом Севера».",
                 "faction": "Город-государство Прааг",
-                "province": "Проклятый город",
+                "province": "Город-государство Прааг",
                 "locationType": "city",
                 "image": "images/locations/praag.png"
             },
@@ -5481,7 +5481,7 @@ var markerLocations = {
                 "traits": ["port"],
                 "description": "Крупный и богатый портовый город-государство людей в северной Эсталии, расположенный на побережье Великого океана. Этот окружённый скалами мегаполис является признанным центром мореходства и торговли, чей мощный флот веками сдерживает пиратов Сартозы и налетчиков из Арабии.",
                 "faction": "Маркизат Билбали",
-                "province": "Горы Ирраны",
+                "province": "Маркизат Билбали",
                 "locationType": "city"
             },
             "geometry":{
@@ -5497,7 +5497,7 @@ var markerLocations = {
                 "traits": [],
                 "description": "Некогда укреплённый шахтёрский город людей в западных отрогах Ирранских гор, Монтенас веками служил ключевым бастионом эсталийского королевства Магритты на этих рубежах — но ныне от былой славы остались лишь разграбленные руины, на которых медленно растёт новое поселение.",
                 "faction": "Маркизат Билбали",
-                "province": "Горы Ирраны",
+                "province": "Маркизат Билбали",
                 "locationType": "town"
             },
             "geometry":{
@@ -5516,7 +5516,7 @@ var markerLocations = {
                 "traits": ["port"],
                 "description": "",
                 "faction": "Графство Эсталия",
-                "province": "Эсталия",
+                "province": "Графство Эсталия",
                 "locationType": "city"
             },
             "geometry":{
@@ -5532,7 +5532,7 @@ var markerLocations = {
                 "traits": ["port"],
                 "description": "",
                 "faction": "Графство Эсталия",
-                "province": "Эсталия",
+                "province": "Графство Эсталия",
                 "locationType": "city"
             },
             "geometry":{
@@ -5548,7 +5548,7 @@ var markerLocations = {
                 "traits": ["port"],
                 "description": "",
                 "faction": "Графство Эсталия",
-                "province": "Эсталия",
+                "province": "Графство Эсталия",
                 "locationType": "city"
             },
             "geometry":{
@@ -5567,7 +5567,7 @@ var markerLocations = {
                 "traits": ["port"],
                 "description": "",
                 "faction": "Герцогство Тилея",
-                "province": "Тилея",
+                "province": "Герцогство Тилея",
                 "locationType": "city"
             },
             "geometry":{
@@ -5583,7 +5583,7 @@ var markerLocations = {
                 "traits": [],
                 "description": "",
                 "faction": "Герцогство Тилея",
-                "province": "Тилея",
+                "province": "Герцогство Тилея",
                 "locationType": "city"
             },
             "geometry":{

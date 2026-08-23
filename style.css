@@ -368,6 +368,10 @@ h1, h2, h3 {
 		color: #dcd0c0;
 	}
 
+	.province-header.has-region:hover {
+		color: #dcd0c0;
+	}
+
 	/* ─── RESET VIEW BUTTON ───────────────────────────────────────────────── */
 	/* Стилизуем как стандартный Leaflet-контрол */
 	.leaflet-control-reset a {
@@ -612,4 +616,24 @@ h1, h2, h3 {
 
 .popup-content .description p:last-child {
     margin-bottom: 0;
+}
+
+/* ─── ПОПАП РЕГИОНА (фракция/провинция) ────────────────────────────────── */
+.region-popup {
+    border-top: 3px solid var(--region-color, #977b61);
+}
+
+.region-popup .popup-text {
+    margin-top: 12px;
+}
+
+/* Кликабельность по всей площади фигуры, даже когда fill-opacity: 0
+   (провинции в состоянии покоя — см. PROVINCE_FILL_OPACITY_DEFAULT в script.js) */
+.region-shape {
+    pointer-events: fill !important;
+}
+
+/* Фракции на уровне провинций: видны, но не перехватывают клики/наведение */
+.region-inert {
+    pointer-events: none !important;
 }

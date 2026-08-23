@@ -33,20 +33,228 @@ map.fitBounds(bounds);
 
 
 // ─── TILE OVERLAY LAYERS ──────────────────────────────────────────────────
-var politicalMap_Fill = L.tileLayer('tiles_political_fill/{z}/{x}/{y}.png', {
-	...tileOptions, opacity: 0.2,
-});
-var politicalMap_Borders = L.tileLayer('tiles_political_borders/{z}/{x}/{y}.png', {
-	...tileOptions, opacity: 0.2,
-});
-var politicalMap = L.layerGroup([politicalMap_Fill, politicalMap_Borders]);
-
 map.createPane('provincesPane');
 var provinces = L.tileLayer('tiles_provinces/{z}/{x}/{y}.png', {
 	...tileOptions,
 	updateWhenZooming: false,
 	pane: 'provincesPane',
 });
+
+
+// ─── ИКОНКИ ФРАКЦИЙ / ПРОВИНЦИЙ ───────────────────────────────────────────
+const FACTION_ICON  = 'images/icons/faction.png';
+const PROVINCE_ICON = 'images/icons/province.png';
+
+function buildIconRow(iconUrl, value) {
+	if (!value) return '';
+	return `
+		<div class="info-row">
+			<img class="info-icon" src="${iconUrl}" alt="">
+			<span>${value}</span>
+		</div>
+	`;
+}
+
+
+// ─── ВЕКТОРНАЯ ПОЛИТИЧЕСКАЯ КАРТА (фракции + провинции) ───────────────────
+// На малом зуме (-5..-2) показываем только крупные владения фракций.
+// На приближённом (-1..0) фракции остаются подложкой-заливкой, а провинции
+// лежат поверх почти прозрачным слоем — виден только их тонкий контур,
+// пока не наведёшься/не откроешь провинцию (тогда её заливка усиливается).
+const POLITICAL_TIER_ZOOM_BREAK = -1; // zoom >= this -> поверх фракций добавляются провинции
+
+map.createPane('regionsPane');
+map.getPane('regionsPane').style.zIndex = 350; // выше базовых тайлов, ниже подписей провинций и маркеров
+
+// Leaflet перерисовывает/расширяет SVG-полотно векторного слоя только по 'moveend'
+// (когда перетаскивание уже закончилось), а во время самого перетаскивания просто
+// сдвигает уже отрисованный кусок через CSS-transform. Область, которая отрисована
+// заранее — это видимый вьюпорт плюс запас (padding) в каждую сторону; если утащить
+// карту дальше этого запаса за один приём, край вектора виден пустым до отпускания
+// мыши. Увеличивая padding, отрисовываем не только видимую часть, а солидный запас
+// вокруг нёе — при обычном перетаскивании пустых зон уже не будет видно. Плата —
+// на каждый moveend/zoomend отрисовывается больше геометрии.
+const regionsRenderer = L.svg({ padding: 2 });
+
+const REGION_FILL_OPACITY       = 0.32;
+const REGION_FILL_OPACITY_HOVER = 0.55;
+
+// На объединённом виде провинция рисуется ПОВЕРХ уже закрашенной (REGION_FILL_OPACITY)
+// фракции. Чтобы подсветка провинции визуально совпадала по интенсивности с подсветкой
+// фракции (REGION_FILL_OPACITY_HOVER), считаем непрозрачность верхнего слоя, которая
+// при альфа-сложении поверх нижнего даёт нужный итоговый цвет: 1-(1-target)/(1-base).
+function topOpacityForComposite(baseOpacity, targetOpacity) {
+	return 1 - (1 - targetOpacity) / (1 - baseOpacity);
+}
+const PROVINCE_FILL_OPACITY_DEFAULT = 0; // в покое провинция полностью невидима
+const PROVINCE_FILL_OPACITY_ACTIVE  = topOpacityForComposite(REGION_FILL_OPACITY, REGION_FILL_OPACITY_HOVER);
+
+// ─── ЛЁГКОЕ РАЗМЫТИЕ КРАЁВ ВЕКТОРА ─────────────────────────────────────────
+// Начиная с зума REGIONS_EDGE_BLUR_MIN_ZOOM (ближе всего к базовой карте)
+// края векторных полигонов чуть смягчаются фильтром blur, чтобы лучше
+// вписываться в растровую подложку. Меняйте эти две константы, чтобы
+// настроить силу/порог размытия.
+const REGIONS_EDGE_BLUR_PX       = 2;
+const REGIONS_EDGE_BLUR_MIN_ZOOM = 0;
+
+const regionLayerById = {};
+
+function buildRegionPopupHTML(props) {
+	const showOwner = props.owner && props.owner !== props.name;
+	return `
+		<div class="popup-content region-popup" style="--region-color: ${props.color ?? '#977b61'}">
+			<div class="popup-text">
+				<div class="title-row"><h1>${props.name ?? ''}</h1></div>
+				${props.engname
+					? `<p class="name-eng">${props.engname}</p>`
+					: ''}
+				${showOwner ? buildIconRow(FACTION_ICON, props.owner) : ''}
+				${props.description
+					? `<div class="description">${props.description}</div>`
+					: ''}
+			</div>
+		</div>
+	`;
+}
+
+// fillOpacity — состояние по умолчанию; fillOpacityActive — при наведении или открытом попапе.
+// Без окантовки (stroke: false); className нужен, чтобы CSS мог сделать площадь
+// фигуры кликабельной, даже когда fillOpacity === 0 (см. .region-shape в style.css).
+//
+// Раньше при наведении вызывался layer.bringToFront() — а это физически переставляет
+// DOM-узел фигуры, из-за чего браузер иногда не успевал прислать mouseout, и подсветка
+// залипала. Теперь bringToFront не используется (окантовок больше нет, перекрывать
+// соседей нечем), а на случай, если mouseout всё же не придёт (например, курсор резко
+// ушёл за пределы карты), ниже добавлена подстраховка: у группы регионов хранится
+// единственный «текущий наведённый» слой, и при наведении на новый слой либо при уходе
+// курсора с карты предыдущий принудительно сбрасывается в состояние по умолчанию.
+function makeRegionLayer(geojson, { fillOpacity, fillOpacityActive }) {
+	let hoveredLayer = null;
+
+	const group = L.geoJSON(geojson, {
+		pane: 'regionsPane',
+		renderer: regionsRenderer,
+		style: feature => ({
+			className: 'region-shape',
+			stroke: false,
+			fillColor: feature.properties.color,
+			fillOpacity,
+		}),
+		onEachFeature: function(feature, layer) {
+			const props = feature.properties;
+			layer.bindPopup(buildRegionPopupHTML(props));
+
+			// NO_FACTION-области (owner === '') всегда остаются прозрачными — их
+			// можно искать/открывать попап, но заливка не должна появляться никогда.
+			const noHighlight = props.owner === '';
+			layer._fillOpacityDefault = fillOpacity;
+			const refreshStyle = () => {
+				const active = !noHighlight && (layer._hovered || layer._selected);
+				layer.setStyle({ fillOpacity: active ? fillOpacityActive : fillOpacity });
+			};
+			layer._refreshStyle = refreshStyle;
+
+			layer.on('mouseover', () => {
+				if (hoveredLayer && hoveredLayer !== layer) {
+					hoveredLayer._hovered = false;
+					hoveredLayer._refreshStyle();
+				}
+				hoveredLayer = layer;
+				layer._hovered = true;
+				refreshStyle();
+			});
+			layer.on('mouseout', () => {
+				layer._hovered = false;
+				refreshStyle();
+				if (hoveredLayer === layer) hoveredLayer = null;
+			});
+			layer.on('popupopen',  () => { layer._selected = true;  refreshStyle(); });
+			layer.on('popupclose', () => { layer._selected = false; refreshStyle(); });
+
+			if (props.id) regionLayerById[props.id] = layer;
+		}
+	});
+
+	// подстраховка: курсор резко покинул карту, а mouseout по каким-то причинам не пришёл
+	map.on('mouseout', () => {
+		if (hoveredLayer) {
+			hoveredLayer._hovered = false;
+			hoveredLayer._refreshStyle();
+			hoveredLayer = null;
+		}
+	});
+
+	return group;
+}
+
+// Включает/выключает интерактивность (hover/клик) у всего яруса регионов, не убирая
+// его с карты — используется, чтобы фракции оставались видимой подложкой, но не
+// перехватывали клики/наведение, когда поверх них показаны провинции.
+function setRegionsInteractive(featureGroup, enabled) {
+	featureGroup.eachLayer(layer => {
+		const el = layer.getElement && layer.getElement();
+		if (el) el.classList.toggle('region-inert', !enabled);
+		if (!enabled) {
+			layer.closePopup();
+			layer._hovered = false;
+			layer._selected = false;
+			layer.setStyle({ fillOpacity: layer._fillOpacityDefault });
+		}
+	});
+}
+
+const factionRegions  = makeRegionLayer(regionsFactions,  {
+	fillOpacity: REGION_FILL_OPACITY, fillOpacityActive: REGION_FILL_OPACITY_HOVER,
+});
+const provinceRegions = makeRegionLayer(regionsProvinces, {
+	fillOpacity: PROVINCE_FILL_OPACITY_DEFAULT, fillOpacityActive: PROVINCE_FILL_OPACITY_ACTIVE,
+});
+
+// Обёртка-слой, которая сама переключает ярус (фракции / фракции+провинции) по зуму,
+// чтобы её можно было включать/выключать одним чекбоксом слоёв карты.
+const PoliticalLayer = L.Layer.extend({
+	onAdd: function(map) {
+		this._map = map;
+		this._syncTier();
+		map.on('zoomend', this._syncTier, this);
+	},
+	onRemove: function(map) {
+		map.off('zoomend', this._syncTier, this);
+		if (map.hasLayer(factionRegions))  map.removeLayer(factionRegions);
+		if (map.hasLayer(provinceRegions)) map.removeLayer(provinceRegions);
+		map.getPane('regionsPane').style.filter = '';
+	},
+	_syncTier: function() {
+		// фракции — всегда база, пока слой включён
+		if (!this._map.hasLayer(factionRegions)) this._map.addLayer(factionRegions);
+		const showProvinces = this._map.getZoom() >= POLITICAL_TIER_ZOOM_BREAK;
+		if (showProvinces) {
+			if (!this._map.hasLayer(provinceRegions)) this._map.addLayer(provinceRegions);
+		} else {
+			if (this._map.hasLayer(provinceRegions)) this._map.removeLayer(provinceRegions);
+		}
+		// на уровне провинций фракции остаются видимой подложкой, но не должны
+		// перехватывать клики/наведение — иначе легко случайно попасть по фракции
+		// вместо провинции
+		setRegionsInteractive(factionRegions, !showProvinces);
+
+		const blurred = this._map.getZoom() >= REGIONS_EDGE_BLUR_MIN_ZOOM;
+		this._map.getPane('regionsPane').style.filter = blurred ? `blur(${REGIONS_EDGE_BLUR_PX}px)` : '';
+	}
+});
+
+var politicalMap = new PoliticalLayer();
+
+// Показать регион на карте (используется поиском/списком в сайдбаре)
+function focusRegion(id) {
+	if (!map.hasLayer(politicalMap)) {
+		document.getElementById('layer-toggle-political').click();
+	}
+	const layer = regionLayerById[id];
+	if (!layer) return;
+	map.flyToBounds(layer.getBounds(), { maxZoom: -1 });
+	setTimeout(() => layer.openPopup(layer.getBounds().getCenter()), 300);
+}
 
 
 // ─── MARKER GROUPS ────────────────────────────────────────────────────────
@@ -73,7 +281,7 @@ const MARKER_LAYERS = [
 ];
 
 const MAP_LAYERS = [
-	{ label: 'Политическая карта', layer: politicalMap, defaultOn: true },
+	{ label: 'Политическая карта', layer: politicalMap, defaultOn: true, id: 'layer-toggle-political' },
 	{ label: 'Провинции',          layer: provinces,    defaultOn: true },
 ];
 
@@ -121,21 +329,6 @@ function buildTraitsHTML(traits) {
 		if (!t) return '';
 		return `<div class="trait" data-key="${key}"><img src="${t.icon}" alt=""></div>`;
 	}).join('');
-}
-
-
-// ─── ИКОНКИ ФРАКЦИЙ / ПРОВИНЦИЙ ───────────────────────────────────────────
-const FACTION_ICON  = 'images/icons/faction.png';
-const PROVINCE_ICON = 'images/icons/province.png';
-
-function buildIconRow(iconUrl, value) {
-	if (!value) return '';
-	return `
-		<div class="info-row">
-			<img class="info-icon" src="${iconUrl}" alt="">
-			<span>${value}</span>
-		</div>
-	`;
 }
 
 
@@ -261,13 +454,14 @@ updateMasterCheckbox();
 // ─── SIDEBAR: ЧЕКБОКСЫ СЛОЁВ КАРТЫ ───────────────────────────────────────
 const mapLayerContainer = document.getElementById('map-layer-checkboxes');
 
-MAP_LAYERS.forEach(({ label, layer, defaultOn }) => {
+MAP_LAYERS.forEach(({ label, layer, defaultOn, id }) => {
 	const lbl = document.createElement('label');
 	lbl.className = 'layer-checkbox';
 
 	const cb = document.createElement('input');
 	cb.type    = 'checkbox';
 	cb.checked = defaultOn;
+	if (id) cb.id = id;
 
 	cb.addEventListener('change', function() {
 		if (this.checked) map.addLayer(layer);
@@ -281,6 +475,11 @@ MAP_LAYERS.forEach(({ label, layer, defaultOn }) => {
 
 
 // ─── SIDEBAR: СПИСОК ЛОКАЦИЙ ──────────────────────────────────────────────
+const provinceRegionMeta = {};   // название провинции (рус) -> { id, owner }
+regionsProvinces.features.forEach(f => {
+	provinceRegionMeta[f.properties.name] = { id: f.properties.id, owner: f.properties.owner ?? '' };
+});
+
 function buildLocationList(features) {
 	// Группируем по провинции
 	const grouped = {};
@@ -300,11 +499,17 @@ function buildLocationList(features) {
 		const provDiv = document.createElement('div');
 		provDiv.className = 'province-group';
 
+		const meta = provinceRegionMeta[province];
+
 		const header = document.createElement('div');
 		header.className = 'province-header';
 		header.textContent = province;
+		header.dataset.name  = province.toLowerCase();
+		header.dataset.owner = (meta?.owner ?? '').toLowerCase();
+		if (meta?.id) header.classList.add('has-region');
 		header.addEventListener('click', () => {
 			provDiv.classList.toggle('collapsed');
+			if (meta?.id) focusRegion(meta.id);
 		});
 		provDiv.appendChild(header);
 
@@ -344,17 +549,21 @@ document.getElementById('sidebar-search').addEventListener('input', function() {
 	const query = this.value.toLowerCase().trim();
 
 	document.querySelectorAll('.province-group').forEach(provDiv => {
-		let anyVisible = false;
+		const header = provDiv.querySelector('.province-header');
+		const regionMatch = !!query && (header.dataset.name.includes(query) || header.dataset.owner.includes(query));
 
+		let anyVisible = false;
 		provDiv.querySelectorAll('.location-item').forEach(item => {
-			const match = !query || item.dataset.ru.includes(query) || item.dataset.en.includes(query);
+			const match = !query || regionMatch || item.dataset.ru.includes(query) || item.dataset.en.includes(query);
 			item.style.display = match ? '' : 'none';
 			if (match) anyVisible = true;
 		});
 
+		const groupVisible = anyVisible || regionMatch;
+
 		// При поиске автоматически разворачиваем провинцию
-		if (query && anyVisible) provDiv.classList.remove('collapsed');
-		provDiv.style.display = anyVisible ? '' : 'none';
+		if (query && groupVisible) provDiv.classList.remove('collapsed');
+		provDiv.style.display = groupVisible ? '' : 'none';
 	});
 });
 
