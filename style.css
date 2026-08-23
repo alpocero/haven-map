@@ -619,13 +619,6 @@ h1, h2, h3 {
 }
 
 /* ─── ПОПАП РЕГИОНА (фракция/провинция) ────────────────────────────────── */
-.region-popup {
-    border-top: 3px solid var(--region-color, #977b61);
-}
-
-.region-popup .popup-text {
-    margin-top: 12px;
-}
 
 /* Кликабельность по всей площади фигуры, даже когда fill-opacity: 0
    (провинции в состоянии покоя — см. PROVINCE_FILL_OPACITY_DEFAULT в script.js) */

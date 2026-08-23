@@ -102,7 +102,7 @@ const regionLayerById = {};
 function buildRegionPopupHTML(props) {
 	const showOwner = props.owner && props.owner !== props.name;
 	return `
-		<div class="popup-content region-popup" style="--region-color: ${props.color ?? '#977b61'}">
+		<div class="popup-content region-popup">
 			<div class="popup-text">
 				<div class="title-row"><h1>${props.name ?? ''}</h1></div>
 				${props.engname
@@ -475,9 +475,13 @@ MAP_LAYERS.forEach(({ label, layer, defaultOn, id }) => {
 
 
 // ─── SIDEBAR: СПИСОК ЛОКАЦИЙ ──────────────────────────────────────────────
-const provinceRegionMeta = {};   // название провинции (рус) -> { id, owner }
+const provinceRegionMeta = {};   // название провинции (рус) -> { id, owner, engname }
 regionsProvinces.features.forEach(f => {
-	provinceRegionMeta[f.properties.name] = { id: f.properties.id, owner: f.properties.owner ?? '' };
+	provinceRegionMeta[f.properties.name] = {
+		id: f.properties.id,
+		owner: f.properties.owner ?? '',
+		engname: f.properties.engname ?? '',
+	};
 });
 
 function buildLocationList(features) {
@@ -504,8 +508,9 @@ function buildLocationList(features) {
 		const header = document.createElement('div');
 		header.className = 'province-header';
 		header.textContent = province;
-		header.dataset.name  = province.toLowerCase();
-		header.dataset.owner = (meta?.owner ?? '').toLowerCase();
+		header.dataset.name    = province.toLowerCase();
+		header.dataset.owner   = (meta?.owner ?? '').toLowerCase();
+		header.dataset.engname = (meta?.engname ?? '').toLowerCase();
 		if (meta?.id) header.classList.add('has-region');
 		header.addEventListener('click', () => {
 			provDiv.classList.toggle('collapsed');
@@ -550,7 +555,11 @@ document.getElementById('sidebar-search').addEventListener('input', function() {
 
 	document.querySelectorAll('.province-group').forEach(provDiv => {
 		const header = provDiv.querySelector('.province-header');
-		const regionMatch = !!query && (header.dataset.name.includes(query) || header.dataset.owner.includes(query));
+		const regionMatch = !!query && (
+			header.dataset.name.includes(query) ||
+			header.dataset.engname.includes(query) ||
+			header.dataset.owner.includes(query)
+		);
 
 		let anyVisible = false;
 		provDiv.querySelectorAll('.location-item').forEach(item => {
