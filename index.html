@@ -133,16 +133,11 @@
 	<div id="revert-dialog">
 		<h3>Восстановить по умолчанию?</h3>
 		<p class="admin-hint">Слева — текущий вариант, справа — исходный (как было закодировано вручную). Подтверждение заменит текущие значения исходными.</p>
-		<div id="revert-compare">
-			<div class="revert-col">
-				<h4>Сейчас</h4>
-				<dl id="revert-current"></dl>
-			</div>
-			<div class="revert-col">
-				<h4>По умолчанию</h4>
-				<dl id="revert-default"></dl>
-			</div>
+		<div id="revert-compare-headers">
+			<span>Сейчас</span>
+			<span>По умолчанию</span>
 		</div>
+		<div id="revert-compare"><!-- генерируется JS --></div>
 		<div class="form-buttons">
 			<button type="button" id="revert-confirm-btn" class="admin-danger-btn">Восстановить</button>
 			<button type="button" id="revert-cancel-btn" class="admin-back-btn">Отмена</button>

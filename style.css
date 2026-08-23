@@ -826,41 +826,50 @@ body.is-admin .leaflet-control-admin a::after {
     margin: 0 0 8px;
 }
 
-#revert-compare {
+/* Заголовки колонок один раз сверху — сами поля идут ниже парами */
+#revert-compare-headers {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 16px;
-    margin: 16px 0;
+    margin-top: 16px;
 }
 
-.revert-col h4 {
+#revert-compare-headers span {
     font-size: 0.78em;
     text-transform: uppercase;
     color: #787167;
-    margin: 0 0 8px;
     font-weight: 600;
 }
 
-.revert-col dl {
-    margin: 0;
+/* Каждое поле — общий label на всю ширину, а под ним пара значений в один
+   грид-ряд: строки автоматически растут под более длинное из двух значений,
+   так что "сейчас" и "по умолчанию" всегда выровнены по высоте между собой. */
+#revert-compare {
     font-size: 0.85em;
 }
 
-.revert-col dt {
+.revert-field { margin-top: 10px; }
+.revert-field:first-child { margin-top: 8px; }
+
+.revert-field-label {
     color: #787167;
     font-size: 0.78em;
-    margin-top: 8px;
+    margin-bottom: 1px;
 }
 
-.revert-col dt:first-child { margin-top: 0; }
+.revert-field-values {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    align-items: stretch;
+}
 
-.revert-col dd {
-    margin: 1px 0 0;
+.revert-value {
     color: #b8a898;
     word-break: break-word;
 }
 
-.revert-col dd.diff { color: #dcd0c0; background: #3a2f22; padding: 1px 4px; }
+.revert-value.diff { color: #dcd0c0; background: #3a2f22; padding: 1px 4px; }
 
 .admin-back-btn {
     background: none;
@@ -873,6 +882,15 @@ body.is-admin .leaflet-control-admin a::after {
 }
 
 .admin-back-btn:hover { color: #dcd0c0; }
+
+/* Внутри ряда кнопок (.form-buttons) admin-back-btn стоит рядом с обычной
+   кнопкой — даём ему такой же padding и прозрачную рамку той же толщины,
+   чтобы высота совпадала, а не "плавала" из-за разных box-моделей. */
+.form-buttons .admin-back-btn {
+    padding: 8px 10px;
+    border: 1px solid transparent;
+    border-radius: 2px;
+}
 
 .admin-hint {
     color: #787167;

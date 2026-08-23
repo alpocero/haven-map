@@ -74,7 +74,7 @@ map.getPane('regionsPane').style.zIndex = 350; // выше базовых тай
 // мыши. Увеличивая padding, отрисовываем не только видимую часть, а солидный запас
 // вокруг нёе — при обычном перетаскивании пустых зон уже не будет видно. Плата —
 // на каждый moveend/zoomend отрисовывается больше геометрии.
-const regionsRenderer = L.svg({ padding: 2 });
+const regionsRenderer = L.svg({ padding: 2, pane: 'regionsPane' });
 
 const REGION_FILL_OPACITY       = 0.32;
 const REGION_FILL_OPACITY_HOVER = 0.55;
@@ -90,12 +90,10 @@ const PROVINCE_FILL_OPACITY_DEFAULT = 0; // в покое провинция п�
 const PROVINCE_FILL_OPACITY_ACTIVE  = topOpacityForComposite(REGION_FILL_OPACITY, REGION_FILL_OPACITY_HOVER);
 
 // ─── ЛЁГКОЕ РАЗМЫТИЕ КРАЁВ ВЕКТОРА ─────────────────────────────────────────
-// Начиная с зума REGIONS_EDGE_BLUR_MIN_ZOOM (ближе всего к базовой карте)
-// края векторных полигонов чуть смягчаются фильтром blur, чтобы лучше
-// вписываться в растровую подложку. Меняйте эти две константы, чтобы
-// настроить силу/порог размытия.
-const REGIONS_EDGE_BLUR_PX       = 2;
-const REGIONS_EDGE_BLUR_MIN_ZOOM = 0;
+// Края векторных полигонов (и фракций, и провинций) всегда чуть смягчаются
+// фильтром blur, чтобы лучше вписываться в растровую подложку. Поменяйте
+// константу, чтобы настроить силу размытия.
+const REGIONS_EDGE_BLUR_PX = 2;
 
 const regionLayerById = {};
 
@@ -238,8 +236,7 @@ const PoliticalLayer = L.Layer.extend({
 		// вместо провинции
 		setRegionsInteractive(factionRegions, !showProvinces);
 
-		const blurred = this._map.getZoom() >= REGIONS_EDGE_BLUR_MIN_ZOOM;
-		this._map.getPane('regionsPane').style.filter = blurred ? `blur(${REGIONS_EDGE_BLUR_PX}px)` : '';
+		this._map.getPane('regionsPane').style.filter = `blur(${REGIONS_EDGE_BLUR_PX}px)`;
 	}
 });
 
@@ -1179,8 +1176,7 @@ deleteMarkerBtn.addEventListener('click', async function() {
 // до появления админки (см. set_default_snapshots.sql) — только у них есть
 // кнопка отката, у добавленных через админку её нет.
 const revertOverlay  = document.getElementById('revert-overlay');
-const revertCurrent  = document.getElementById('revert-current');
-const revertDefault  = document.getElementById('revert-default');
+const revertCompare  = document.getElementById('revert-compare');
 const revertConfirm  = document.getElementById('revert-confirm-btn');
 const revertCancel   = document.getElementById('revert-cancel-btn');
 
@@ -1201,18 +1197,39 @@ function formatRevertValue(v) {
 	return String(v);
 }
 
-function renderRevertColumn(el, values, otherValues) {
-	el.innerHTML = REVERT_FIELDS.map(([key, label]) => {
-		const same = JSON.stringify(values[key] ?? null) === JSON.stringify(otherValues[key] ?? null);
-		return `<dt>${label}</dt><dd class="${same ? '' : 'diff'}">${formatRevertValue(values[key])}</dd>`;
-	}).join('') + `<dt>Координаты</dt><dd class="${values.lng === otherValues.lng && values.lat === otherValues.lat ? '' : 'diff'}">${values.lng}, ${values.lat}</dd>`;
+// Один блок на поле: подпись на всю ширину + пара значений в общем грид-ряду —
+// так строка автоматически растёт под более длинное из двух значений, и
+// «сейчас»/«по умолчанию» остаются на одной высоте именно для этого поля.
+function renderRevertCompare(current, defaults) {
+	const rows = REVERT_FIELDS.map(([key, label]) => {
+		const same = JSON.stringify(current[key] ?? null) === JSON.stringify(defaults[key] ?? null);
+		return `
+			<div class="revert-field">
+				<div class="revert-field-label">${label}</div>
+				<div class="revert-field-values">
+					<div class="revert-value ${same ? '' : 'diff'}">${formatRevertValue(current[key])}</div>
+					<div class="revert-value ${same ? '' : 'diff'}">${formatRevertValue(defaults[key])}</div>
+				</div>
+			</div>
+		`;
+	});
+	const coordsSame = current.lng === defaults.lng && current.lat === defaults.lat;
+	rows.push(`
+		<div class="revert-field">
+			<div class="revert-field-label">Координаты</div>
+			<div class="revert-field-values">
+				<div class="revert-value ${coordsSame ? '' : 'diff'}">${current.lng}, ${current.lat}</div>
+				<div class="revert-value ${coordsSame ? '' : 'diff'}">${defaults.lng}, ${defaults.lat}</div>
+			</div>
+		</div>
+	`);
+	revertCompare.innerHTML = rows.join('');
 }
 
 revertDefaultBtn.addEventListener('click', function() {
 	const row = allMarkerRows.find(r => r.id === activeMarkerId);
 	if (!row || !row.default_data) return;
-	renderRevertColumn(revertCurrent, row, row.default_data);
-	renderRevertColumn(revertDefault, row.default_data, row);
+	renderRevertCompare(row, row.default_data);
 	revertOverlay.classList.remove('hidden');
 });
 
