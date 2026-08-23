@@ -630,3 +630,291 @@ h1, h2, h3 {
 .region-inert {
     pointer-events: none !important;
 }
+
+
+/* ─── АДМИНКА (вход + редактирование маркеров) ─────────────────────────── */
+
+.hidden { display: none !important; }
+
+/* Видно только вошедшему в систему администратору.
+   !important нужен, чтобы не проигрывать по специфичности собственным
+   display-правилам компонентов (например .popup-admin-actions{display:flex}). */
+.admin-only { display: none !important; }
+body.is-admin .popup-admin-actions.admin-only { display: flex !important; }
+body.is-admin #add-marker-btn.admin-only { display: block !important; }
+
+.sidebar-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+/* ─── ИКОНКА ПОЛЬЗОВАТЕЛЯ (Leaflet-контрол, topright) ───────────────────── */
+.leaflet-control-admin a {
+    position: relative;
+}
+
+.leaflet-control-admin a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 16px;
+    height: 16px;
+    background-color: #dcd0c0;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='12' cy='8' r='4' stroke='%23000' stroke-width='2'/%3E%3Cpath d='M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8' stroke='%23000' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+    mask-image:         url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='12' cy='8' r='4' stroke='%23000' stroke-width='2'/%3E%3Cpath d='M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8' stroke='%23000' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+
+body.is-admin .leaflet-control-admin a::after {
+    background-color: #977b61;
+}
+
+/* ─── ВСПЛЫВАЮЩАЯ ПАНЕЛЬ (вход / статус) ─────────────────────────────────── */
+#login-popover {
+    position: fixed;
+    top: 56px;
+    right: 10px;
+    z-index: 1000;
+    width: 230px;
+    background: #0a0a0ac4;
+    backdrop-filter: blur(8px);
+    padding: 14px;
+    box-shadow: 0 3px 14px rgba(0, 0, 0, 0.4);
+}
+
+#login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-family: 'Arimo';
+}
+
+#login-form input {
+    background: #070707d4;
+    border: 1px solid #343130;
+    border-radius: 2px;
+    color: #dcd0c0;
+    font-family: 'Arimo', sans-serif;
+    font-size: 0.85em;
+    padding: 7px 9px;
+    outline: none;
+}
+
+#login-form input:focus { border-color: #776d61; }
+
+#login-form button {
+    margin-top: 2px;
+    background: #977b61;
+    border: none;
+    border-radius: 2px;
+    color: #0a0a0a;
+    font-family: 'Arimo', sans-serif;
+    font-weight: 700;
+    padding: 8px 10px;
+    cursor: pointer;
+}
+
+#login-form button:hover { background: #b8987a; }
+
+#login-error {
+    color: #ff8888;
+    font-size: 0.78em;
+    margin: 0;
+    min-height: 1em;
+}
+
+#admin-status {
+    font-size: 0.78em;
+    color: #998c7c;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#admin-status button {
+    background: none;
+    border: 1px solid #343130;
+    color: #998c7c;
+    font-family: 'Arimo', sans-serif;
+    font-size: 0.9em;
+    padding: 3px 8px;
+    border-radius: 2px;
+    cursor: pointer;
+}
+
+#admin-status button:hover { color: #dcd0c0; border-color: #776d61; }
+
+/* ─── КНОПКИ ─────────────────────────────────────────────────────────────── */
+.admin-primary-btn {
+    width: 100%;
+    background: #977b61;
+    border: none;
+    border-radius: 2px;
+    color: #0a0a0a;
+    font-family: 'Arimo', sans-serif;
+    font-weight: 700;
+    font-size: 0.85em;
+    padding: 9px 10px;
+    cursor: pointer;
+    margin-bottom: 12px;
+}
+
+.admin-primary-btn:hover { background: #b8987a; }
+
+.admin-danger-btn {
+    background: none;
+    border: 1px solid #a34b4b;
+    color: #d98b8b;
+    font-family: 'Arimo', sans-serif;
+    font-size: 0.82em;
+    padding: 8px 10px;
+    border-radius: 2px;
+    cursor: pointer;
+}
+
+.admin-danger-btn:hover { background: #a34b4b; color: #fff; }
+
+.admin-back-btn {
+    background: none;
+    border: none;
+    color: #998c7c;
+    font-family: 'Arimo', sans-serif;
+    font-size: 0.82em;
+    cursor: pointer;
+    padding: 0 0 10px;
+}
+
+.admin-back-btn:hover { color: #dcd0c0; }
+
+.admin-hint {
+    color: #787167;
+    font-size: 0.76em;
+    margin: 0 0 4px;
+    line-height: 1.4;
+}
+
+/* ─── ФОРМА РЕДАКТИРОВАНИЯ МАРКЕРА ───────────────────────────────────────── */
+#edit-marker-view {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    flex: 1;
+}
+
+#edit-marker-view h3 {
+    font-family: 'El Messiri', sans-serif;
+    color: #dcd0c0;
+    font-weight: 600;
+    margin: 0 0 12px;
+}
+
+#marker-form {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-bottom: 10px;
+}
+
+#marker-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.78em;
+    color: #998c7c;
+}
+
+#marker-form input[type="text"],
+#marker-form input[type="number"],
+#marker-form select,
+#marker-form textarea {
+    background: #070707d4;
+    border: 1px solid #343130;
+    border-radius: 2px;
+    color: #dcd0c0;
+    font-family: 'Arimo', sans-serif;
+    font-size: 0.95em;
+    padding: 7px 9px;
+    outline: none;
+    resize: vertical;
+}
+
+#marker-form input:focus,
+#marker-form select:focus,
+#marker-form textarea:focus {
+    border-color: #776d61;
+}
+
+.coord-row { display: flex; gap: 6px; }
+.coord-row input { width: 50%; }
+
+#f-traits {
+    border: 1px solid #343130;
+    border-radius: 2px;
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+#f-traits legend {
+    font-size: 0.78em;
+    color: #998c7c;
+    padding: 0 4px;
+}
+
+#f-traits label {
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85em;
+    color: #b8a898;
+}
+
+.form-buttons {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.form-buttons .admin-primary-btn { margin-bottom: 0; flex: 1; }
+
+#form-error {
+    color: #ff8888;
+    font-size: 0.8em;
+    margin: 0;
+    min-height: 1em;
+}
+
+/* Маркер-«призрак», показывающий текущее выбранное положение при добавлении/переносе */
+.admin-draft-icon {
+    filter: drop-shadow(0 0 4px #977b61) saturate(0) brightness(2);
+}
+
+/* Кнопки «Редактировать»/«Удалить» внутри попапа локации (только для админа) */
+.popup-admin-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.popup-admin-actions a {
+    font-size: 0.78em;
+    color: #977b61;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.popup-admin-actions a:hover { color: #dcd0c0; }
+
+.popup-admin-actions a.popup-delete { color: #d98b8b; }
+.popup-admin-actions a.popup-delete:hover { color: #ff8888; }

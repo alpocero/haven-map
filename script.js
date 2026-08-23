@@ -352,6 +352,10 @@ function buildPopupHTML(props) {
 					: ''}
 				${buildIconRow(FACTION_ICON,  props.faction)}
 				${buildIconRow(PROVINCE_ICON, props.province)}
+				<div class="popup-admin-actions admin-only">
+					<a data-edit-marker="${props.id ?? ''}">Редактировать</a>
+					<a data-delete-marker="${props.id ?? ''}" class="popup-delete">Удалить</a>
+				</div>
 			</div>
 		</div>
 	`;
@@ -359,30 +363,71 @@ function buildPopupHTML(props) {
 
 
 // ─── DISPLAY MARKERS ──────────────────────────────────────────────────────
-const markerByName = {};   // для навигации из списка локаций
+// Маркеры хранятся в Supabase (таблица markers) — публичное чтение открыто всем
+// через RLS-политику, запись разрешена только вошедшему администратору
+// (см. блок АДМИНКА ниже). loadMarkers() полностью перестраивает все слои
+// маркеров и список в сайдбаре — вызывается при старте и заново после
+// добавления/редактирования/удаления маркера в админке.
+const markersById  = {};   // id строки Supabase -> Leaflet-маркер (навигация из сайдбара + админка)
+let allMarkerRows   = [];  // сырые строки из Supabase (нужны админке для формы/подсказок)
 
-markerLocations.features.forEach(function(feature) {
-	const coords = feature.geometry.coordinates;
-	const latlng = L.latLng(coords[1], coords[0]);
+function rowToFeature(row) {
+	return {
+		properties: {
+			id: row.id,
+			runame: row.runame,
+			engname: row.engname,
+			description: row.description,
+			faction: row.faction,
+			province: row.province,
+			locationType: row.location_type,
+			traits: row.traits ?? [],
+			image: row.image,
+		},
+		geometry: { coordinates: [row.lng, row.lat] },
+	};
+}
 
-	const marker = L.marker(latlng, {
-		icon: getIcon(feature.properties.locationType)
-	});
-	marker.bindPopup(buildPopupHTML(feature.properties));
-
-	markerByName[feature.properties.runame] = marker;
-
-	switch (feature.properties.locationType) {
-		case 'city': 			 marker.addTo(cities); break;
-		case 'town':	 		 marker.addTo(towns); break;
-		case 'fort': 			 marker.addTo(forts); break;
-		case 'camp': 			 marker.addTo(camps); break;
-		case 'shrine':			 marker.addTo(shrines); break;
-		case 'pointOfInterest':  marker.addTo(pointsOfInterest); break;
-		case 'polarGates':
-		case 'polarGatesBroken': marker.addTo(polarGates); break;
+async function loadMarkers() {
+	const { data, error } = await supabaseClient.from('markers').select('*').order('runame');
+	if (error) {
+		console.error('Не удалось загрузить маркеры из Supabase:', error);
+		return;
 	}
-});
+	allMarkerRows = data;
+
+	[cities, towns, forts, camps, shrines, pointsOfInterest, polarGates].forEach(g => g.clearLayers());
+	Object.keys(markersById).forEach(k => delete markersById[k]);
+
+	const features = data.map(rowToFeature);
+
+	features.forEach(function(feature) {
+		const coords = feature.geometry.coordinates;
+		const latlng = L.latLng(coords[1], coords[0]);
+
+		const marker = L.marker(latlng, {
+			icon: getIcon(feature.properties.locationType)
+		});
+		marker.bindPopup(buildPopupHTML(feature.properties));
+
+		markersById[feature.properties.id] = marker;
+
+		switch (feature.properties.locationType) {
+			case 'city': 			 marker.addTo(cities); break;
+			case 'town':	 		 marker.addTo(towns); break;
+			case 'fort': 			 marker.addTo(forts); break;
+			case 'camp': 			 marker.addTo(camps); break;
+			case 'shrine':			 marker.addTo(shrines); break;
+			case 'pointOfInterest':  marker.addTo(pointsOfInterest); break;
+			case 'polarGates':
+			case 'polarGatesBroken': marker.addTo(polarGates); break;
+		}
+	});
+
+	buildLocationList(features);
+	if (typeof populateAdminDatalists === 'function') populateAdminDatalists();
+}
+loadMarkers();
 
 
 // ─── ДОБАВЛЯЕМ СЛОИ НА КАРТУ СОГЛАСНО defaultOn ───────────────────────────
@@ -531,7 +576,7 @@ function buildLocationList(features) {
 				li.dataset.en    = (f.properties.engname ?? '').toLowerCase();
 
 				li.addEventListener('click', function() {
-					const marker = markerByName[f.properties.runame];
+					const marker = markersById[f.properties.id];
 					if (marker) {
 						map.setView(marker.getLatLng(), 0);
 						setTimeout(() => marker.openPopup(), 250);
@@ -545,9 +590,6 @@ function buildLocationList(features) {
 		container.appendChild(provDiv);
 	});
 }
-
-buildLocationList(markerLocations.features);
-
 
 // ─── SIDEBAR: ПОИСК ───────────────────────────────────────────────────────
 document.getElementById('sidebar-search').addEventListener('input', function() {
@@ -861,4 +903,255 @@ document.addEventListener('click', function(e) {
 	pinned = false;
 	traitTooltip.classList.remove('pinned');
 	traitTooltip.style.display = 'none';
+});
+
+
+// ─── АДМИНКА: ВХОД ─────────────────────────────────────────────────────────
+// Публичные ключи Supabase (supabase-config.js) безопасны в браузере — реальная
+// защита на запись обеспечивается RLS-политиками в базе (см. регистрацию
+// markers-table), а не сокрытием ключа. Вошедший администратор получает
+// возможность добавлять/редактировать/удалять маркеры прямо на этой странице.
+let isAdmin = false;
+
+const AdminControl = L.Control.extend({
+	options: { position: 'topright' },
+	onAdd: function() {
+		const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-admin');
+		const link = L.DomUtil.create('a', '', container);
+		link.href  = '#';
+		link.title = 'Вход для администратора';
+		L.DomEvent.on(link, 'click', function(e) {
+			L.DomEvent.preventDefault(e);
+			loginPopover.classList.toggle('hidden');
+		});
+		L.DomEvent.disableClickPropagation(container);
+		return container;
+	}
+});
+new AdminControl().addTo(map);
+
+const loginPopover = document.getElementById('login-popover');
+const loginForm     = document.getElementById('login-form');
+const loginErrorEl  = document.getElementById('login-error');
+const adminStatusEl = document.getElementById('admin-status');
+
+function setAdminState(admin) {
+	isAdmin = admin;
+	document.body.classList.toggle('is-admin', admin);
+	adminStatusEl.innerHTML = admin ? '<button id="logout-btn">Выйти</button>' : '';
+	if (admin) {
+		document.getElementById('logout-btn').addEventListener('click', async function() {
+			await supabaseClient.auth.signOut();
+			setAdminState(false);
+		});
+	}
+}
+
+loginForm.addEventListener('submit', async function(e) {
+	e.preventDefault();
+	loginErrorEl.textContent = '';
+	const email    = document.getElementById('login-email').value;
+	const password = document.getElementById('login-password').value;
+	const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+	if (error) {
+		loginErrorEl.textContent = 'Неверная почта или пароль';
+		return;
+	}
+	loginForm.reset();
+	loginPopover.classList.add('hidden');
+	setAdminState(true);
+});
+
+(async function initAuth() {
+	const { data: { session } } = await supabaseClient.auth.getSession();
+	setAdminState(!!session);
+})();
+
+
+// ─── АДМИНКА: ФОРМА МАРКЕРА (добавление / редактирование / удаление) ───────
+const normalView      = document.getElementById('normal-view');
+const editMarkerView  = document.getElementById('edit-marker-view');
+const editMarkerTitle = document.getElementById('edit-marker-title');
+const addMarkerBtn    = document.getElementById('add-marker-btn');
+const editBackBtn     = document.getElementById('edit-back-btn');
+const deleteMarkerBtn = document.getElementById('delete-marker-btn');
+const markerForm      = document.getElementById('marker-form');
+const formErrorEl     = document.getElementById('form-error');
+const placeHint       = document.getElementById('place-hint');
+const traitsFieldset  = document.getElementById('f-traits');
+
+const TRAIT_LABELS = {
+	'port':            'Порт',
+	'settlement':      'Поселение',
+	'mountain':        'Гора',
+	'colony':          'Древняя колония высших эльфов',
+	'capital_hef':     'Столица высших эльфов',
+	'capital_def':     'Столица тёмных эльфов',
+	'forest':          'Лес',
+	'sword_of_khaine': 'Меч Кхейна',
+};
+Object.entries(TRAIT_LABELS).forEach(([key, label]) => {
+	const lbl = document.createElement('label');
+	lbl.innerHTML = `<input type="checkbox" value="${key}"> ${label}`;
+	traitsFieldset.appendChild(lbl);
+});
+
+let activeMarkerId = null; // null = создаём новый
+let draftMarker = null;
+
+function clearDraftMarker() {
+	if (draftMarker) { map.removeLayer(draftMarker); draftMarker = null; }
+}
+
+function setDraftPosition(latlng) {
+	document.getElementById('f-lng').value = latlng.lng.toFixed(1);
+	document.getElementById('f-lat').value = latlng.lat.toFixed(1);
+	if (draftMarker) {
+		draftMarker.setLatLng(latlng);
+	} else {
+		draftMarker = L.marker(latlng, {
+			icon: getIcon(document.getElementById('f-locationType').value),
+			zIndexOffset: 1000,
+			interactive: false,
+		}).addTo(map);
+		draftMarker.getElement()?.classList.add('admin-draft-icon');
+	}
+}
+
+function showNormalView() {
+	normalView.classList.remove('hidden');
+	editMarkerView.classList.add('hidden');
+	clearDraftMarker();
+	activeMarkerId = null;
+}
+
+function showEditView() {
+	normalView.classList.add('hidden');
+	editMarkerView.classList.remove('hidden');
+}
+
+function resetMarkerForm() {
+	markerForm.reset();
+	traitsFieldset.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+	formErrorEl.textContent = '';
+}
+
+function populateAdminDatalists() {
+	const factions  = [...new Set(allMarkerRows.map(m => m.faction).filter(Boolean))].sort();
+	const provinces = [...new Set(allMarkerRows.map(m => m.province).filter(Boolean))].sort();
+	document.getElementById('faction-options').innerHTML  = factions.map(f => `<option value="${f}">`).join('');
+	document.getElementById('province-options').innerHTML = provinces.map(p => `<option value="${p}">`).join('');
+}
+
+function openMarkerForEdit(row) {
+	resetMarkerForm();
+	activeMarkerId = row.id;
+	editMarkerTitle.textContent = row.runame;
+	deleteMarkerBtn.classList.remove('hidden');
+	placeHint.classList.add('hidden');
+	document.getElementById('f-runame').value       = row.runame ?? '';
+	document.getElementById('f-engname').value      = row.engname ?? '';
+	document.getElementById('f-description').value  = row.description ?? '';
+	document.getElementById('f-faction').value      = row.faction ?? '';
+	document.getElementById('f-province').value     = row.province ?? '';
+	document.getElementById('f-locationType').value = row.location_type ?? 'city';
+	document.getElementById('f-image').value        = row.image ?? '';
+	(row.traits ?? []).forEach(t => {
+		const cb = traitsFieldset.querySelector(`input[value="${t}"]`);
+		if (cb) cb.checked = true;
+	});
+	map.closePopup();
+	showEditView();
+	setDraftPosition(L.latLng(row.lat, row.lng));
+	map.panTo(L.latLng(row.lat, row.lng));
+}
+
+addMarkerBtn.addEventListener('click', function() {
+	resetMarkerForm();
+	activeMarkerId = null;
+	editMarkerTitle.textContent = 'Новый маркер';
+	deleteMarkerBtn.classList.add('hidden');
+	placeHint.classList.remove('hidden');
+	clearDraftMarker();
+	showEditView();
+});
+
+editBackBtn.addEventListener('click', showNormalView);
+
+// Клик по карте, пока открыта форма — ставит/переносит черновой маркер.
+// Пока идёт измерение расстояния, координаты трогать не даём.
+map.on('click', function(e) {
+	if (editMarkerView.classList.contains('hidden')) return;
+	if (measuringActive) return;
+	setDraftPosition(e.latlng);
+});
+
+markerForm.addEventListener('submit', async function(e) {
+	e.preventDefault();
+	formErrorEl.textContent = '';
+
+	const lng = parseFloat(document.getElementById('f-lng').value);
+	const lat = parseFloat(document.getElementById('f-lat').value);
+	if (Number.isNaN(lng) || Number.isNaN(lat)) {
+		formErrorEl.textContent = 'Кликните по карте, чтобы указать положение маркера';
+		return;
+	}
+
+	const traits = [...traitsFieldset.querySelectorAll('input[type="checkbox"]:checked')].map(cb => cb.value);
+
+	const payload = {
+		runame:        document.getElementById('f-runame').value.trim(),
+		engname:       document.getElementById('f-engname').value.trim() || null,
+		description:   document.getElementById('f-description').value.trim(),
+		faction:       document.getElementById('f-faction').value.trim(),
+		province:      document.getElementById('f-province').value.trim(),
+		location_type: document.getElementById('f-locationType').value,
+		traits,
+		image:         document.getElementById('f-image').value.trim() || null,
+		lng, lat,
+	};
+
+	const query = activeMarkerId
+		? supabaseClient.from('markers').update(payload).eq('id', activeMarkerId)
+		: supabaseClient.from('markers').insert(payload);
+
+	const { error } = await query;
+	if (error) {
+		formErrorEl.textContent = 'Не удалось сохранить: ' + error.message;
+		return;
+	}
+
+	await loadMarkers();
+	showNormalView();
+});
+
+deleteMarkerBtn.addEventListener('click', async function() {
+	if (!activeMarkerId) return;
+	if (!confirm('Удалить этот маркер?')) return;
+	const { error } = await supabaseClient.from('markers').delete().eq('id', activeMarkerId);
+	if (error) {
+		formErrorEl.textContent = 'Не удалось удалить: ' + error.message;
+		return;
+	}
+	await loadMarkers();
+	showNormalView();
+});
+
+// «Редактировать»/«Удалить» внутри попапа локации — попап каждый раз создаётся
+// заново, поэтому слушаем клики через делегирование на document.
+document.addEventListener('click', async function(e) {
+	const editLink = e.target.closest('[data-edit-marker]');
+	if (editLink?.dataset.editMarker) {
+		const row = allMarkerRows.find(r => r.id === editLink.dataset.editMarker);
+		if (row) openMarkerForEdit(row);
+		return;
+	}
+	const delLink = e.target.closest('[data-delete-marker]');
+	if (delLink?.dataset.deleteMarker) {
+		if (!confirm('Удалить этот маркер?')) return;
+		const { error } = await supabaseClient.from('markers').delete().eq('id', delLink.dataset.deleteMarker);
+		if (error) { alert('Не удалось удалить: ' + error.message); return; }
+		map.closePopup();
+		await loadMarkers();
+	}
 });

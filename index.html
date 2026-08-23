@@ -15,10 +15,11 @@
 	<link href="https://fonts.googleapis.com/css2?family=Arimo:ital,wght@0,400..700;1,400..700&family=El+Messiri:wght@400..700&family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&display=swap" rel="stylesheet">
 
 	<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-	<script src="marker_locations.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+	<script src="supabase-config.js"></script>
 	<script src="regions_factions.js"></script>
 	<script src="regions_provinces.js"></script>
-	
+
 </head>
 
 <body>
@@ -27,37 +28,112 @@
 	<div id="sidebar">
 		<div id="sidebar-inner">
 
-			<h2 id="map-title">Карта Хейвена</h2>
-			<hr class="sidebar-divider">
+			<div id="normal-view">
 
-			<p class="sidebar-section-label">Локации</p>
-			<label class="layer-checkbox" id="master-row">
-				<input type="checkbox" id="toggle-all-markers" checked>
-				<span>Все пометки</span>
-			</label>
-			<div id="individual-checkboxes">
-				<!-- генерируется JS -->
+				<div class="sidebar-header-row">
+					<h2 id="map-title">Карта Хейвена</h2>
+					<div id="admin-status"><!-- генерируется JS --></div>
+				</div>
+				<hr class="sidebar-divider">
+
+				<button id="add-marker-btn" class="admin-primary-btn admin-only hidden">+ Добавить маркер</button>
+
+				<p class="sidebar-section-label">Локации</p>
+				<label class="layer-checkbox" id="master-row">
+					<input type="checkbox" id="toggle-all-markers" checked>
+					<span>Все пометки</span>
+				</label>
+				<div id="individual-checkboxes">
+					<!-- генерируется JS -->
+				</div>
+
+				<hr class="sidebar-divider">
+
+				<p class="sidebar-section-label">Слои карты</p>
+				<div id="map-layer-checkboxes">
+					<!-- генерируется JS -->
+				</div>
+
+				<hr class="sidebar-divider">
+
+				<input type="text" id="sidebar-search" placeholder="Поиск...">
+
+				<hr class="sidebar-divider">
+
+				<p class="sidebar-section-label">Регионы</p>
+				<div id="location-list"></div>
+
 			</div>
 
-			<hr class="sidebar-divider">
+			<div id="edit-marker-view" class="hidden">
+				<button id="edit-back-btn" class="admin-back-btn">← Назад</button>
+				<h3 id="edit-marker-title">Новый маркер</h3>
 
-			<p class="sidebar-section-label">Слои карты</p>
-			<div id="map-layer-checkboxes">
-				<!-- генерируется JS -->
+				<form id="marker-form">
+					<label>Название (рус)*
+						<input type="text" id="f-runame" required>
+					</label>
+					<label>Название (англ)
+						<input type="text" id="f-engname">
+					</label>
+					<label>Описание
+						<textarea id="f-description" rows="3"></textarea>
+					</label>
+					<label>Фракция
+						<input type="text" id="f-faction" list="faction-options">
+						<datalist id="faction-options"></datalist>
+					</label>
+					<label>Провинция
+						<input type="text" id="f-province" list="province-options">
+						<datalist id="province-options"></datalist>
+					</label>
+					<label>Тип
+						<select id="f-locationType">
+							<option value="city">Город</option>
+							<option value="town">Поселение</option>
+							<option value="fort">Форт</option>
+							<option value="camp">Лагерь</option>
+							<option value="shrine">Святилище</option>
+							<option value="pointOfInterest">Точка интереса</option>
+							<option value="polarGates">Врата Древних</option>
+							<option value="polarGatesBroken">Врата Древних (разрушенные)</option>
+						</select>
+					</label>
+					<fieldset id="f-traits">
+						<legend>Особенности</legend>
+						<!-- генерируется JS -->
+					</fieldset>
+					<label>Картинка (путь)
+						<input type="text" id="f-image" placeholder="images/locations/...">
+					</label>
+					<label>Координаты
+						<div class="coord-row">
+							<input type="number" id="f-lng" step="any" placeholder="lng" required>
+							<input type="number" id="f-lat" step="any" placeholder="lat" required>
+						</div>
+					</label>
+					<p class="admin-hint" id="place-hint">Кликните по карте, чтобы указать положение маркера.</p>
+
+					<div class="form-buttons">
+						<button type="submit" class="admin-primary-btn">Сохранить</button>
+						<button type="button" id="delete-marker-btn" class="admin-danger-btn hidden">Удалить</button>
+					</div>
+					<p id="form-error"></p>
+				</form>
 			</div>
-
-			<hr class="sidebar-divider">
-
-			<input type="text" id="sidebar-search" placeholder="Поиск...">
-
-			<hr class="sidebar-divider">
-
-			<p class="sidebar-section-label">Регионы</p>
-			<div id="location-list"></div>
 
 		</div>
 	</div>
 	<button id="sidebar-toggle" title="Свернуть/развернуть">◀</button>
+</div>
+
+<div id="login-popover" class="hidden">
+	<form id="login-form">
+		<input type="email" id="login-email" placeholder="Почта" autocomplete="username" required>
+		<input type="password" id="login-password" placeholder="Пароль" autocomplete="current-password" required>
+		<button type="submit">Войти</button>
+		<p id="login-error"></p>
+	</form>
 </div>
 
 <div id="map"></div>
