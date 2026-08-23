@@ -913,6 +913,20 @@ document.addEventListener('click', function(e) {
 // возможность добавлять/редактировать/удалять маркеры прямо на этой странице.
 let isAdmin = false;
 
+// Для update/delete Supabase/PostgREST не считает отказ RLS ошибкой — если
+// политика не пропускает ни одной строки, запрос просто "успешно" затрагивает
+// 0 строк (в отличие от insert, где нарушение RLS — это явная ошибка). Поэтому
+// здесь всегда просим .select() и сами проверяем, что строка действительно
+// вернулась — иначе истёкшая сессия выглядела бы как успешное сохранение.
+const SESSION_EXPIRED_MSG = 'нет прав на изменение (сессия могла истечь — попробуйте войти заново)';
+
+async function runWrite(query) {
+	const { data, error } = await query.select();
+	if (error) return { ok: false, message: error.message };
+	if (!data || data.length === 0) return { ok: false, message: SESSION_EXPIRED_MSG };
+	return { ok: true, data };
+}
+
 const AdminControl = L.Control.extend({
 	options: { position: 'topright' },
 	onAdd: function() {
@@ -974,11 +988,12 @@ const editMarkerView  = document.getElementById('edit-marker-view');
 const editMarkerTitle = document.getElementById('edit-marker-title');
 const addMarkerBtn    = document.getElementById('add-marker-btn');
 const editBackBtn     = document.getElementById('edit-back-btn');
-const deleteMarkerBtn = document.getElementById('delete-marker-btn');
-const markerForm      = document.getElementById('marker-form');
-const formErrorEl     = document.getElementById('form-error');
-const placeHint       = document.getElementById('place-hint');
-const traitsFieldset  = document.getElementById('f-traits');
+const deleteMarkerBtn  = document.getElementById('delete-marker-btn');
+const revertDefaultBtn = document.getElementById('revert-default-btn');
+const markerForm       = document.getElementById('marker-form');
+const formErrorEl      = document.getElementById('form-error');
+const placeHint        = document.getElementById('place-hint');
+const traitsFieldset   = document.getElementById('f-traits');
 
 const TRAIT_LABELS = {
 	'port':            'Порт',
@@ -1003,18 +1018,30 @@ function clearDraftMarker() {
 	if (draftMarker) { map.removeLayer(draftMarker); draftMarker = null; }
 }
 
-function setDraftPosition(latlng) {
+function setFormCoords(latlng) {
 	document.getElementById('f-lng').value = latlng.lng.toFixed(1);
 	document.getElementById('f-lat').value = latlng.lat.toFixed(1);
+}
+
+// Смена типа локации в форме — сразу обновляем иконку чернового маркера на карте
+document.getElementById('f-locationType').addEventListener('change', function() {
+	if (draftMarker) draftMarker.setIcon(getIcon(this.value));
+});
+
+function setDraftPosition(latlng) {
+	setFormCoords(latlng);
 	if (draftMarker) {
 		draftMarker.setLatLng(latlng);
 	} else {
 		draftMarker = L.marker(latlng, {
 			icon: getIcon(document.getElementById('f-locationType').value),
 			zIndexOffset: 1000,
-			interactive: false,
+			draggable: true,
 		}).addTo(map);
 		draftMarker.getElement()?.classList.add('admin-draft-icon');
+		// зажать и перетащить маркер — альтернатива повторному клику по карте
+		draftMarker.on('drag',    () => setFormCoords(draftMarker.getLatLng()));
+		draftMarker.on('dragend', () => setFormCoords(draftMarker.getLatLng()));
 	}
 }
 
@@ -1023,11 +1050,18 @@ function showNormalView() {
 	editMarkerView.classList.add('hidden');
 	clearDraftMarker();
 	activeMarkerId = null;
+	// возвращаем обычную интерактивность регионов
+	setRegionsInteractive(provinceRegions, true);
+	politicalMap._syncTier(); // восстанавливает корректное состояние фракций для текущего зума
 }
 
 function showEditView() {
 	normalView.classList.add('hidden');
 	editMarkerView.classList.remove('hidden');
+	// пока ставим/переносим маркер, полигоны фракций/провинций не должны
+	// перехватывать клики — иначе по ним невозможно попасть кликом на карту
+	setRegionsInteractive(factionRegions, false);
+	setRegionsInteractive(provinceRegions, false);
 }
 
 function resetMarkerForm() {
@@ -1060,6 +1094,7 @@ function openMarkerForEdit(row) {
 		const cb = traitsFieldset.querySelector(`input[value="${t}"]`);
 		if (cb) cb.checked = true;
 	});
+	revertDefaultBtn.classList.toggle('hidden', !row.is_default);
 	map.closePopup();
 	showEditView();
 	setDraftPosition(L.latLng(row.lat, row.lng));
@@ -1071,6 +1106,7 @@ addMarkerBtn.addEventListener('click', function() {
 	activeMarkerId = null;
 	editMarkerTitle.textContent = 'Новый маркер';
 	deleteMarkerBtn.classList.add('hidden');
+	revertDefaultBtn.classList.add('hidden');
 	placeHint.classList.remove('hidden');
 	clearDraftMarker();
 	showEditView();
@@ -1115,9 +1151,9 @@ markerForm.addEventListener('submit', async function(e) {
 		? supabaseClient.from('markers').update(payload).eq('id', activeMarkerId)
 		: supabaseClient.from('markers').insert(payload);
 
-	const { error } = await query;
-	if (error) {
-		formErrorEl.textContent = 'Не удалось сохранить: ' + error.message;
+	const result = await runWrite(query);
+	if (!result.ok) {
+		formErrorEl.textContent = 'Не удалось сохранить: ' + result.message;
 		return;
 	}
 
@@ -1128,13 +1164,77 @@ markerForm.addEventListener('submit', async function(e) {
 deleteMarkerBtn.addEventListener('click', async function() {
 	if (!activeMarkerId) return;
 	if (!confirm('Удалить этот маркер?')) return;
-	const { error } = await supabaseClient.from('markers').delete().eq('id', activeMarkerId);
-	if (error) {
-		formErrorEl.textContent = 'Не удалось удалить: ' + error.message;
+	const result = await runWrite(supabaseClient.from('markers').delete().eq('id', activeMarkerId));
+	if (!result.ok) {
+		formErrorEl.textContent = 'Не удалось удалить: ' + result.message;
 		return;
 	}
 	await loadMarkers();
 	showNormalView();
+});
+
+
+// ─── АДМИНКА: ОТКАТ ИЗНАЧАЛЬНОЙ ЛОКАЦИИ К УМОЛЧАНИЮ ────────────────────────
+// is_default/default_data проставлены для всех локаций, которые были в проекте
+// до появления админки (см. set_default_snapshots.sql) — только у них есть
+// кнопка отката, у добавленных через админку её нет.
+const revertOverlay  = document.getElementById('revert-overlay');
+const revertCurrent  = document.getElementById('revert-current');
+const revertDefault  = document.getElementById('revert-default');
+const revertConfirm  = document.getElementById('revert-confirm-btn');
+const revertCancel   = document.getElementById('revert-cancel-btn');
+
+const REVERT_FIELDS = [
+	['runame',        'Название (рус)'],
+	['engname',       'Название (англ)'],
+	['description',   'Описание'],
+	['faction',       'Фракция'],
+	['province',      'Провинция'],
+	['location_type', 'Тип'],
+	['traits',        'Особенности'],
+	['image',         'Картинка'],
+];
+
+function formatRevertValue(v) {
+	if (v === null || v === undefined || v === '') return '—';
+	if (Array.isArray(v)) return v.length ? v.join(', ') : '—';
+	return String(v);
+}
+
+function renderRevertColumn(el, values, otherValues) {
+	el.innerHTML = REVERT_FIELDS.map(([key, label]) => {
+		const same = JSON.stringify(values[key] ?? null) === JSON.stringify(otherValues[key] ?? null);
+		return `<dt>${label}</dt><dd class="${same ? '' : 'diff'}">${formatRevertValue(values[key])}</dd>`;
+	}).join('') + `<dt>Координаты</dt><dd class="${values.lng === otherValues.lng && values.lat === otherValues.lat ? '' : 'diff'}">${values.lng}, ${values.lat}</dd>`;
+}
+
+revertDefaultBtn.addEventListener('click', function() {
+	const row = allMarkerRows.find(r => r.id === activeMarkerId);
+	if (!row || !row.default_data) return;
+	renderRevertColumn(revertCurrent, row, row.default_data);
+	renderRevertColumn(revertDefault, row.default_data, row);
+	revertOverlay.classList.remove('hidden');
+});
+
+revertCancel.addEventListener('click', () => revertOverlay.classList.add('hidden'));
+
+revertConfirm.addEventListener('click', async function() {
+	const row = allMarkerRows.find(r => r.id === activeMarkerId);
+	if (!row || !row.default_data) return;
+	const d = row.default_data;
+	const result = await runWrite(supabaseClient.from('markers').update({
+		runame: d.runame, engname: d.engname, description: d.description,
+		faction: d.faction, province: d.province, location_type: d.location_type,
+		traits: d.traits, image: d.image, lng: d.lng, lat: d.lat,
+	}).eq('id', row.id));
+	if (!result.ok) {
+		alert('Не удалось восстановить: ' + result.message);
+		return;
+	}
+	revertOverlay.classList.add('hidden');
+	await loadMarkers();
+	const fresh = allMarkerRows.find(r => r.id === row.id);
+	if (fresh) openMarkerForEdit(fresh);
 });
 
 // «Редактировать»/«Удалить» внутри попапа локации — попап каждый раз создаётся
@@ -1149,8 +1249,8 @@ document.addEventListener('click', async function(e) {
 	const delLink = e.target.closest('[data-delete-marker]');
 	if (delLink?.dataset.deleteMarker) {
 		if (!confirm('Удалить этот маркер?')) return;
-		const { error } = await supabaseClient.from('markers').delete().eq('id', delLink.dataset.deleteMarker);
-		if (error) { alert('Не удалось удалить: ' + error.message); return; }
+		const result = await runWrite(supabaseClient.from('markers').delete().eq('id', delLink.dataset.deleteMarker));
+		if (!result.ok) { alert('Не удалось удалить: ' + result.message); return; }
 		map.closePopup();
 		await loadMarkers();
 	}

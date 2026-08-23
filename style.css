@@ -782,6 +782,86 @@ body.is-admin .leaflet-control-admin a::after {
 
 .admin-danger-btn:hover { background: #a34b4b; color: #fff; }
 
+.admin-secondary-btn {
+    width: 100%;
+    background: none;
+    border: 1px solid #343130;
+    color: #998c7c;
+    font-family: 'Arimo', sans-serif;
+    font-size: 0.82em;
+    padding: 8px 10px;
+    border-radius: 2px;
+    cursor: pointer;
+    margin-bottom: 4px;
+}
+
+.admin-secondary-btn:hover { color: #dcd0c0; border-color: #776d61; }
+
+/* ─── ОКНО СРАВНЕНИЯ (откат локации к умолчанию) ─────────────────────────── */
+#revert-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.55);
+}
+
+#revert-dialog {
+    width: min(700px, 90vw);
+    max-height: 85vh;
+    overflow-y: auto;
+    background: #0a0a0af0;
+    backdrop-filter: blur(8px);
+    padding: 22px 24px;
+    box-shadow: 0 3px 20px rgba(0, 0, 0, 0.5);
+    font-family: 'Arimo';
+    color: #dcd0c0;
+}
+
+#revert-dialog h3 {
+    font-family: 'El Messiri', sans-serif;
+    font-weight: 600;
+    margin: 0 0 8px;
+}
+
+#revert-compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 16px 0;
+}
+
+.revert-col h4 {
+    font-size: 0.78em;
+    text-transform: uppercase;
+    color: #787167;
+    margin: 0 0 8px;
+    font-weight: 600;
+}
+
+.revert-col dl {
+    margin: 0;
+    font-size: 0.85em;
+}
+
+.revert-col dt {
+    color: #787167;
+    font-size: 0.78em;
+    margin-top: 8px;
+}
+
+.revert-col dt:first-child { margin-top: 0; }
+
+.revert-col dd {
+    margin: 1px 0 0;
+    color: #b8a898;
+    word-break: break-word;
+}
+
+.revert-col dd.diff { color: #dcd0c0; background: #3a2f22; padding: 1px 4px; }
+
 .admin-back-btn {
     background: none;
     border: none;

@@ -114,6 +114,8 @@
 					</label>
 					<p class="admin-hint" id="place-hint">Кликните по карте, чтобы указать положение маркера.</p>
 
+					<button type="button" id="revert-default-btn" class="admin-secondary-btn hidden">↺ Восстановить по умолчанию</button>
+
 					<div class="form-buttons">
 						<button type="submit" class="admin-primary-btn">Сохранить</button>
 						<button type="button" id="delete-marker-btn" class="admin-danger-btn hidden">Удалить</button>
@@ -125,6 +127,27 @@
 		</div>
 	</div>
 	<button id="sidebar-toggle" title="Свернуть/развернуть">◀</button>
+</div>
+
+<div id="revert-overlay" class="hidden">
+	<div id="revert-dialog">
+		<h3>Восстановить по умолчанию?</h3>
+		<p class="admin-hint">Слева — текущий вариант, справа — исходный (как было закодировано вручную). Подтверждение заменит текущие значения исходными.</p>
+		<div id="revert-compare">
+			<div class="revert-col">
+				<h4>Сейчас</h4>
+				<dl id="revert-current"></dl>
+			</div>
+			<div class="revert-col">
+				<h4>По умолчанию</h4>
+				<dl id="revert-default"></dl>
+			</div>
+		</div>
+		<div class="form-buttons">
+			<button type="button" id="revert-confirm-btn" class="admin-danger-btn">Восстановить</button>
+			<button type="button" id="revert-cancel-btn" class="admin-back-btn">Отмена</button>
+		</div>
+	</div>
 </div>
 
 <div id="login-popover" class="hidden">
