@@ -86,7 +86,8 @@ html, body {
 }
 
 /* Скроллбар */
-#location-list::-webkit-scrollbar       { width: 4px; } 
+#location-list { scrollbar-width: thin; scrollbar-color: #3d3531 transparent; }
+#location-list::-webkit-scrollbar       { width: 4px; }
 #location-list::-webkit-scrollbar-track { background: transparent; }
 #location-list::-webkit-scrollbar-thumb { background: #3d3531; border-radius: 0px; }
 
@@ -955,8 +956,10 @@ body.is-admin .leaflet-control-admin a::after {
     flex-direction: column;
     gap: 10px;
     padding-bottom: 10px;
+    padding-right: 10px; /* зазор, чтобы скроллбар не «прилипал» к краю полей */
 }
 
+#marker-form { scrollbar-width: thin; scrollbar-color: #3d3531 transparent; }
 #marker-form::-webkit-scrollbar       { width: 4px; }
 #marker-form::-webkit-scrollbar-track { background: transparent; }
 #marker-form::-webkit-scrollbar-thumb { background: #3d3531; border-radius: 0px; }
@@ -1110,6 +1113,7 @@ body.is-admin .leaflet-control-admin a::after {
 }
 #marker-form #f-description:focus { border-color: transparent; }
 
+#f-description { scrollbar-width: thin; scrollbar-color: #3d3531 transparent; }
 #f-description::-webkit-scrollbar       { width: 4px; }
 #f-description::-webkit-scrollbar-track { background: transparent; }
 #f-description::-webkit-scrollbar-thumb { background: #3d3531; border-radius: 0px; }
@@ -1144,6 +1148,7 @@ body.is-admin .leaflet-control-admin a::after {
     padding: 5px;
 }
 
+#link-picker-results { scrollbar-width: thin; scrollbar-color: #3d3531 transparent; }
 #link-picker-results::-webkit-scrollbar       { width: 4px; }
 #link-picker-results::-webkit-scrollbar-track { background: transparent; }
 #link-picker-results::-webkit-scrollbar-thumb { background: #3d3531; border-radius: 0px; }
