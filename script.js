@@ -107,9 +107,7 @@ const DESC_LINK_RE = /\[([^\]]+)\]\((loc|province|faction):([^)]+)\)/g;
 function renderDescription(text) {
 	if (!text) return text;
 	return text.replace(DESC_LINK_RE, (match, label, type, id) => {
-		const icon = type === 'loc'
-			? `<img class="desc-link-icon" src="${PROVINCE_ICON}" alt="">`
-			: '';
+		const icon = `<img class="desc-link-icon" src="${PROVINCE_ICON}" alt="">`;
 		return `<a class="desc-link" data-ref-type="${type}" data-ref-id="${id}">${icon}${label}</a>`;
 	});
 }
@@ -240,6 +238,7 @@ const PoliticalLayer = L.Layer.extend({
 		map.getPane('regionsPane').style.filter = '';
 	},
 	_syncTier: function() {
+		if (!this._map) return; // слой сейчас выключен — синхронизировать нечего
 		// фракции — всегда база, пока слой включён
 		if (!this._map.hasLayer(factionRegions)) this._map.addLayer(factionRegions);
 		const showProvinces = this._map.getZoom() >= POLITICAL_TIER_ZOOM_BREAK;
@@ -259,6 +258,16 @@ const PoliticalLayer = L.Layer.extend({
 
 var politicalMap = new PoliticalLayer();
 
+// Единая анимация перехода к точке (маркер/провинция/фракция). Зум пользователя
+// сохраняется, если он уже не меньше зума, на котором видны провинции —
+// иначе подтягиваем зум именно до этого уровня (не дальше).
+const FOCUS_FLY_DURATION = 0.6; // сек
+
+function focusLatLng(latlng) {
+	const targetZoom = Math.max(map.getZoom(), POLITICAL_TIER_ZOOM_BREAK);
+	map.flyTo(latlng, targetZoom, { duration: FOCUS_FLY_DURATION });
+}
+
 // Показать регион на карте (используется поиском/списком в сайдбаре)
 function focusRegion(id) {
 	if (!map.hasLayer(politicalMap)) {
@@ -266,8 +275,9 @@ function focusRegion(id) {
 	}
 	const layer = regionLayerById[id];
 	if (!layer) return;
-	map.flyToBounds(layer.getBounds(), { maxZoom: -1 });
-	setTimeout(() => layer.openPopup(layer.getBounds().getCenter()), 300);
+	const center = layer.getBounds().getCenter();
+	focusLatLng(center);
+	setTimeout(() => layer.openPopup(center), FOCUS_FLY_DURATION * 1000);
 }
 
 
@@ -414,7 +424,7 @@ async function loadMarkers() {
 	}
 	allMarkerRows = data;
 
-	[cities, towns, forts, camps, shrines, pointsOfInterest, polarGates].forEach(g => g.clearLayers());
+	[cities, towns, forts, camps, shrines, pointsOfInterest, polarGates, quests].forEach(g => g.clearLayers());
 	Object.keys(markersById).forEach(k => delete markersById[k]);
 
 	const features = data.map(rowToFeature);
@@ -571,15 +581,27 @@ function buildLocationList(features) {
 
 		const header = document.createElement('div');
 		header.className = 'province-header';
-		header.textContent = province;
 		header.dataset.name    = province.toLowerCase();
 		header.dataset.owner   = (meta?.owner ?? '').toLowerCase();
 		header.dataset.engname = (meta?.engname ?? '').toLowerCase();
-		if (meta?.id) header.classList.add('has-region');
+
+		const nameSpan = document.createElement('span');
+		nameSpan.className = 'province-header-text';
+		nameSpan.textContent = province;
+		header.appendChild(nameSpan);
+
+		// Клик по названию — переход к провинции; клик по стрелке/пустому месту
+		// строки — только сворачивание списка (не должны конфликтовать друг с другом).
 		header.addEventListener('click', () => {
 			provDiv.classList.toggle('collapsed');
-			if (meta?.id) focusRegion(meta.id);
 		});
+		if (meta?.id) {
+			header.classList.add('has-region');
+			nameSpan.addEventListener('click', (e) => {
+				e.stopPropagation();
+				focusRegion(meta.id);
+			});
+		}
 		provDiv.appendChild(header);
 
 		const ul = document.createElement('ul');
@@ -597,8 +619,8 @@ function buildLocationList(features) {
 				li.addEventListener('click', function() {
 					const marker = markersById[f.properties.id];
 					if (marker) {
-						map.setView(marker.getLatLng(), 0);
-						setTimeout(() => marker.openPopup(), 250);
+						focusLatLng(marker.getLatLng());
+						setTimeout(() => marker.openPopup(), FOCUS_FLY_DURATION * 1000);
 					}
 				});
 
@@ -642,9 +664,58 @@ document.getElementById('sidebar-search').addEventListener('input', function() {
 const sidebarToggle = document.getElementById('sidebar-toggle');
 const sidebar       = document.getElementById('sidebar');
 
+// Растянутая ширина сайдбара живёт в inline style.width (см. ниже). При
+// сворачивании инлайновый width убираем, чтобы сработало #sidebar.collapsed
+// из CSS, а при разворачивании — возвращаем сохранённое значение.
+let savedSidebarWidth = null;
+
 sidebarToggle.addEventListener('click', function() {
+	const collapsing = !sidebar.classList.contains('collapsed');
+	if (collapsing) {
+		savedSidebarWidth = sidebar.style.width || null;
+		sidebar.style.width = '';
+	}
 	sidebar.classList.toggle('collapsed');
+	if (!collapsing && savedSidebarWidth) {
+		sidebar.style.width = savedSidebarWidth;
+	}
 	this.textContent = sidebar.classList.contains('collapsed') ? '▶' : '◀';
+});
+
+
+// ─── SIDEBAR: РАСТЯГИВАНИЕ ШИРИНЫ ─────────────────────────────────────────
+const sidebarResizeHandle = document.getElementById('sidebar-resize-handle');
+const SIDEBAR_MIN_W = 280;
+const SIDEBAR_MAX_W = 640;
+
+let resizingSidebar = false;
+let resizeStartX = 0;
+let resizeStartW = SIDEBAR_MIN_W;
+
+function setSidebarWidth(w) {
+	w = Math.max(SIDEBAR_MIN_W, Math.min(SIDEBAR_MAX_W, w));
+	sidebar.style.width = w + 'px';
+}
+
+sidebarResizeHandle.addEventListener('mousedown', function(e) {
+	resizingSidebar = true;
+	resizeStartX = e.clientX;
+	resizeStartW = sidebar.getBoundingClientRect().width;
+	sidebar.classList.add('resizing');
+	document.body.style.userSelect = 'none';
+	e.preventDefault();
+});
+
+window.addEventListener('mousemove', function(e) {
+	if (!resizingSidebar) return;
+	setSidebarWidth(resizeStartW + (e.clientX - resizeStartX));
+});
+
+window.addEventListener('mouseup', function() {
+	if (!resizingSidebar) return;
+	resizingSidebar = false;
+	sidebar.classList.remove('resizing');
+	document.body.style.userSelect = '';
 });
 
 
@@ -1037,6 +1108,25 @@ function clearDraftMarker() {
 	if (draftMarker) { map.removeLayer(draftMarker); draftMarker = null; }
 }
 
+// Пока идёт редактирование существующей локации, черновой маркер (draftMarker)
+// подменяет собой настоящий — иначе на карте видно два маркера в одной точке:
+// неподвижный настоящий и перетаскиваемый черновик, что и создавало впечатление
+// «дубля». Прячем настоящий на время редактирования и возвращаем при выходе.
+let hiddenMarkerId = null;
+
+function hideRealMarker(id) {
+	restoreRealMarker();
+	markersById[id]?.getElement()?.classList.add('admin-editing-hidden');
+	hiddenMarkerId = id;
+}
+
+function restoreRealMarker() {
+	if (hiddenMarkerId !== null) {
+		markersById[hiddenMarkerId]?.getElement()?.classList.remove('admin-editing-hidden');
+		hiddenMarkerId = null;
+	}
+}
+
 // ─── АВТОПОДСТАНОВКА ПРОВИНЦИИ ПО ПОЛОЖЕНИЮ МАРКЕРА ────────────────────────
 // Пока пользователь не ввёл провинцию вручную, поле показывает подсказку по
 // вектору провинций (серым, как плейсхолдер) — но это настоящее значение
@@ -1158,6 +1248,7 @@ function showNormalView() {
 	normalView.classList.remove('hidden');
 	editMarkerView.classList.add('hidden');
 	clearDraftMarker();
+	restoreRealMarker();
 	activeMarkerId = null;
 	// возвращаем обычную интерактивность регионов
 	setRegionsInteractive(provinceRegions, true);
@@ -1198,6 +1289,61 @@ const linkPickerSearch   = document.getElementById('link-picker-search');
 const linkPickerResults  = document.getElementById('link-picker-results');
 
 let linkInsertPos = null; // позиция курсора в textarea на момент открытия панели
+
+// ─── АДМИНКА: ПАНЕЛЬ ФОРМАТИРОВАНИЯ ОПИСАНИЯ ───────────────────────────────
+// Выделяем текст в textarea, жмём кнопку — теги оборачивают выделение (как в
+// Obsidian); без выделения теги вставляются пустыми и курсор встаёт между ними.
+const WRAP_TAGS = {
+	p: ['<p>', '</p>'],
+	b: ['<b>', '</b>'],
+	i: ['<i>', '</i>'],
+};
+
+function wrapSelection(open, close) {
+	const { selectionStart: start, selectionEnd: end, value } = descriptionInput;
+	const selected = value.slice(start, end);
+	descriptionInput.value = value.slice(0, start) + open + selected + close + value.slice(end);
+	descriptionInput.focus();
+	descriptionInput.setSelectionRange(start + open.length, start + open.length + selected.length);
+}
+
+function wrapAlign(align) {
+	wrapSelection(`<div style="text-align:${align}">`, '</div>');
+}
+
+function clearFormatting() {
+	const { selectionStart: start, selectionEnd: end, value } = descriptionInput;
+	if (start === end) {
+		// ничего не выделено — снимаем разметку со всего текста
+		descriptionInput.value = value.replace(/<[^>]+>/g, '');
+		descriptionInput.focus();
+		descriptionInput.setSelectionRange(descriptionInput.value.length, descriptionInput.value.length);
+		return;
+	}
+	const selected = value.slice(start, end);
+	const stripped = selected.replace(/<[^>]+>/g, '');
+	descriptionInput.value = value.slice(0, start) + stripped + value.slice(end);
+	descriptionInput.focus();
+	descriptionInput.setSelectionRange(start, start + stripped.length);
+}
+
+document.querySelectorAll('.desc-toolbar .toolbar-btn').forEach(btn => {
+	if (btn.id === 'insert-link-btn') return; // обрабатывается отдельно ниже (открывает link-picker)
+	btn.addEventListener('click', () => {
+		const wrap = btn.dataset.wrap;
+		const align = btn.dataset.align;
+		const action = btn.dataset.action;
+		if (align) wrapAlign(align);
+		else if (wrap && WRAP_TAGS[wrap]) wrapSelection(...WRAP_TAGS[wrap]);
+		else if (action === 'clear') clearFormatting();
+	});
+});
+
+descriptionInput.addEventListener('keydown', function(e) {
+	if (!(e.ctrlKey || e.metaKey)) return;
+	if (e.key.toLowerCase() === 'b') { e.preventDefault(); wrapSelection(...WRAP_TAGS.b); }
+	if (e.key.toLowerCase() === 'i') { e.preventDefault(); wrapSelection(...WRAP_TAGS.i); }
+});
 
 function allLinkables() {
 	const locs = allMarkerRows.map(m => ({ type: 'loc', id: m.id, label: m.runame, sub: m.province }));
@@ -1299,6 +1445,7 @@ function openMarkerForEdit(row) {
 	revertDefaultBtn.classList.toggle('hidden', !row.is_default);
 	map.closePopup();
 	showEditView();
+	hideRealMarker(row.id);
 	setDraftPosition(L.latLng(row.lat, row.lng));
 	map.panTo(L.latLng(row.lat, row.lng));
 }
@@ -1468,8 +1615,8 @@ document.addEventListener('click', function(e) {
 		if (refType === 'loc') {
 			const marker = markersById[refId];
 			if (marker) {
-				map.setView(marker.getLatLng(), 0);
-				setTimeout(() => marker.openPopup(), 250);
+				focusLatLng(marker.getLatLng());
+				setTimeout(() => marker.openPopup(), FOCUS_FLY_DURATION * 1000);
 			}
 		} else {
 			focusRegion(refId);

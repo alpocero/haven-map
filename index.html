@@ -77,9 +77,29 @@
 						<input type="text" id="f-engname">
 					</label>
 					<label>Описание
-						<div class="desc-edit-row">
-							<textarea id="f-description" rows="3"></textarea>
-							<button type="button" id="insert-link-btn" class="desc-link-btn" title="Вставить ссылку на локацию/провинцию/фракцию">🔗</button>
+						<div class="desc-editor">
+							<div class="desc-toolbar">
+								<button type="button" class="toolbar-btn" data-wrap="p" title="Абзац">¶</button>
+								<div class="sep"></div>
+								<button type="button" class="toolbar-btn" data-wrap="b" title="Жирный (Ctrl+B)"><b>B</b></button>
+								<button type="button" class="toolbar-btn" data-wrap="i" title="Курсив (Ctrl+I)"><i>I</i></button>
+								<div class="sep"></div>
+								<button type="button" class="toolbar-btn" data-align="left" title="По левому краю">
+									<svg viewBox="0 0 16 12" width="14" height="12" fill="currentColor"><rect y="0" width="16" height="1.6" rx="0.8"/><rect y="5.2" width="10" height="1.6" rx="0.8"/><rect y="10.4" width="13" height="1.6" rx="0.8"/></svg>
+								</button>
+								<button type="button" class="toolbar-btn" data-align="center" title="По центру">
+									<svg viewBox="0 0 16 12" width="14" height="12" fill="currentColor"><rect x="0" y="0" width="16" height="1.6" rx="0.8"/><rect x="3" y="5.2" width="10" height="1.6" rx="0.8"/><rect x="1.5" y="10.4" width="13" height="1.6" rx="0.8"/></svg>
+								</button>
+								<button type="button" class="toolbar-btn" data-align="right" title="По правому краю">
+									<svg viewBox="0 0 16 12" width="14" height="12" fill="currentColor"><rect x="0" y="0" width="16" height="1.6" rx="0.8"/><rect x="6" y="5.2" width="10" height="1.6" rx="0.8"/><rect x="3" y="10.4" width="13" height="1.6" rx="0.8"/></svg>
+								</button>
+								<div class="sep"></div>
+								<button type="button" id="insert-link-btn" class="toolbar-btn" title="Вставить ссылку на локацию/провинцию/фракцию">
+									<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+								</button>
+								<button type="button" class="toolbar-btn" data-action="clear" title="Убрать разметку">T<span class="tx-small">x</span></button>
+							</div>
+							<textarea id="f-description"></textarea>
 						</div>
 					</label>
 					<label>Фракция
@@ -129,6 +149,7 @@
 			</div>
 
 		</div>
+		<div id="sidebar-resize-handle" title="Потянуть, чтобы изменить ширину"></div>
 	</div>
 	<button id="sidebar-toggle" title="Свернуть/развернуть">◀</button>
 </div>
