@@ -77,7 +77,10 @@
 						<input type="text" id="f-engname">
 					</label>
 					<label>Описание
-						<textarea id="f-description" rows="3"></textarea>
+						<div class="desc-edit-row">
+							<textarea id="f-description" rows="3"></textarea>
+							<button type="button" id="insert-link-btn" class="desc-link-btn" title="Вставить ссылку на локацию/провинцию/фракцию">🔗</button>
+						</div>
 					</label>
 					<label>Фракция
 						<input type="text" id="f-faction" list="faction-options">
@@ -153,6 +156,11 @@
 		<button type="submit">Войти</button>
 		<p id="login-error"></p>
 	</form>
+</div>
+
+<div id="link-picker" class="hidden">
+	<input type="text" id="link-picker-search" placeholder="Локация, провинция или фракция...">
+	<div id="link-picker-results"><!-- генерируется JS --></div>
 </div>
 
 <div id="map"></div>

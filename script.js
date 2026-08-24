@@ -97,6 +97,23 @@ const REGIONS_EDGE_BLUR_PX = 2;
 
 const regionLayerById = {};
 
+// ─── ССЫЛКИ НА ЛОКАЦИИ/ПРОВИНЦИИ/ФРАКЦИИ ВНУТРИ ОПИСАНИЯ ───────────────────
+// Синтаксис как в маркдауне: [Текст](loc:id) / [Текст](province:id) /
+// [Текст](faction:id) — id не меняется при переименовании записи, поэтому
+// ссылка не ломается. Вставляется через кнопку "Вставить ссылку" в форме
+// админки; здесь превращается в настоящую кликабельную ссылку в попапе.
+const DESC_LINK_RE = /\[([^\]]+)\]\((loc|province|faction):([^)]+)\)/g;
+
+function renderDescription(text) {
+	if (!text) return text;
+	return text.replace(DESC_LINK_RE, (match, label, type, id) => {
+		const icon = type === 'loc'
+			? `<img class="desc-link-icon" src="${PROVINCE_ICON}" alt="">`
+			: '';
+		return `<a class="desc-link" data-ref-type="${type}" data-ref-id="${id}">${icon}${label}</a>`;
+	});
+}
+
 function buildRegionPopupHTML(props) {
 	const showOwner = props.owner && props.owner !== props.name;
 	return `
@@ -108,7 +125,7 @@ function buildRegionPopupHTML(props) {
 					: ''}
 				${showOwner ? buildIconRow(FACTION_ICON, props.owner) : ''}
 				${props.description
-					? `<div class="description">${props.description}</div>`
+					? `<div class="description">${renderDescription(props.description)}</div>`
 					: ''}
 			</div>
 		</div>
@@ -348,7 +365,7 @@ function buildPopupHTML(props, opts = {}) {
 					? `<p class="name-eng">${props.engname}</p>`
 					: ''}
 				${props.description
-					? `<div class="description">${props.description}</div>`
+					? `<div class="description">${renderDescription(props.description)}</div>`
 					: ''}
 				${buildIconRow(FACTION_ICON,  props.faction)}
 				${buildIconRow(PROVINCE_ICON, props.province)}
@@ -1172,6 +1189,95 @@ function populateAdminDatalists() {
 	document.getElementById('province-options').innerHTML = provinces.map(p => `<option value="${p}">`).join('');
 }
 
+
+// ─── АДМИНКА: ВСТАВКА ССЫЛКИ НА ЛОКАЦИЮ/ПРОВИНЦИЮ/ФРАКЦИЮ В ОПИСАНИЕ ───────
+const descriptionInput   = document.getElementById('f-description');
+const insertLinkBtn      = document.getElementById('insert-link-btn');
+const linkPickerEl       = document.getElementById('link-picker');
+const linkPickerSearch   = document.getElementById('link-picker-search');
+const linkPickerResults  = document.getElementById('link-picker-results');
+
+let linkInsertPos = null; // позиция курсора в textarea на момент открытия панели
+
+function allLinkables() {
+	const locs = allMarkerRows.map(m => ({ type: 'loc', id: m.id, label: m.runame, sub: m.province }));
+	const provinces = regionsProvinces.features.map(f => ({ type: 'province', id: f.properties.id, label: f.properties.name }));
+	const factions = regionsFactions.features.map(f => ({ type: 'faction', id: f.properties.id, label: f.properties.name }));
+	return { locs, provinces, factions };
+}
+
+const LINK_GROUP_LABELS = { loc: 'Локации', province: 'Провинции', faction: 'Фракции' };
+
+function renderLinkPickerResults(query) {
+	const q = query.trim().toLowerCase();
+	const { locs, provinces, factions } = allLinkables();
+	const groups = [
+		['loc', locs.filter(i => !q || i.label.toLowerCase().includes(q)).slice(0, 30)],
+		['province', provinces.filter(i => !q || i.label.toLowerCase().includes(q)).slice(0, 30)],
+		['faction', factions.filter(i => !q || i.label.toLowerCase().includes(q)).slice(0, 30)],
+	];
+	const anyResults = groups.some(([, items]) => items.length);
+	if (!anyResults) {
+		linkPickerResults.innerHTML = '<div class="link-picker-empty">Ничего не найдено</div>';
+		return;
+	}
+	linkPickerResults.innerHTML = groups.map(([type, items]) => {
+		if (!items.length) return '';
+		const rows = items.map(i => `
+			<div class="link-picker-item" data-type="${i.type}" data-id="${i.id}" data-label="${i.label.replace(/"/g, '&quot;')}">
+				${i.label}${i.sub ? `<span class="lp-sub">— ${i.sub}</span>` : ''}
+			</div>
+		`).join('');
+		return `<div class="link-picker-group-label">${LINK_GROUP_LABELS[type]}</div>${rows}`;
+	}).join('');
+}
+
+function openLinkPicker() {
+	linkInsertPos = descriptionInput.selectionStart ?? descriptionInput.value.length;
+	const btnRect = insertLinkBtn.getBoundingClientRect();
+	linkPickerEl.style.top  = `${btnRect.bottom + 4}px`;
+	linkPickerEl.style.left = `${Math.max(8, btnRect.right - 280)}px`;
+	linkPickerEl.classList.remove('hidden');
+	linkPickerSearch.value = '';
+	renderLinkPickerResults('');
+	linkPickerSearch.focus();
+}
+
+function closeLinkPicker() {
+	linkPickerEl.classList.add('hidden');
+}
+
+insertLinkBtn.addEventListener('click', openLinkPicker);
+
+linkPickerSearch.addEventListener('input', function() {
+	renderLinkPickerResults(this.value);
+});
+
+linkPickerResults.addEventListener('click', function(e) {
+	const item = e.target.closest('.link-picker-item');
+	if (!item) return;
+	const { type, id, label } = item.dataset;
+	const token = `[${label}](${type}:${id})`;
+	const pos = linkInsertPos ?? descriptionInput.value.length;
+	const before = descriptionInput.value.slice(0, pos);
+	const after  = descriptionInput.value.slice(pos);
+	descriptionInput.value = before + token + after;
+	closeLinkPicker();
+	descriptionInput.focus();
+	const caret = pos + token.length;
+	descriptionInput.setSelectionRange(caret, caret);
+});
+
+document.addEventListener('click', function(e) {
+	if (linkPickerEl.classList.contains('hidden')) return;
+	if (linkPickerEl.contains(e.target) || e.target === insertLinkBtn) return;
+	closeLinkPicker();
+});
+
+document.addEventListener('keydown', function(e) {
+	if (e.key === 'Escape' && !linkPickerEl.classList.contains('hidden')) closeLinkPicker();
+});
+
 function openMarkerForEdit(row) {
 	resetMarkerForm();
 	activeMarkerId = row.id;
@@ -1351,6 +1457,24 @@ revertConfirm.addEventListener('click', async function() {
 	await loadMarkers();
 	const fresh = allMarkerRows.find(r => r.id === row.id);
 	if (fresh) openMarkerForEdit(fresh);
+});
+
+// Ссылка на локацию/провинцию/фракцию внутри описания (см. renderDescription) —
+// работает для всех посетителей, не только для админа.
+document.addEventListener('click', function(e) {
+	const descLink = e.target.closest('.desc-link');
+	if (descLink?.dataset.refType) {
+		const { refType, refId } = descLink.dataset;
+		if (refType === 'loc') {
+			const marker = markersById[refId];
+			if (marker) {
+				map.setView(marker.getLatLng(), 0);
+				setTimeout(() => marker.openPopup(), 250);
+			}
+		} else {
+			focusRegion(refId);
+		}
+	}
 });
 
 // «Редактировать»/«Удалить» внутри попапа локации — попап каждый раз создаётся
