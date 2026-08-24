@@ -1226,6 +1226,8 @@ function setDraftPosition(latlng) {
 	setFormCoords(latlng);
 	if (draftMarker) {
 		draftMarker.setLatLng(latlng);
+		draftMarker.setIcon(getIcon(document.getElementById('f-locationType').value));
+		draftMarker.getElement()?.classList.add('admin-draft-icon'); // setIcon пересоздаёт DOM-элемент — подсветку нужно навесить заново
 	} else {
 		draftMarker = L.marker(latlng, {
 			icon: getIcon(document.getElementById('f-locationType').value),
