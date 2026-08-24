@@ -262,6 +262,7 @@ var camps        	 = L.layerGroup();
 var shrines      	 = L.layerGroup();
 var pointsOfInterest = L.layerGroup();
 var polarGates   	 = L.layerGroup();
+var quests       	 = L.layerGroup();
 
 
 // ─── КОНФИГ СЛОЁВ МАРКЕРОВ ────────────────────────────────────────────────
@@ -275,10 +276,11 @@ const MARKER_LAYERS = [
     { label: 'Святилище', 	   		group: shrines,      			defaultOn: true,		icons: ['images/icons/shrine.png'] },
 	{ label: 'Точка интереса',		group: pointsOfInterest, 		defaultOn: true,		icons: ['images/icons/pointOfInterest.png'] },
     { label: 'Врата Древних',  		group: polarGates,   			defaultOn: false,  		icons: ['images/icons/polarGates.png'] },
+    { label: 'Задание',        		group: quests,       			defaultOn: true,  		icons: ['images/icons/quest.png'] },
 ];
 
 const MAP_LAYERS = [
-	{ label: 'Политическая карта', layer: politicalMap, defaultOn: true, id: 'layer-toggle-political' },
+	{ label: 'Политическая карта', layer: politicalMap, defaultOn: false, id: 'layer-toggle-political' },
 	{ label: 'Провинции',          layer: provinces,    defaultOn: true },
 ];
 
@@ -293,6 +295,7 @@ const LOCATION_ICONS = {
 	'shrine':              { url: 'images/icons/shrine.png',             size: [24, 24] },
 	'polarGates':          { url: 'images/icons/polarGates.png',         size: [24, 24] },
 	'polarGatesBroken':    { url: 'images/icons/polarGatesBroken.png',   size: [24, 24] },
+	'quest':               { url: 'images/icons/quest.png',              size: [24, 24] },
 	'default':             { url: 'images/icons/settlement.png',         size: [24, 24] },
 };
 
@@ -418,6 +421,7 @@ async function loadMarkers() {
 			case 'pointOfInterest':  marker.addTo(pointsOfInterest); break;
 			case 'polarGates':
 			case 'polarGatesBroken': marker.addTo(polarGates); break;
+			case 'quest':            marker.addTo(quests); break;
 		}
 	});
 
