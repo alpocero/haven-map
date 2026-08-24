@@ -1019,15 +1019,100 @@ function clearDraftMarker() {
 	if (draftMarker) { map.removeLayer(draftMarker); draftMarker = null; }
 }
 
+// ─── АВТОПОДСТАНОВКА ПРОВИНЦИИ ПО ПОЛОЖЕНИЮ МАРКЕРА ────────────────────────
+// Пока пользователь не ввёл провинцию вручную, поле показывает подсказку по
+// вектору провинций (серым, как плейсхолдер) — но это настоящее значение
+// поля, оно сохранится при сохранении маркера. Если поле очистить руками,
+// подсказка возвращается.
+const provinceInput = document.getElementById('f-province');
+let provinceIsAuto = true;
+let autoProvinceValue = '';
+
+function pointInRing(x, y, ring) {
+	let inside = false;
+	for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+		const xi = ring[i][0], yi = ring[i][1];
+		const xj = ring[j][0], yj = ring[j][1];
+		const intersect = ((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+		if (intersect) inside = !inside;
+	}
+	return inside;
+}
+
+function pointInPolygonRings(x, y, rings) {
+	if (!pointInRing(x, y, rings[0])) return false;
+	for (let i = 1; i < rings.length; i++) {
+		if (pointInRing(x, y, rings[i])) return false; // попал в дырку — значит не внутри
+	}
+	return true;
+}
+
+function pointInGeometry(x, y, geometry) {
+	if (geometry.type === 'Polygon') return pointInPolygonRings(x, y, geometry.coordinates);
+	if (geometry.type === 'MultiPolygon') return geometry.coordinates.some(rings => pointInPolygonRings(x, y, rings));
+	return false;
+}
+
+function detectProvinceAt(latlng) {
+	const x = latlng.lng, y = latlng.lat;
+	const found = regionsProvinces.features.find(f => pointInGeometry(x, y, f.geometry));
+	return found ? found.properties.name : '';
+}
+
+function applyAutoProvince(latlng) {
+	autoProvinceValue = detectProvinceAt(latlng);
+	if (provinceIsAuto) {
+		provinceInput.value = autoProvinceValue;
+		provinceInput.classList.add('auto-filled');
+	}
+}
+
+provinceInput.addEventListener('input', function() {
+	if (this.value.trim() === '') {
+		// поле очистили руками — возвращаем подсказку по вектору
+		provinceIsAuto = true;
+		this.value = autoProvinceValue;
+		this.classList.add('auto-filled');
+	} else {
+		provinceIsAuto = false;
+		this.classList.remove('auto-filled');
+	}
+});
+
 function setFormCoords(latlng) {
 	document.getElementById('f-lng').value = latlng.lng.toFixed(1);
 	document.getElementById('f-lat').value = latlng.lat.toFixed(1);
+	applyAutoProvince(latlng);
 }
 
 // Смена типа локации в форме — сразу обновляем иконку чернового маркера на карте
 document.getElementById('f-locationType').addEventListener('change', function() {
-	if (draftMarker) draftMarker.setIcon(getIcon(this.value));
+	if (draftMarker) {
+		draftMarker.setIcon(getIcon(this.value));
+		draftMarker.getElement()?.classList.add('admin-draft-icon'); // setIcon пересоздаёт DOM-элемент — подсветку нужно навесить заново
+	}
 });
+
+// Превью попапа черновика — правый клик по маркеру показывает, как локация
+// будет выглядеть у обычного пользователя, ещё до сохранения.
+function collectDraftProps() {
+	return {
+		runame:      document.getElementById('f-runame').value.trim(),
+		engname:     document.getElementById('f-engname').value.trim(),
+		description: document.getElementById('f-description').value.trim(),
+		faction:     document.getElementById('f-faction').value.trim(),
+		province:    document.getElementById('f-province').value.trim(),
+		image:       document.getElementById('f-image').value.trim() || undefined,
+		traits:      [...traitsFieldset.querySelectorAll('input[type="checkbox"]:checked')].map(cb => cb.value),
+	};
+}
+
+function showDraftPreview() {
+	if (!draftMarker) return;
+	draftMarker.unbindPopup();
+	draftMarker.bindPopup(buildPopupHTML(collectDraftProps()));
+	draftMarker.openPopup();
+}
 
 function setDraftPosition(latlng) {
 	setFormCoords(latlng);
@@ -1043,6 +1128,11 @@ function setDraftPosition(latlng) {
 		// зажать и перетащить маркер — альтернатива повторному клику по карте
 		draftMarker.on('drag',    () => setFormCoords(draftMarker.getLatLng()));
 		draftMarker.on('dragend', () => setFormCoords(draftMarker.getLatLng()));
+		// правый клик — предпросмотр попапа локации
+		draftMarker.on('contextmenu', function(e) {
+			L.DomEvent.preventDefault(e);
+			showDraftPreview();
+		});
 	}
 }
 
@@ -1069,6 +1159,9 @@ function resetMarkerForm() {
 	markerForm.reset();
 	traitsFieldset.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
 	formErrorEl.textContent = '';
+	provinceIsAuto = true;
+	autoProvinceValue = '';
+	provinceInput.classList.remove('auto-filled');
 }
 
 function populateAdminDatalists() {
@@ -1089,6 +1182,7 @@ function openMarkerForEdit(row) {
 	document.getElementById('f-description').value  = row.description ?? '';
 	document.getElementById('f-faction').value      = row.faction ?? '';
 	document.getElementById('f-province').value     = row.province ?? '';
+	provinceIsAuto = false; // у существующей локации провинция уже осознанно задана, не подсказка
 	document.getElementById('f-locationType').value = row.location_type ?? 'city';
 	document.getElementById('f-image').value        = row.image ?? '';
 	(row.traits ?? []).forEach(t => {

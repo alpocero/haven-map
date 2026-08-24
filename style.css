@@ -952,6 +952,13 @@ body.is-admin .leaflet-control-admin a::after {
     border-color: #776d61;
 }
 
+/* Провинция, подставленная автоматически по вектору (см. applyAutoProvince
+   в script.js) — визуально как плейсхолдер, но это настоящее значение поля */
+#f-province.auto-filled {
+    color: #534f49;
+    font-style: italic;
+}
+
 .coord-row { display: flex; gap: 6px; }
 .coord-row input { width: 50%; }
 
