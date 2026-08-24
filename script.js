@@ -333,7 +333,7 @@ function buildTraitsHTML(traits) {
 
 
 // ─── ПОПАП ────────────────────────────────────────────────────────────────
-function buildPopupHTML(props) {
+function buildPopupHTML(props, opts = {}) {
 	return `
 		<div class="popup-content">
 			${props.image
@@ -352,10 +352,11 @@ function buildPopupHTML(props) {
 					: ''}
 				${buildIconRow(FACTION_ICON,  props.faction)}
 				${buildIconRow(PROVINCE_ICON, props.province)}
+				${opts.hideAdminActions ? '' : `
 				<div class="popup-admin-actions admin-only">
 					<a data-edit-marker="${props.id ?? ''}">Редактировать</a>
 					<a data-delete-marker="${props.id ?? ''}" class="popup-delete">Удалить</a>
-				</div>
+				</div>`}
 			</div>
 		</div>
 	`;
@@ -1110,7 +1111,7 @@ function collectDraftProps() {
 function showDraftPreview() {
 	if (!draftMarker) return;
 	draftMarker.unbindPopup();
-	draftMarker.bindPopup(buildPopupHTML(collectDraftProps()));
+	draftMarker.bindPopup(buildPopupHTML(collectDraftProps(), { hideAdminActions: true }));
 	draftMarker.openPopup();
 }
 
