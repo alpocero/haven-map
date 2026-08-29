@@ -1,6 +1,28 @@
 const imgWidth  = 5760;
 const imgHeight = 4480;
 
+// Объявлены здесь (а не рядом с местом использования/заполнения) намеренно:
+// popup-слои провинций/фракций строятся синхронно ниже, ещё до loadMarkers(),
+// и renderDescription()/iconForDescLink() могут обратиться к allMarkerRows и
+// LOCATION_ICONS уже на этом этапе (если в описании провинции/фракции есть
+// ссылка на локацию) — объявление после точки использования кидало бы
+// ReferenceError (TDZ у let/const).
+let allMarkerRows = [];  // сырые строки из Supabase (нужны админке для формы/подсказок и иконкам ссылок)
+let markerRowById = new Map();  // тот же набор, но для O(1)-поиска по id (см. iconForDescLink)
+
+const LOCATION_ICONS = {
+	'town':		       	   { url: 'images/icons/town.png',			     size: [28, 28] },
+	'city':       	   	   { url: 'images/icons/city.png',			     size: [30, 30] },
+	'fort':          	   { url: 'images/icons/fort.png',        		 size: [28, 28] },
+	'camp':          	   { url: 'images/icons/camp.png',        		 size: [24, 24] },
+	'pointOfInterest':	   { url: 'images/icons/pointOfInterest.png',	 size: [24, 24] },
+	'shrine':              { url: 'images/icons/shrine.png',             size: [24, 24] },
+	'polarGates':          { url: 'images/icons/polarGates.png',         size: [24, 24] },
+	'polarGatesBroken':    { url: 'images/icons/polarGatesBroken.png',   size: [24, 24] },
+	'quest':               { url: 'images/icons/quest.png',              size: [24, 24] },
+	'default':             { url: 'images/icons/settlement.png',         size: [24, 24] },
+};
+
 const HavenCRS = L.Util.extend({}, L.CRS.Simple, {
 	transformation: new L.Transformation(1, 0, -1, imgHeight)
 });
@@ -104,10 +126,20 @@ const regionLayerById = {};
 // админки; здесь превращается в настоящую кликабельную ссылку в попапе.
 const DESC_LINK_RE = /\[([^\]]+)\]\((loc|province|faction):([^)]+)\)/g;
 
+// Иконка перед ссылкой соответствует тому, куда она ведёт: у провинции/фракции
+// это их обычная иконка, у локации — иконка её типа (как в сайдбаре/попапе).
+function iconForDescLink(type, id) {
+	if (type === 'province') return PROVINCE_ICON;
+	if (type === 'faction')  return FACTION_ICON;
+	const row = markerRowById.get(id);
+	// тот же фолбэк, что и у getIcon() для маркеров на самой карте
+	return LOCATION_ICONS[row?.location_type]?.url ?? LOCATION_ICONS['default'].url;
+}
+
 function renderDescription(text) {
 	if (!text) return text;
 	return text.replace(DESC_LINK_RE, (match, label, type, id) => {
-		const icon = `<img class="desc-link-icon" src="${PROVINCE_ICON}" alt="">`;
+		const icon = `<img class="desc-link-icon" src="${iconForDescLink(type, id)}" alt="">`;
 		return `<a class="desc-link" data-ref-type="${type}" data-ref-id="${id}">${icon}${label}</a>`;
 	});
 }
@@ -117,10 +149,10 @@ function buildRegionPopupHTML(props) {
 	return `
 		<div class="popup-content region-popup">
 			<div class="popup-text">
-				<div class="title-row"><h1>${props.name ?? ''}</h1></div>
 				${props.engname
 					? `<p class="name-eng">${props.engname}</p>`
 					: ''}
+				<div class="title-row"><h1>${props.name ?? ''}</h1></div>
 				${showOwner ? buildIconRow(FACTION_ICON, props.owner) : ''}
 				${props.description
 					? `<div class="description">${renderDescription(props.description)}</div>`
@@ -155,7 +187,7 @@ function makeRegionLayer(geojson, { fillOpacity, fillOpacityActive }) {
 		}),
 		onEachFeature: function(feature, layer) {
 			const props = feature.properties;
-			layer.bindPopup(buildRegionPopupHTML(props));
+			layer.bindPopup(buildRegionPopupHTML(props), { closeButton: false });
 
 			// NO_FACTION-области (owner === '') всегда остаются прозрачными — их
 			// можно искать/открывать попап, но заливка не должна появляться никогда.
@@ -313,18 +345,7 @@ const MAP_LAYERS = [
 
 
 // ─── ТИПЫ ЛОКАЦИЙ ─────────────────────────────────────────────────────────
-const LOCATION_ICONS = {
-	'town':		       	   { url: 'images/icons/town.png',			     size: [28, 28] },
-	'city':       	   	   { url: 'images/icons/city.png',			     size: [30, 30] },
-	'fort':          	   { url: 'images/icons/fort.png',        		 size: [28, 28] },
-	'camp':          	   { url: 'images/icons/camp.png',        		 size: [24, 24] },
-	'pointOfInterest':	   { url: 'images/icons/pointOfInterest.png',	 size: [24, 24] },
-	'shrine':              { url: 'images/icons/shrine.png',             size: [24, 24] },
-	'polarGates':          { url: 'images/icons/polarGates.png',         size: [24, 24] },
-	'polarGatesBroken':    { url: 'images/icons/polarGatesBroken.png',   size: [24, 24] },
-	'quest':               { url: 'images/icons/quest.png',              size: [24, 24] },
-	'default':             { url: 'images/icons/settlement.png',         size: [24, 24] },
-};
+// LOCATION_ICONS объявлена в самом начале файла (см. комментарий там)
 
 function getIcon(locationType) {
 	const cfg = LOCATION_ICONS[locationType] ?? LOCATION_ICONS['default'];
@@ -367,23 +388,25 @@ function buildPopupHTML(props, opts = {}) {
 				? `<img class="location-img" src="${props.image}" alt="">`
 				: ''}
 			<div class="popup-text">
-				<div class="title-row">
-					<h1>${props.runame ?? ''}</h1>
-					<div class="traits">${buildTraitsHTML(props.traits)}</div>
-				</div>
 				${props.engname
 					? `<p class="name-eng">${props.engname}</p>`
 					: ''}
+				<div class="title-row">
+					${opts.hideAdminActions ? '' : `
+					<button type="button" class="popup-edit-icon admin-only" data-edit-marker="${props.id ?? ''}" title="Редактировать маркер">
+						<svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg" style="overflow:visible"><path d="M2.40402 9.76955L0 10L0.230298 7.59556L5.81011 2.00636L7.99436 4.19058L2.40402 9.76955Z" fill="currentColor"/><path d="M9.68337 1.24619C9.7779 1.33841 9.84815 1.43382 9.89413 1.53234C9.94002 1.63099 9.97102 1.7271 9.98723 1.82048C10.0045 1.9201 10.0042 2.01256 9.98647 2.09778C9.96868 2.18285 9.92973 2.25675 9.86956 2.31937L8.93311 3.25398L6.74688 1.06778L7.68364 0.129508C7.74733 0.0754453 7.82145 0.0378807 7.906 0.0170314C7.99066 -0.00379003 8.08243 -0.00546 8.18117 0.0116899C8.2799 0.028844 8.37831 0.0609362 8.47633 0.108142C8.57423 0.155335 8.66937 0.22629 8.76172 0.320887L9.68337 1.24619Z" fill="currentColor"/></svg>
+					</button>`}
+					<h1>${props.runame ?? ''}</h1>
+					<div class="traits">${buildTraitsHTML(props.traits)}</div>
+				</div>
 				${props.description
 					? `<div class="description">${renderDescription(props.description)}</div>`
 					: ''}
-				${buildIconRow(FACTION_ICON,  props.faction)}
-				${buildIconRow(PROVINCE_ICON, props.province)}
-				${opts.hideAdminActions ? '' : `
-				<div class="popup-admin-actions admin-only">
-					<a data-edit-marker="${props.id ?? ''}">Редактировать</a>
-					<a data-delete-marker="${props.id ?? ''}" class="popup-delete">Удалить</a>
-				</div>`}
+				${(props.faction || props.province) ? `
+				<div class="info-row-group">
+					${buildIconRow(FACTION_ICON,  props.faction)}
+					${buildIconRow(PROVINCE_ICON, props.province)}
+				</div>` : ''}
 			</div>
 		</div>
 	`;
@@ -397,7 +420,7 @@ function buildPopupHTML(props, opts = {}) {
 // маркеров и список в сайдбаре — вызывается при старте и заново после
 // добавления/редактирования/удаления маркера в админке.
 const markersById  = {};   // id строки Supabase -> Leaflet-маркер (навигация из сайдбара + админка)
-let allMarkerRows   = [];  // сырые строки из Supabase (нужны админке для формы/подсказок)
+// allMarkerRows объявлена в самом начале файла (см. комментарий там)
 
 function rowToFeature(row) {
 	return {
@@ -423,6 +446,7 @@ async function loadMarkers() {
 		return;
 	}
 	allMarkerRows = data;
+	markerRowById = new Map(data.map(row => [row.id, row]));
 
 	[cities, towns, forts, camps, shrines, pointsOfInterest, polarGates, quests].forEach(g => g.clearLayers());
 	Object.keys(markersById).forEach(k => delete markersById[k]);
@@ -436,7 +460,7 @@ async function loadMarkers() {
 		const marker = L.marker(latlng, {
 			icon: getIcon(feature.properties.locationType)
 		});
-		marker.bindPopup(buildPopupHTML(feature.properties));
+		marker.bindPopup(buildPopupHTML(feature.properties), { closeButton: false });
 
 		markersById[feature.properties.id] = marker;
 
@@ -468,61 +492,80 @@ MAP_LAYERS.forEach(({ layer, defaultOn }) => {
 });
 
 
-// ─── SIDEBAR: ЧЕКБОКСЫ МАРКЕРОВ ───────────────────────────────────────────
+// ─── SIDEBAR: ИКОНКИ ТИПОВ МАРКЕРОВ (та же логика, что «Особенности» в
+// форме редактирования — ряд иконок, ч/б пока выключено, цветная+свечение
+// когда слой показан на карте) ──────────────────────────────────────────
 const individualContainer = document.getElementById('individual-checkboxes');
 
-MARKER_LAYERS.forEach(({ label, group, defaultOn, icons }) => {
-    const lbl = document.createElement('label');
-    lbl.className = 'layer-checkbox';
+// Глаз мастер-кнопки: полностью открыт — показаны все типы; наполовину прикрыт —
+// показана только часть. Форма меняется, а не только цвет/свечение.
+const EYE_SVG_OPEN = '<svg viewBox="0 0 24 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 8s4-6 11-6 11 6 11 6-4 6-11 6-11-6-11-6z"/><circle cx="12" cy="8" r="2.5"/></svg>';
+const EYE_SVG_HALF = '<svg viewBox="0 0 24 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 8s4-6 11-6 11 6 11 6-4 6-11 6-11-6-11-6z"/><path d="M3 8h18"/><path d="M9.5 8a2.5 2.5 0 0 0 5 0"/></svg>';
+const ALL_MARKERS_ICON = EYE_SVG_OPEN;
 
-    const cb = document.createElement('input');
-    cb.type    = 'checkbox';
-    cb.checked = defaultOn;
-    cb.addEventListener('change', function() {
-        if (this.checked) map.addLayer(group);
-        else              map.removeLayer(group);
-        updateMasterCheckbox();
-    });
+// Общий конструктор кнопки-иконки для рядов-переключателей (Локации/
+// Особенности): разметка (button.trait + доп. класс(ы), data-атрибуты,
+// картинка) — общая; поведение по клику и добавление в контейнер остаются за
+// вызывающим кодом — у рядов оно разное (группы слоёв+соло vs простой toggle).
+function createTraitButton(extraClass, dataset, iconHTML) {
+	const btn = document.createElement('button');
+	btn.type = 'button';
+	btn.className = `trait ${extraClass}`;
+	Object.assign(btn.dataset, dataset);
+	btn.innerHTML = iconHTML;
+	return btn;
+}
 
-    const labelSpan = document.createElement('span');
-    labelSpan.textContent = label;
+const masterLayerBtn = createTraitButton('layer-icon-btn layer-icon-btn-all', { tooltip: 'Все пометки' }, ALL_MARKERS_ICON);
+individualContainer.appendChild(masterLayerBtn);
 
-    const iconsDiv = document.createElement('div');
-    iconsDiv.className = 'layer-icons';
-    (icons ?? []).forEach(src => {
-        const img = document.createElement('img');
-        img.src       = src;
-        img.className = 'layer-icon';
-        iconsDiv.appendChild(img);
-    });
+function setLayerButtonState(btn, group, on) {
+	btn.classList.toggle('selected', on);
+	if (on) map.addLayer(group);
+	else    map.removeLayer(group);
+}
 
-    lbl.appendChild(cb);
-    lbl.appendChild(labelSpan);
-    lbl.appendChild(iconsDiv);
-    individualContainer.appendChild(lbl);
+const markerLayerButtons = MARKER_LAYERS.map(({ label, group, defaultOn, icons }) => {
+	const btn = createTraitButton('layer-icon-btn', { tooltip: label }, `<img src="${icons?.[0] ?? ''}" alt="${label}">`);
+	btn.classList.toggle('selected', defaultOn);
+	btn.addEventListener('click', function() {
+		setLayerButtonState(btn, group, !btn.classList.contains('selected'));
+		updateMasterLayerBtn();
+	});
+	individualContainer.appendChild(btn);
+	return btn;
 });
 
-// Мастер-чекбокс
-const masterCb = document.getElementById('toggle-all-markers');
+masterLayerBtn.addEventListener('click', function() {
+	const turnOn = !markerLayerButtons.every(b => b.classList.contains('selected'));
+	markerLayerButtons.forEach((btn, i) => setLayerButtonState(btn, MARKER_LAYERS[i].group, turnOn));
+	updateMasterLayerBtn();
+});
 
-masterCb.addEventListener('change', function() {
-	const checked = this.checked;
-	individualContainer.querySelectorAll('input').forEach((cb, i) => {
-		cb.checked = checked;
-		if (checked) map.addLayer(MARKER_LAYERS[i].group);
-		else         map.removeLayer(MARKER_LAYERS[i].group);
+// ПКМ по иконке типа — «соло»: показать только этот тип, скрыв остальные.
+// Повторный ПКМ на уже соло-типе включает обратно все типы.
+markerLayerButtons.forEach((btn, idx) => {
+	btn.addEventListener('contextmenu', function(e) {
+		e.preventDefault();
+		const isSoloed = btn.classList.contains('selected') &&
+			markerLayerButtons.every((b, i) => i === idx || !b.classList.contains('selected'));
+		markerLayerButtons.forEach((b, i) => {
+			setLayerButtonState(b, MARKER_LAYERS[i].group, isSoloed ? true : i === idx);
+		});
+		updateMasterLayerBtn();
 	});
 });
 
-function updateMasterCheckbox() {
-	const cbs       = [...individualContainer.querySelectorAll('input')];
-	const allOn     = cbs.every(cb => cb.checked);
-	const allOff    = cbs.every(cb => !cb.checked);
-	masterCb.checked       = allOn;
-	masterCb.indeterminate = !allOn && !allOff;
+function updateMasterLayerBtn() {
+	const allOn  = markerLayerButtons.every(b => b.classList.contains('selected'));
+	const allOff = markerLayerButtons.every(b => !b.classList.contains('selected'));
+	const partial = !allOn && !allOff;
+	masterLayerBtn.classList.toggle('selected', allOn);
+	masterLayerBtn.classList.toggle('partial', partial);
+	masterLayerBtn.innerHTML = partial ? EYE_SVG_HALF : EYE_SVG_OPEN;
 }
 
-updateMasterCheckbox();
+updateMasterLayerBtn();
 
 
 // ─── SIDEBAR: ЧЕКБОКСЫ СЛОЁВ КАРТЫ ───────────────────────────────────────
@@ -661,31 +704,55 @@ document.getElementById('sidebar-search').addEventListener('input', function() {
 
 
 // ─── SIDEBAR: TOGGLE ──────────────────────────────────────────────────────
-const sidebarToggle = document.getElementById('sidebar-toggle');
-const sidebar       = document.getElementById('sidebar');
+// Разворачивающая кнопка живёт в шапке сайдбара (обычная иконка рядом с
+// заголовком) — но пока сайдбар свёрнут, её не видно (она внутри самого
+// сайдбара). Поэтому на время свёрнутого состояния показывается кнопка-
+// дублёр в виде Leaflet-контрола (topleft, тот же принцип, что и кнопка
+// входа) — только чтобы было куда нажать и развернуть сайдбар обратно.
+//
+// Сворачивание анимирует transform на #sidebar-wrapper (см. CSS), а не на
+// #sidebar — иначе transition/анимируемый transform там же, где JS на каждый
+// mousemove при resize меняет width, заставлял браузер лишний раз
+// пересчитывать композитный слой и давал фризы при растягивании. Растянутая
+// через resize-ручку ширина (sidebar.style.width) сворачиванием не трогается.
+const sidebar        = document.getElementById('sidebar');
+const sidebarWrapper = document.getElementById('sidebar-wrapper');
+let sidebarToggleControlEl = null;
 
-// Растянутая ширина сайдбара живёт в inline style.width (см. ниже). При
-// сворачивании инлайновый width убираем, чтобы сработало #sidebar.collapsed
-// из CSS, а при разворачивании — возвращаем сохранённое значение.
-let savedSidebarWidth = null;
+function toggleSidebarCollapsed() {
+	const collapsing = !sidebarWrapper.classList.contains('collapsed');
+	sidebarWrapper.classList.toggle('collapsed');
+	if (sidebarToggleControlEl) {
+		sidebarToggleControlEl.style.display = collapsing ? '' : 'none';
+	}
+}
 
-sidebarToggle.addEventListener('click', function() {
-	const collapsing = !sidebar.classList.contains('collapsed');
-	if (collapsing) {
-		savedSidebarWidth = sidebar.style.width || null;
-		sidebar.style.width = '';
+document.getElementById('sidebar-toggle').addEventListener('click', toggleSidebarCollapsed);
+document.getElementById('edit-sidebar-toggle').addEventListener('click', toggleSidebarCollapsed);
+
+const SidebarToggleControl = L.Control.extend({
+	options: { position: 'topleft' },
+	onAdd: function() {
+		const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-sidebar-toggle');
+		container.style.display = 'none'; // видна, только пока сайдбар свёрнут
+		sidebarToggleControlEl = container;
+		const link = L.DomUtil.create('a', '', container);
+		link.href  = '#';
+		link.title = 'Развернуть сайдбар';
+		L.DomEvent.on(link, 'click', function(e) {
+			L.DomEvent.preventDefault(e);
+			toggleSidebarCollapsed();
+		});
+		L.DomEvent.disableClickPropagation(container);
+		return container;
 	}
-	sidebar.classList.toggle('collapsed');
-	if (!collapsing && savedSidebarWidth) {
-		sidebar.style.width = savedSidebarWidth;
-	}
-	this.textContent = sidebar.classList.contains('collapsed') ? '▶' : '◀';
 });
+new SidebarToggleControl().addTo(map);
 
 
 // ─── SIDEBAR: РАСТЯГИВАНИЕ ШИРИНЫ ─────────────────────────────────────────
 const sidebarResizeHandle = document.getElementById('sidebar-resize-handle');
-const SIDEBAR_MIN_W = 280;
+const SIDEBAR_MIN_W = 320;
 const SIDEBAR_MAX_W = 640;
 
 let resizingSidebar = false;
@@ -716,6 +783,7 @@ window.addEventListener('mouseup', function() {
 	resizingSidebar = false;
 	sidebar.classList.remove('resizing');
 	document.body.style.userSelect = '';
+	forceHoverRecalc(sidebar);
 });
 
 
@@ -936,18 +1004,37 @@ document.addEventListener('keydown', function(e) {
 
 
 // ─── ПОПАП: ДИНАМИЧЕСКАЯ ШИРИНА ───────────────────────────────────────────
+// Значение должно совпадать с .popup-content{width} в style.css — это её
+// база, от которой считаем, нужно ли раздвигать попап шире.
+const POPUP_DEFAULT_WIDTH = 300;
+
 map.on('popupopen', function(e) {
-	const popup   = e.popup.getElement();
-	const content = popup.querySelector('.popup-content');
-	const h1      = popup.querySelector('h1');
-	const traits  = popup.querySelector('.traits');
+	const popup    = e.popup.getElement();
+	const content  = popup.querySelector('.popup-content');
+	const h1       = popup.querySelector('h1');
+	const traits   = popup.querySelector('.traits');
+	const editIcon = popup.querySelector('.popup-edit-icon'); // видна только админу — .title-row шире на её ширину+отступ
 
 	content.style.width = '';
+	if (!h1) return;
 
-	if (h1 && traits && traits.children.length) {
-		const neededWidth = h1.scrollWidth + 8 + traits.offsetWidth + 50;
-		if (neededWidth > 270) content.style.width = neededWidth + 'px';
-	}
+	// h1.scrollWidth в уже перенёсшемся по словам контейнере — это ширина
+	// самой широкой из УЖЕ перенесённых строк, а не та, что нужна заголовку
+	// в одну строку целиком. Меряем принудительно в одну строку (nowrap),
+	// иначе после первого же переноса ширина считалась заниженной и попап
+	// не мог сам себя "распрямить".
+	const prevWhiteSpace = h1.style.whiteSpace;
+	h1.style.whiteSpace = 'nowrap';
+	const h1Width = h1.scrollWidth;
+	h1.style.whiteSpace = prevWhiteSpace;
+
+	// Считаем ширину, нужную заголовку в одну строку вместе с иконкой
+	// редактирования и особенностями (если они есть) — если базовой ширины
+	// попапа не хватает, раздвигаем попап ровно настолько, чтобы всё
+	// поместилось в одну строку.
+	const editIconWidth = editIcon ? editIcon.offsetWidth + 6 : 0;
+	const neededWidth = editIconWidth + h1Width + 8 + (traits?.offsetWidth ?? 0) + 50;
+	if (neededWidth > POPUP_DEFAULT_WIDTH) content.style.width = neededWidth + 'px';
 });
 
 
@@ -957,11 +1044,17 @@ traitTooltip.className = 'trait-tooltip';
 document.body.appendChild(traitTooltip);
 let pinned = false;
 
+// Текст тултипа: сначала свой data-tooltip на элементе (иконки слоёв в
+// «Локациях»), иначе — словарь TRAITS по data-key (особенности локации).
+function traitTooltipContent(el) {
+	return el.dataset.tooltip ?? TRAITS[el.dataset.key]?.tooltip ?? '';
+}
+
 document.addEventListener('mouseover', function(e) {
 	if (pinned) return;
 	const trait = e.target.closest('.trait');
 	if (trait) {
-		traitTooltip.innerHTML = TRAITS[trait.dataset.key]?.tooltip ?? '';
+		traitTooltip.innerHTML = traitTooltipContent(trait);
 		traitTooltip.style.display = 'block';
 	}
 });
@@ -981,8 +1074,11 @@ document.addEventListener('mousemove', function(e) {
 
 document.addEventListener('click', function(e) {
 	const trait = e.target.closest('.trait');
-	if (trait) {
-		traitTooltip.innerHTML = TRAITS[trait.dataset.key]?.tooltip ?? '';
+	// Фиксация по клику — только для read-only иконок (div) в попапе локации.
+	// У переключателей (button — особенности в форме, слои в «Локациях») клик
+	// уже занят своим действием — тултип там должен быть чисто по ховеру.
+	if (trait && trait.tagName !== 'BUTTON') {
+		traitTooltip.innerHTML = traitTooltipContent(trait);
 		traitTooltip.style.display = 'block';
 		traitTooltip.classList.add('pinned');
 		pinned = true;
@@ -1017,6 +1113,11 @@ async function runWrite(query) {
 	return { ok: true, data };
 }
 
+// Одна и та же кнопка входа/выхода: не авторизован — клик открывает попап
+// входа; авторизован — клик сразу выходит (отдельной кнопки «Выйти» больше
+// нет). Иконка/цвет переключаются в CSS через body.is-admin.
+let adminControlLink = null;
+
 const AdminControl = L.Control.extend({
 	options: { position: 'topright' },
 	onAdd: function() {
@@ -1024,9 +1125,15 @@ const AdminControl = L.Control.extend({
 		const link = L.DomUtil.create('a', '', container);
 		link.href  = '#';
 		link.title = 'Вход для администратора';
-		L.DomEvent.on(link, 'click', function(e) {
+		adminControlLink = link;
+		L.DomEvent.on(link, 'click', async function(e) {
 			L.DomEvent.preventDefault(e);
-			loginPopover.classList.toggle('hidden');
+			if (isAdmin) {
+				await supabaseClient.auth.signOut();
+				setAdminState(false);
+			} else {
+				loginPopover.classList.toggle('hidden');
+			}
 		});
 		L.DomEvent.disableClickPropagation(container);
 		return container;
@@ -1037,18 +1144,11 @@ new AdminControl().addTo(map);
 const loginPopover = document.getElementById('login-popover');
 const loginForm     = document.getElementById('login-form');
 const loginErrorEl  = document.getElementById('login-error');
-const adminStatusEl = document.getElementById('admin-status');
 
 function setAdminState(admin) {
 	isAdmin = admin;
 	document.body.classList.toggle('is-admin', admin);
-	adminStatusEl.innerHTML = admin ? '<button id="logout-btn">Выйти</button>' : '';
-	if (admin) {
-		document.getElementById('logout-btn').addEventListener('click', async function() {
-			await supabaseClient.auth.signOut();
-			setAdminState(false);
-		});
-	}
+	if (adminControlLink) adminControlLink.title = admin ? 'Выйти' : 'Вход для администратора';
 }
 
 loginForm.addEventListener('submit', async function(e) {
@@ -1083,7 +1183,11 @@ const revertDefaultBtn = document.getElementById('revert-default-btn');
 const markerForm       = document.getElementById('marker-form');
 const formErrorEl      = document.getElementById('form-error');
 const placeHint        = document.getElementById('place-hint');
-const traitsFieldset   = document.getElementById('f-traits');
+const traitsIconsEl    = document.getElementById('traits-icons');
+
+function getSelectedTraits() {
+	return [...traitsIconsEl.querySelectorAll('.trait-icon-btn.selected')].map(b => b.dataset.key);
+}
 
 const TRAIT_LABELS = {
 	'port':            'Порт',
@@ -1095,10 +1199,15 @@ const TRAIT_LABELS = {
 	'forest':          'Лес',
 	'sword_of_khaine': 'Меч Кхейна',
 };
+// Ряд иконок вместо чекбоксов с текстом — клик переключает выбор; тултип с
+// названием переиспользует существующий .trait/.trait-tooltip механизм
+// (см. блок «ТУЛТИП» ниже), поэтому у кнопки те же class/data-key.
 Object.entries(TRAIT_LABELS).forEach(([key, label]) => {
-	const lbl = document.createElement('label');
-	lbl.innerHTML = `<input type="checkbox" value="${key}"> ${label}`;
-	traitsFieldset.appendChild(lbl);
+	// без title: название уже показывает кастомный .trait-tooltip по ховеру —
+	// нативный title давал задержанный "системный" тултип вдобавок к нему
+	const btn = createTraitButton('trait-icon-btn', { key }, `<img src="${TRAITS[key]?.icon ?? ''}" alt="${label}">`);
+	btn.addEventListener('click', () => btn.classList.toggle('selected'));
+	traitsIconsEl.appendChild(btn);
 });
 
 let activeMarkerId = null; // null = создаём новый
@@ -1211,14 +1320,14 @@ function collectDraftProps() {
 		faction:     document.getElementById('f-faction').value.trim(),
 		province:    document.getElementById('f-province').value.trim(),
 		image:       document.getElementById('f-image').value.trim() || undefined,
-		traits:      [...traitsFieldset.querySelectorAll('input[type="checkbox"]:checked')].map(cb => cb.value),
+		traits:      getSelectedTraits(),
 	};
 }
 
 function showDraftPreview() {
 	if (!draftMarker) return;
 	draftMarker.unbindPopup();
-	draftMarker.bindPopup(buildPopupHTML(collectDraftProps(), { hideAdminActions: true }));
+	draftMarker.bindPopup(buildPopupHTML(collectDraftProps(), { hideAdminActions: true }), { closeButton: false });
 	draftMarker.openPopup();
 }
 
@@ -1246,6 +1355,19 @@ function setDraftPosition(latlng) {
 	}
 }
 
+// Браузер не пересчитывает :hover сам по себе на любую перекладку — только
+// на настоящее движение мыши. Если под неподвижным курсором элемент меняет
+// личность (появился/переместился/у него сменился layout), а мышь при этом
+// не шевелилась, старый наведённый элемент может "залипнуть" в :hover, пока
+// по нему не кликнут или мышь не двинется хоть на пиксель. На кнопках
+// тулбара описания это было видно как подсветка на «¶», не пропадающая
+// сама. Форсируем пересчёт, на один тик убрав элемент из hit-теста —
+// браузер заново вычисляет :hover, когда pointer-events возвращается.
+function forceHoverRecalc(el) {
+	el.style.pointerEvents = 'none';
+	setTimeout(() => { el.style.pointerEvents = ''; }, 0);
+}
+
 function showNormalView() {
 	normalView.classList.remove('hidden');
 	editMarkerView.classList.add('hidden');
@@ -1260,6 +1382,8 @@ function showNormalView() {
 function showEditView() {
 	normalView.classList.add('hidden');
 	editMarkerView.classList.remove('hidden');
+	// см. forceHoverRecalc — тут это переключение видимости display:none -> flex
+	forceHoverRecalc(editMarkerView);
 	// пока ставим/переносим маркер, полигоны фракций/провинций не должны
 	// перехватывать клики — иначе по ним невозможно попасть кликом на карту
 	setRegionsInteractive(factionRegions, false);
@@ -1268,7 +1392,7 @@ function showEditView() {
 
 function resetMarkerForm() {
 	markerForm.reset();
-	traitsFieldset.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+	traitsIconsEl.querySelectorAll('.trait-icon-btn.selected').forEach(b => b.classList.remove('selected'));
 	formErrorEl.textContent = '';
 	provinceIsAuto = true;
 	autoProvinceValue = '';
@@ -1299,6 +1423,7 @@ const WRAP_TAGS = {
 	p: ['<p>', '</p>'],
 	b: ['<b>', '</b>'],
 	i: ['<i>', '</i>'],
+	blockquote: ['<blockquote>', '</blockquote>'],
 };
 
 function wrapSelection(open, close) {
@@ -1441,8 +1566,8 @@ function openMarkerForEdit(row) {
 	document.getElementById('f-locationType').value = row.location_type ?? 'city';
 	document.getElementById('f-image').value        = row.image ?? '';
 	(row.traits ?? []).forEach(t => {
-		const cb = traitsFieldset.querySelector(`input[value="${t}"]`);
-		if (cb) cb.checked = true;
+		const btn = traitsIconsEl.querySelector(`.trait-icon-btn[data-key="${t}"]`);
+		if (btn) btn.classList.add('selected');
 	});
 	revertDefaultBtn.classList.toggle('hidden', !row.is_default);
 	map.closePopup();
@@ -1484,7 +1609,7 @@ markerForm.addEventListener('submit', async function(e) {
 		return;
 	}
 
-	const traits = [...traitsFieldset.querySelectorAll('input[type="checkbox"]:checked')].map(cb => cb.value);
+	const traits = getSelectedTraits();
 
 	const payload = {
 		runame:        document.getElementById('f-runame').value.trim(),
@@ -1626,21 +1751,13 @@ document.addEventListener('click', function(e) {
 	}
 });
 
-// «Редактировать»/«Удалить» внутри попапа локации — попап каждый раз создаётся
-// заново, поэтому слушаем клики через делегирование на document.
-document.addEventListener('click', async function(e) {
+// Иконка редактирования внутри попапа локации — попап каждый раз создаётся
+// заново, поэтому слушаем клики через делегирование на document. Удаление
+// теперь только из самой формы редактирования (см. deleteMarkerBtn ниже).
+document.addEventListener('click', function(e) {
 	const editLink = e.target.closest('[data-edit-marker]');
 	if (editLink?.dataset.editMarker) {
 		const row = allMarkerRows.find(r => r.id === editLink.dataset.editMarker);
 		if (row) openMarkerForEdit(row);
-		return;
-	}
-	const delLink = e.target.closest('[data-delete-marker]');
-	if (delLink?.dataset.deleteMarker) {
-		if (!confirm('Удалить этот маркер?')) return;
-		const result = await runWrite(supabaseClient.from('markers').delete().eq('id', delLink.dataset.deleteMarker));
-		if (!result.ok) { alert('Не удалось удалить: ' + result.message); return; }
-		map.closePopup();
-		await loadMarkers();
 	}
 });

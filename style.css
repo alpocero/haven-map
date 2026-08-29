@@ -1,3 +1,8 @@
+/* ─── ШРИФТЫ ─────────────────────────────────────────────────────────────
+   IBM Plex Sans (текст) и El Messiri (заголовки) подключены через Google Fonts
+   в <head> index.html. */
+
+
 /* ─── ЛЕЙАУТ ─────────────────────────────────────────────────────────── */
 html, body {
 	height: 100%;
@@ -16,28 +21,38 @@ html, body {
 	position: relative;
 }
 
+/* Сворачивание анимирует transform на ОБЁРТКЕ, а не на #sidebar — у #sidebar
+   ширина живёт своей жизнью (тянется мышью через resize-ручку на каждый
+   mousemove), и если transition/анимируемый transform висит на том же
+   элементе, чей width ещё и меняется JS-ом, браузер начинает без нужды
+   пересчитывать композитный слой на каждый кадр растягивания — отсюда были
+   фризы при resize именно там, где контента много (обычный вид сайдбара).
+   Разнеся это по разным элементам, resize снова лёгкий, а сворачивание —
+   плавное. */
 #sidebar-wrapper {
 	position: fixed;
 	top: 0; left: 0;
 	height: 100%;
 	z-index: 1000;
 	display: flex;
+	transition: transform 0.25s ease;
+}
+
+#sidebar-wrapper.collapsed {
+	transform: translateX(-100%);
 }
 
 #sidebar {
-	width: 280px;
+	width: 320px;
 	height: 100%;
 	background: #030303d4;
 	backdrop-filter: blur(8px);
-	font-family: 'Arimo';
+	font-family: 'IBM Plex Sans', sans-serif;
 	overflow-x: hidden;
-	transition: width 0.25s ease;
 	flex-shrink: 0;
 	position: relative;
 	box-shadow: 0 3px 14px rgba(0, 0, 0, 0.4);
 }
-
-#sidebar.resizing { transition: none; }
 
 #sidebar-inner {
 	width: 100%;
@@ -90,26 +105,37 @@ html, body {
 #location-list::-webkit-scrollbar-track { background: transparent; }
 #location-list::-webkit-scrollbar-thumb { background: #3d3531; border-radius: 0px; }
 
-#sidebar.collapsed {
-	width: 0;
-}
-
-#sidebar-toggle {
-	align-self: center;
-	flex-shrink: 0;
-	width: 16px;
-	height: 52px;
-	background: #030303d4;
-	backdrop-filter: blur(8px);
+/* Общий вид маленьких иконок-кнопок («+ добавить маркер») */
+.icon-btn {
+	background: none;
 	border: none;
-	color: #787167;
-	cursor: pointer;
-	font-size: 9px;
-	border-radius: 0 5px 5px 0;
 	padding: 0;
+	margin: 0;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	color: #787167;
+	transition: color 0.14s, filter 0.14s;
 }
+.icon-btn:hover { opacity: 0.75; }
+.icon-btn svg { overflow: visible; display: block; }
 
-#sidebar-toggle:hover { background: #36312c; color: #dcd0c0; }
+/* Золотое/красное внутреннее свечение (SVG-фильтры #inner-gold/#inner-red в
+   index.html) — только для этих трёх иконок и карандаша редактирования ниже;
+   обычные icon-btn (сворачивание сайдбара) остаются на простом opacity-hover. */
+#add-marker-btn:hover,
+#revert-default-btn:hover {
+	opacity: 1;
+	color: #C9A24D;
+	filter: url(#inner-gold) drop-shadow(0 0 4.5px rgba(201, 162, 77, 0.66));
+}
+#delete-marker-btn:hover {
+	opacity: 1;
+	color: #8C3A30;
+	filter: url(#inner-red) drop-shadow(0 0 4.5px rgba(201, 84, 61, 0.66));
+}
 
 
 
@@ -137,6 +163,15 @@ html, body {
 	margin: 0 0 7px;
 }
 
+/* «Локации» + кнопка «+ добавить маркер» в одну строку */
+.sidebar-section-label-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin: 0 0 7px;
+}
+.sidebar-section-label-row .sidebar-section-label { margin: 0; }
+
 
 
 
@@ -153,20 +188,6 @@ html, body {
 	user-select: none;
 }
 
-.layer-icons {
-	margin-left: auto;
-	display: flex;
-	align-items: center;
-	gap: 3px;
-	flex-shrink: 0;
-}
-
-.layer-icon {
-	width: 16px;
-	height: 16px;
-	object-fit: contain;
-	opacity: 0.75;
-}
 
 .layer-checkbox:hover { color: #dcd0c0; }
 
@@ -176,19 +197,6 @@ html, body {
 	flex-shrink: 0;
 	width: 13px;
 	height: 13px;
-}
-
-#master-row {
-	font-weight: 600;
-	color: #c8b8a0;
-	margin-bottom: 5px;
-}
-
-#individual-checkboxes {
-	padding-left: 18px;
-	display: flex;
-	flex-direction: column;
-	gap: 1px;
 }
 
 #map-layer-checkboxes {
@@ -239,8 +247,8 @@ html, body {
     backdrop-filter: blur(6px);
     color: #ff9999;
     padding: 2px 7px;
-    border-radius: 3px;
-    font-family: 'Arimo', sans-serif;
+    border-radius: 0;
+    font-family: 'IBM Plex Sans', sans-serif;
     font-size: 12px;
     white-space: nowrap;
     border: 1px solid rgba(255, 80, 80, 0.35);
@@ -253,8 +261,8 @@ html, body {
     backdrop-filter: blur(6px);
     color: #ff9999;
     padding: 2px 7px;
-    border-radius: 3px;
-    font-family: 'Arimo', sans-serif;
+    border-radius: 0;
+    font-family: 'IBM Plex Sans', sans-serif;
     font-size: 12px;
     white-space: nowrap;
     border: 1px solid rgba(255, 80, 80, 0.25);
@@ -283,20 +291,35 @@ html, body {
 }
 
 .leaflet-control-attribution,
-.leaflet-popup-tip {
+.leaflet-popup-tip,
+.leaflet-popup-close-button {
     display: none;
 }
 
 .leaflet-popup-content-wrapper,
 .leaflet-popup-tip {
-    background: #0a0a0ac4;
-    background-color: #0a0a0ac4;
+    background: rgba(20, 20, 20, 0.86);
+    background-color: rgba(20, 20, 20, 0.86);
     border-radius: 0px;
     backdrop-filter: blur(8px);
 }
 
 .leaflet-popup-content-wrapper {
+    position: relative;
     padding: 0px;
+    box-shadow: 0 0 13px rgba(0, 0, 0, 1);
+}
+
+/* Рамка попапа — отдельным слоем поверх фона/контента, с наложением
+   (mix-blend-mode: overlay), а не на самом wrapper — иначе в overlay ушёл бы
+   и фон, и текст, и всё стало бы нечитаемым. */
+.leaflet-popup-content-wrapper::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border: 1px solid #EFE7D6;
+    mix-blend-mode: overlay;
 }
 
 .leaflet-popup-content {
@@ -327,9 +350,9 @@ h1, h2, h3 {
 		box-sizing: border-box;
 		background: #070707d4;
 		border: 1px solid #343130;
-		border-radius: 2px;
+		border-radius: 0;
 		color: #dcd0c0;
-		font-family: 'Arimo', sans-serif;
+		font-family: 'IBM Plex Sans', sans-serif;
 		font-size: 0.84em;
 		padding: 6px 10px;
 		outline: none;
@@ -358,10 +381,12 @@ h1, h2, h3 {
 	.province-group { margin-bottom: 4px; }
 
 	.province-header {
-		font-size: 0.72em;
+		font-family: 'El Messiri', sans-serif;
+		font-size: 1em;
+		line-height: 1.1;
 		color: #aca294;
 		font-weight: 600;
-		padding: 4px 0 5px;
+		padding: 4px 0 1px;
 		cursor: pointer;
 		user-select: none;
 		display: flex;
@@ -392,7 +417,7 @@ h1, h2, h3 {
 		font-size: 0.85em;
 	    color: #998c7c;
 		padding: 2px 6px;
-		border-radius: 1px;
+		border-radius: 0;
 		cursor: pointer;
 		transition: background 0.12s, color 0.12s;
 	}
@@ -495,8 +520,8 @@ h1, h2, h3 {
 
 
 .popup-content {
-    width: 270px;
-    font-family: 'Arimo';
+    width: 300px;
+    font-family: 'IBM Plex Sans', sans-serif;
     color: #dcd0c0;
     display: grid;
     grid-template-areas: "stack";  /* один именованный слот */
@@ -525,28 +550,40 @@ h1, h2, h3 {
 
 .popup-content h1 {
     margin: 0 0 1px;
-    font-size: 1.35em;
-    font-weight: 700;
-    line-height: 1.2;
     font-family: 'El Messiri';
+    font-weight: 600;
+    font-size: 20px;
+    line-height: 31px;
+    color: #EFE7D6;
     mix-blend-mode: screen;
 }
 
 .popup-content .name-eng {
-    margin: 0 0 16px;
-    font-size: 0.72em;
+    margin: 0;
+    font-size: 10px;
+    line-height: 14px;
     font-weight: 600;
     text-transform: uppercase;
-    color: #787167;
+    color: #9A9285;
     mix-blend-mode: screen;
 }
 
 .popup-content .description {
     margin: 5px 0 9px;
-    font-size: 0.85em;
-    color: #aca294;
-    line-height: 1.4;
+    font-size: 12px;
+    line-height: 16px;
+    color: #CFC7B8;
     hyphens: auto;
+}
+
+/* Фракция и провинция стоят в один ряд (Group 79/64/65 в popup.txt), а не
+   друг под другом — .info-row-group их выравнивает по горизонтали. */
+.info-row-group {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 18px;
+    margin-top: 1px;
 }
 
 .info-row {
@@ -554,16 +591,20 @@ h1, h2, h3 {
     align-items: center;
     gap: 2px;
     margin-top: 1px;
-    font-size: 0.85em;
-    color: #998c7c;
+    font-size: 11px;
+    line-height: 11px;
+    color: #9A9285;
 }
+
+.info-row-group .info-row { margin-top: 0; }
 
 .info-icon {
     margin-left: -2px;
-    width: 16px;
-    height: 16px;
+    width: 14px;
+    height: 14px;
     object-fit: contain;
     flex-shrink: 0;
+    filter: drop-shadow(0px 0px 1.2px rgba(0, 0, 0, 0.22));
 }
 
 
@@ -572,9 +613,25 @@ h1, h2, h3 {
 
 .title-row {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: 6px;
     flex-wrap: wrap;
+}
+
+/* Иконка редактирования маркера — слева от названия локации, только для админа */
+.popup-edit-icon {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    flex-shrink: 0;
+    color: #787167;
+    transition: color 0.14s, filter 0.14s;
+}
+.popup-edit-icon svg { overflow: visible; display: block; }
+.popup-edit-icon:hover {
+    color: #C9A24D;
+    filter: url(#inner-gold) drop-shadow(0 0 4.5px rgba(201, 162, 77, 0.66));
 }
 
 .traits {
@@ -598,6 +655,52 @@ h1, h2, h3 {
     display: block;
 }
 
+/* Локации — ряд иконок-переключателей (тот же язык, что «Особенности» в форме
+   редактирования): ч/б, пока слой скрыт, цветная со свечением — когда показан.
+   Идёт после .trait, чтобы переопределить его cursor/display для кнопок. */
+.layer-icon-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+.layer-icon-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    line-height: 0;
+    color: #787167; /* используется SVG-иконкой «все пометки» через currentColor */
+}
+
+/* button.trait/button.layer-icon-btn (элемент+класс) специфичнее, чем .trait
+   (класс), поэтому курсор здесь побеждает .trait{cursor:default} независимо
+   от порядка правил в файле, а не только потому, что объявлен позже. */
+button.layer-icon-btn { cursor: pointer; }
+
+.layer-icon-btn img {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+    filter: grayscale(1) brightness(0.55);
+    transition: filter 0.15s;
+}
+
+.layer-icon-btn svg { filter: grayscale(1) brightness(0.9); transition: filter 0.15s; }
+
+.layer-icon-btn:hover img { filter: grayscale(0.5) brightness(0.8); }
+.layer-icon-btn:hover svg { filter: grayscale(0.3) brightness(1.1); }
+
+.layer-icon-btn.selected img { filter: drop-shadow(0 0 3px #977b61); }
+.layer-icon-btn.selected svg { filter: drop-shadow(0 0 3px #977b61); color: #dcd0c0; }
+
+.layer-icon-btn.partial svg { filter: drop-shadow(0 0 2px #776d61); color: #b8a898; }
+
+.layer-icon-btn-all {
+    padding-right: 10px;
+    border-right: 1px solid #343130;
+}
+
 .trait-tooltip {
     position: fixed;
     display: none;
@@ -606,7 +709,7 @@ h1, h2, h3 {
     background: #0a0a0aba;
     backdrop-filter: blur(8px);
     color: #aca294;
-    font-family: 'Arimo';
+    font-family: 'IBM Plex Sans', sans-serif;
     font-size: 0.75em;
     white-space: normal;
     padding: 7px 10px;
@@ -624,7 +727,7 @@ h1, h2, h3 {
 
 .leaflet-control-layers-expanded {
     padding: 6px 10px 6px 6px;
-    font-family: 'Arimo';
+    font-family: 'IBM Plex Sans', sans-serif;
     color: #dcd0c0;
     background: #0a0a0ac4;
     background-color: #0a0a0ac4;
@@ -652,6 +755,49 @@ h1, h2, h3 {
     margin-bottom: 0;
 }
 
+/* ─── БЛОК ЦИТАТЫ (кнопка Quote в тулбаре описания) ─────────────────────────
+   Ступенчатая рамка из Scalable Notched Frame.dc.html (раздел 01):
+   ::before — линия без маски (даёт "пол" яркости), ::after — та же линия,
+   замаскированная зерном static.png (mask-size: auto + repeat — не cover,
+   иначе зерно растягивается вместе с блоком, а не тайлится 1:1). */
+.description blockquote {
+    position: relative;
+    margin: 8px 0;
+    padding: 10px;
+    background: linear-gradient(90deg, rgba(62, 60, 58, 0.435) 0%, rgba(62, 60, 58, 0.155) 100%);
+    font-style: italic;
+    font-size: 12px;
+    line-height: 16px;
+    color: #9A9285;
+    opacity: 0.95;
+}
+
+.description blockquote::before,
+.description blockquote::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    box-sizing: border-box;
+    border: 10px solid transparent;
+    border-image-source: url(images/frame.svg);
+    border-image-slice: 10;
+    border-image-width: 10px;
+    border-image-repeat: stretch;
+}
+
+.description blockquote::before { opacity: 0.45; }
+
+.description blockquote::after {
+    mask-image: url(images/static.png);
+    mask-mode: luminance;
+    mask-size: auto;
+    mask-repeat: repeat;
+    -webkit-mask-image: url(images/static.png);
+    -webkit-mask-size: auto;
+    -webkit-mask-repeat: repeat;
+}
+
 /* ─── ПОПАП РЕГИОНА (фракция/провинция) ────────────────────────────────── */
 
 /* Кликабельность по всей площади фигуры, даже когда fill-opacity: 0
@@ -674,8 +820,8 @@ h1, h2, h3 {
    !important нужен, чтобы не проигрывать по специфичности собственным
    display-правилам компонентов (например .popup-admin-actions{display:flex}). */
 .admin-only { display: none !important; }
-body.is-admin .popup-admin-actions.admin-only { display: flex !important; }
-body.is-admin #add-marker-btn.admin-only { display: block !important; }
+body.is-admin .popup-edit-icon.admin-only { display: inline-flex !important; }
+body.is-admin #add-marker-btn.admin-only { display: flex !important; }
 
 .sidebar-header-row {
     display: flex;
@@ -684,7 +830,10 @@ body.is-admin #add-marker-btn.admin-only { display: block !important; }
     gap: 8px;
 }
 
-/* ─── ИКОНКА ПОЛЬЗОВАТЕЛЯ (Leaflet-контрол, topright) ───────────────────── */
+/* ─── ИКОНКА ВХОДА/ВЫХОДА (Leaflet-контрол, topright) ────────────────────
+   Одна и та же кнопка: не авторизован — иконка «войти» (дверь со стрелкой
+   внутрь), авторизован — «выйти» (стрелка наружу) и акцентный цвет. Клик
+   в script.js ветвится по isAdmin: открыть попап входа / сразу выйти. */
 .leaflet-control-admin a {
     position: relative;
 }
@@ -703,12 +852,37 @@ body.is-admin #add-marker-btn.admin-only { display: block !important; }
     mask-repeat: no-repeat;
     -webkit-mask-position: center;
     mask-position: center;
-    -webkit-mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='12' cy='8' r='4' stroke='%23000' stroke-width='2'/%3E%3Cpath d='M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8' stroke='%23000' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
-    mask-image:         url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='12' cy='8' r='4' stroke='%23000' stroke-width='2'/%3E%3Cpath d='M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8' stroke='%23000' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 18 18' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M8.97834 18V16.875H16.1826C16.3558 16.875 16.5145 16.8029 16.6587 16.6587C16.8029 16.5145 16.875 16.3558 16.875 16.1826V1.81744C16.875 1.64419 16.8029 1.48547 16.6587 1.34128C16.5145 1.19709 16.3558 1.125 16.1826 1.125H8.97834V0H16.1826C16.7004 0 17.1328 0.173438 17.4797 0.520312C17.8266 0.867187 18 1.29956 18 1.81744V16.1826C18 16.7004 17.8266 17.1328 17.4797 17.4797C17.1328 17.8266 16.7004 18 16.1826 18H8.97834ZM8.17791 12.9808L7.38816 12.1717L9.99731 9.5625H0V8.4375H9.99731L7.38816 5.82834L8.17791 5.01919L12.1587 9L8.17791 12.9808Z' fill='%23000'/%3E%3C/svg%3E");
+    mask-image:         url("data:image/svg+xml,%3Csvg viewBox='0 0 18 18' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M8.97834 18V16.875H16.1826C16.3558 16.875 16.5145 16.8029 16.6587 16.6587C16.8029 16.5145 16.875 16.3558 16.875 16.1826V1.81744C16.875 1.64419 16.8029 1.48547 16.6587 1.34128C16.5145 1.19709 16.3558 1.125 16.1826 1.125H8.97834V0H16.1826C16.7004 0 17.1328 0.173438 17.4797 0.520312C17.8266 0.867187 18 1.29956 18 1.81744V16.1826C18 16.7004 17.8266 17.1328 17.4797 17.4797C17.1328 17.8266 16.7004 18 16.1826 18H8.97834ZM8.17791 12.9808L7.38816 12.1717L9.99731 9.5625H0V8.4375H9.99731L7.38816 5.82834L8.17791 5.01919L12.1587 9L8.17791 12.9808Z' fill='%23000'/%3E%3C/svg%3E");
 }
 
 body.is-admin .leaflet-control-admin a::after {
     background-color: #977b61;
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 18 18' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1.81744 18C1.29956 18 0.867187 17.8266 0.520312 17.4797C0.173438 17.1328 0 16.7004 0 16.1826V1.81744C0 1.29956 0.173438 0.867187 0.520312 0.520312C0.867187 0.173438 1.29956 0 1.81744 0H9.02166V1.125H1.81744C1.64419 1.125 1.48547 1.19709 1.34128 1.34128C1.19709 1.48547 1.125 1.64419 1.125 1.81744V16.1826C1.125 16.3558 1.19709 16.5145 1.34128 16.6587C1.48547 16.8029 1.64419 16.875 1.81744 16.875H9.02166V18H1.81744ZM14.0192 12.9808L13.2294 12.1717L15.8386 9.5625H5.84128V8.4375H15.8386L13.2294 5.82834L14.0192 5.01919L18 9L14.0192 12.9808Z' fill='%23000'/%3E%3C/svg%3E");
+    mask-image:         url("data:image/svg+xml,%3Csvg viewBox='0 0 18 18' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1.81744 18C1.29956 18 0.867187 17.8266 0.520312 17.4797C0.173438 17.1328 0 16.7004 0 16.1826V1.81744C0 1.29956 0.173438 0.867187 0.520312 0.520312C0.867187 0.173438 1.29956 0 1.81744 0H9.02166V1.125H1.81744C1.64419 1.125 1.48547 1.19709 1.34128 1.34128C1.19709 1.48547 1.125 1.64419 1.125 1.81744V16.1826C1.125 16.3558 1.19709 16.5145 1.34128 16.6587C1.48547 16.8029 1.64419 16.875 1.81744 16.875H9.02166V18H1.81744ZM14.0192 12.9808L13.2294 12.1717L15.8386 9.5625H5.84128V8.4375H15.8386L13.2294 5.82834L14.0192 5.01919L18 9L14.0192 12.9808Z' fill='%23000'/%3E%3C/svg%3E");
+}
+
+/* ─── ИКОНКА СВОРАЧИВАНИЯ САЙДБАРА (Leaflet-контрол, topleft) ───────────── */
+.leaflet-control-sidebar-toggle a {
+    position: relative;
+}
+
+.leaflet-control-sidebar-toggle a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 12px;
+    height: 11px;
+    background-color: #dcd0c0;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 12 11' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M10.5 0C11.3284 0 12 0.671573 12 1.5V9.5C12 10.3284 11.3284 11 10.5 11H1.5C0.671573 11 0 10.3284 0 9.5V1.5C1.28852e-07 0.671573 0.671573 0 1.5 0H10.5ZM4.5 10H10.5C10.7761 10 11 9.77614 11 9.5V1.5C11 1.22386 10.7761 1 10.5 1H4.5V10ZM1.5 1C1.22386 1 1 1.22386 1 1.5V9.5C1 9.77614 1.22386 10 1.5 10H3.5V1H1.5Z' fill='%23000'/%3E%3C/svg%3E");
+    mask-image:         url("data:image/svg+xml,%3Csvg viewBox='0 0 12 11' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M10.5 0C11.3284 0 12 0.671573 12 1.5V9.5C12 10.3284 11.3284 11 10.5 11H1.5C0.671573 11 0 10.3284 0 9.5V1.5C1.28852e-07 0.671573 0.671573 0 1.5 0H10.5ZM4.5 10H10.5C10.7761 10 11 9.77614 11 9.5V1.5C11 1.22386 10.7761 1 10.5 1H4.5V10ZM1.5 1C1.22386 1 1 1.22386 1 1.5V9.5C1 9.77614 1.22386 10 1.5 10H3.5V1H1.5Z' fill='%23000'/%3E%3C/svg%3E");
 }
 
 /* ─── ВСПЛЫВАЮЩАЯ ПАНЕЛЬ (вход / статус) ─────────────────────────────────── */
@@ -728,15 +902,15 @@ body.is-admin .leaflet-control-admin a::after {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    font-family: 'Arimo';
+    font-family: 'IBM Plex Sans', sans-serif;
 }
 
 #login-form input {
     background: #070707d4;
     border: 1px solid #343130;
-    border-radius: 2px;
+    border-radius: 0;
     color: #dcd0c0;
-    font-family: 'Arimo', sans-serif;
+    font-family: 'IBM Plex Sans', sans-serif;
     font-size: 0.85em;
     padding: 7px 9px;
     outline: none;
@@ -744,92 +918,90 @@ body.is-admin .leaflet-control-admin a::after {
 
 #login-form input:focus { border-color: #776d61; }
 
-#login-form button {
-    margin-top: 2px;
-    background: #977b61;
-    border: none;
-    border-radius: 2px;
-    color: #0a0a0a;
-    font-family: 'Arimo', sans-serif;
-    font-weight: 700;
-    padding: 8px 10px;
-    cursor: pointer;
-}
-
-#login-form button:hover { background: #b8987a; }
+/* #login-form button — геометрия и hover см. в блоке «ступенчатая кнопка»
+   ниже (общая с .admin-outline-btn/.admin-danger-btn) */
+#login-form button { margin-top: 2px; }
 
 #login-error {
-    color: #ff8888;
+    color: #8C3A30;
     font-size: 0.78em;
     margin: 0;
     min-height: 1em;
 }
 
-#admin-status {
-    font-size: 0.78em;
-    color: #998c7c;
-    display: flex;
+
+/* ─── КНОПКИ (ступенчатая "талия", раздел 02 Scalable Notched Frame) ────────
+   Разметка: <button class="admin-outline-btn|admin-danger-btn"><span
+   class="btn__base"></span><span class="btn__line"></span><span
+   class="btn__fill">Текст</span></button> (#login-form button — то же самое,
+   без модификатора). __base/__line — один и тот же контур-"талия" друг под
+   другом (__base просто полупрозрачная заливка-"пол", __line — та же заливка
+   поверх, замаскированная зерном static.png), __fill — непрозрачная заливка
+   с текстом и второй, чуть более узкой версией контура. */
+.admin-outline-btn, .admin-danger-btn, #login-form button {
+    all: unset;
+    box-sizing: border-box;
+    position: relative;
+    height: 27px;
+    padding: 1px;
+    display: inline-flex;
+    cursor: pointer;
+    font-family: 'IBM Plex Sans', sans-serif;
+}
+
+.admin-outline-btn .btn__base, .admin-outline-btn .btn__line,
+.admin-danger-btn .btn__base, .admin-danger-btn .btn__line,
+#login-form button .btn__base, #login-form button .btn__line {
+    position: absolute;
+    inset: 0;
+    background: #776d61;
+    clip-path: polygon(0 0, 100% 0, 100% calc(50% - 3.4px), calc(100% - 2.5px) 50%,
+        100% calc(50% + 3.4px), 100% 100%, 0 100%,
+        0 calc(50% + 3.4px), 2.5px 50%, 0 calc(50% - 3.4px));
+}
+
+.admin-outline-btn .btn__base, .admin-danger-btn .btn__base, #login-form button .btn__base {
+    opacity: 0.45;
+}
+
+.admin-outline-btn .btn__line, .admin-danger-btn .btn__line, #login-form button .btn__line {
+    mask-image: url(images/static.png);
+    mask-mode: luminance;
+    mask-size: auto;
+    mask-repeat: repeat;
+    -webkit-mask-image: url(images/static.png);
+    -webkit-mask-size: auto;
+    -webkit-mask-repeat: repeat;
+}
+
+.admin-outline-btn .btn__fill, .admin-danger-btn .btn__fill, #login-form button .btn__fill {
+    position: relative;
+    display: inline-flex;
     align-items: center;
-    gap: 8px;
-}
-
-#admin-status button {
-    background: none;
-    border: 1px solid #343130;
+    padding: 0 17px;
+    background: #0a0a0a;
     color: #998c7c;
-    font-family: 'Arimo', sans-serif;
-    font-size: 0.9em;
-    padding: 3px 8px;
-    border-radius: 2px;
-    cursor: pointer;
-}
-
-#admin-status button:hover { color: #dcd0c0; border-color: #776d61; }
-
-/* ─── КНОПКИ ─────────────────────────────────────────────────────────────── */
-.admin-primary-btn {
-    width: 100%;
-    background: #977b61;
-    border: none;
-    border-radius: 2px;
-    color: #0a0a0a;
-    font-family: 'Arimo', sans-serif;
-    font-weight: 700;
-    font-size: 0.85em;
-    padding: 9px 10px;
-    cursor: pointer;
-    margin-bottom: 12px;
-}
-
-.admin-primary-btn:hover { background: #b8987a; }
-
-.admin-danger-btn {
-    background: none;
-    border: 1px solid #a34b4b;
-    color: #d98b8b;
-    font-family: 'Arimo', sans-serif;
     font-size: 0.82em;
-    padding: 8px 10px;
-    border-radius: 2px;
-    cursor: pointer;
+    letter-spacing: 0.02em;
+    clip-path: polygon(0 0, 100% 0, 100% calc(50% - 3px), calc(100% - 2.5px) 50%,
+        100% calc(50% + 3px), 100% 100%, 0 100%,
+        0 calc(50% + 3px), 2.5px 50%, 0 calc(50% - 3px));
+    transition: background 0.14s, color 0.14s, filter 0.14s;
 }
 
-.admin-danger-btn:hover { background: #a34b4b; color: #fff; }
-
-.admin-secondary-btn {
-    width: 100%;
-    background: none;
-    border: 1px solid #343130;
-    color: #998c7c;
-    font-family: 'Arimo', sans-serif;
-    font-size: 0.82em;
-    padding: 8px 10px;
-    border-radius: 2px;
-    cursor: pointer;
-    margin-bottom: 4px;
+.admin-outline-btn:hover .btn__fill, #login-form button:hover .btn__fill {
+    background: radial-gradient(ellipse 44px 13.5px at 50% 50%, #C9A24D 13%, #96763E 100%);
+    color: #070707;
+    box-shadow: inset 0 0 2px rgba(230, 207, 149, 0.67);
+    filter: drop-shadow(0 0 5.5px rgba(201, 162, 77, 0.5));
 }
 
-.admin-secondary-btn:hover { color: #dcd0c0; border-color: #776d61; }
+.admin-danger-btn:hover .btn__fill {
+    background: radial-gradient(ellipse 44px 13.5px at 50% 50%, #E6604E 13%, #8C3A30 100%);
+    color: #070707;
+    box-shadow: inset 0 0 2px rgba(230, 96, 78, 0.5);
+    filter: drop-shadow(0 0 5.5px rgba(140, 58, 48, 0.5));
+}
 
 /* ─── ОКНО СРАВНЕНИЯ (откат локации к умолчанию) ─────────────────────────── */
 #revert-overlay {
@@ -850,7 +1022,7 @@ body.is-admin .leaflet-control-admin a::after {
     backdrop-filter: blur(8px);
     padding: 22px 24px;
     box-shadow: 0 3px 20px rgba(0, 0, 0, 0.5);
-    font-family: 'Arimo';
+    font-family: 'IBM Plex Sans', sans-serif;
     color: #dcd0c0;
 }
 
@@ -909,7 +1081,7 @@ body.is-admin .leaflet-control-admin a::after {
     background: none;
     border: none;
     color: #998c7c;
-    font-family: 'Arimo', sans-serif;
+    font-family: 'IBM Plex Sans', sans-serif;
     font-size: 0.82em;
     cursor: pointer;
     padding: 0 0 10px;
@@ -917,13 +1089,22 @@ body.is-admin .leaflet-control-admin a::after {
 
 .admin-back-btn:hover { color: #dcd0c0; }
 
-/* Внутри ряда кнопок (.form-buttons) admin-back-btn стоит рядом с обычной
-   кнопкой — даём ему такой же padding и прозрачную рамку той же толщины,
-   чтобы высота совпадала, а не "плавала" из-за разных box-моделей. */
-.form-buttons .admin-back-btn {
-    padding: 8px 10px;
-    border: 1px solid transparent;
-    border-radius: 2px;
+/* Нижний ряд формы: «Назад» слева, иконки восстановления/удаления посередине,
+   «Сохранить» справа — тот же стиль кнопок, что был у «Выйти» на главном
+   сайдбаре. */
+.edit-footer-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding-top: 10px;
+    flex-shrink: 0;
+}
+
+.edit-footer-icons {
+    display: flex;
+    align-items: center;
+    gap: 14px;
 }
 
 .admin-hint {
@@ -943,9 +1124,11 @@ body.is-admin .leaflet-control-admin a::after {
 
 #edit-marker-view h3 {
     font-family: 'El Messiri', sans-serif;
+    font-size: 1.3em;
     color: #dcd0c0;
     font-weight: 600;
-    margin: 0 0 12px;
+    line-height: 1.2;
+    margin: 0;
 }
 
 #marker-form {
@@ -954,8 +1137,7 @@ body.is-admin .leaflet-control-admin a::after {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    padding-bottom: 10px;
-    padding-right: 10px; /* зазор, чтобы скроллбар не «прилипал» к краю полей */
+    padding: 0 10px 10px; /* симметрично слева/справа — справа тот же зазор под скроллбар */
 }
 
 #marker-form::-webkit-scrollbar       { width: 4px; }
@@ -967,18 +1149,34 @@ body.is-admin .leaflet-control-admin a::after {
     flex-direction: column;
     gap: 4px;
     font-size: 0.78em;
-    color: #998c7c;
+    color: #787167;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
 }
+
+/* Поле "Описание" — единственное, где <label> пришлось бы обернуть сразу
+   несколько "labelable" элементов (кнопки тулбара И textarea), а не один
+   input — отсюда и был баг с implicit label-ассоциацией (см. комментарий в
+   index.html). Здесь .form-field играет роль прежней обёртки-label
+   (тот же layout), а сам <label> — отдельный элемент, явно связанный через
+   for/id только с textarea. */
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+#marker-form label .required-mark { color: #8C3A30; text-transform: none; }
 
 #marker-form input[type="text"],
 #marker-form input[type="number"],
 #marker-form select,
 #marker-form textarea {
-    background: #070707d4;
+    background: rgba(7, 7, 7, 0.5);
     border: 1px solid #343130;
-    border-radius: 2px;
+    border-radius: 0;
     color: #dcd0c0;
-    font-family: 'Arimo', sans-serif;
+    font-family: 'IBM Plex Sans', sans-serif;
     font-size: 0.95em;
     padding: 7px 9px;
     outline: none;
@@ -1002,9 +1200,8 @@ body.is-admin .leaflet-control-admin a::after {
 .coord-row input { width: 50%; }
 
 #f-traits {
-    border: 1px solid #343130;
-    border-radius: 2px;
-    padding: 8px 10px;
+    border: none;
+    padding: 0;
     display: flex;
     flex-direction: column;
     gap: 4px;
@@ -1012,16 +1209,42 @@ body.is-admin .leaflet-control-admin a::after {
 
 #f-traits legend {
     font-size: 0.78em;
-    color: #998c7c;
-    padding: 0 4px;
+    color: #787167;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: 0;
 }
 
-#f-traits label {
-    flex-direction: row;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.85em;
-    color: #b8a898;
+/* Особенности — ряд иконок-переключателей вместо списка чекбоксов;
+   выбранная иконка становится цветной, невыбранная — приглушённой. */
+#traits-icons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.trait-icon-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    line-height: 0;
+}
+
+/* см. комментарий у button.layer-icon-btn — специфичность вместо порядка файла */
+button.trait-icon-btn { cursor: pointer; }
+
+.trait-icon-btn img {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+    filter: grayscale(1) brightness(0.55);
+    transition: filter 0.15s;
+}
+
+.trait-icon-btn:hover img { filter: grayscale(0.5) brightness(0.8); }
+
+.trait-icon-btn.selected img {
+    filter: drop-shadow(0 0 3px #977b61);
 }
 
 .form-buttons {
@@ -1030,10 +1253,10 @@ body.is-admin .leaflet-control-admin a::after {
     align-items: center;
 }
 
-.form-buttons .admin-primary-btn { margin-bottom: 0; flex: 1; }
+.form-buttons .admin-danger-btn { flex: 1; }
 
 #form-error {
-    color: #ff8888;
+    color: #8C3A30;
     font-size: 0.8em;
     margin: 0;
     min-height: 1em;
@@ -1053,9 +1276,9 @@ body.is-admin .leaflet-control-admin a::after {
 .desc-editor {
     display: flex;
     flex-direction: column;
-    background: #070707d4;
+    background: rgba(7, 7, 7, 0.5);
     border: 1px solid #343130;
-    border-radius: 2px;
+    border-radius: 0;
     overflow: hidden;
 }
 .desc-editor:focus-within { border-color: #776d61; }
@@ -1063,6 +1286,7 @@ body.is-admin .leaflet-control-admin a::after {
 .desc-toolbar {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 2px;
     padding: 4px;
     border-bottom: 1px solid #343130;
@@ -1086,18 +1310,16 @@ body.is-admin .leaflet-control-admin a::after {
     justify-content: center;
     background: none;
     border: none;
-    border-radius: 2px;
+    border-radius: 0;
     color: #dcd0c0;
     cursor: pointer;
-    font-family: 'Arimo', sans-serif;
+    font-family: 'IBM Plex Sans', sans-serif;
     font-size: 12px;
     line-height: 1;
 }
 .toolbar-btn:hover { background: #ffffff14; }
 .toolbar-btn:active { background: #ffffff22; }
-.toolbar-btn b, .toolbar-btn i { color: inherit; font-size: 12px; }
 .toolbar-btn svg { color: inherit; }
-.toolbar-btn .tx-small { font-size: 0.62em; vertical-align: -1px; }
 
 #marker-form #f-description {
     resize: vertical;
@@ -1122,7 +1344,7 @@ body.is-admin .leaflet-control-admin a::after {
     background: #0a0a0af0;
     backdrop-filter: blur(8px);
     border: 1px solid #776d61;
-    border-radius: 3px;
+    border-radius: 0;
     box-shadow: 0 3px 14px rgba(0, 0, 0, 0.4);
 }
 
@@ -1133,7 +1355,7 @@ body.is-admin .leaflet-control-admin a::after {
     border: none;
     border-bottom: 1px solid #343130;
     color: #dcd0c0;
-    font-family: 'Arimo', sans-serif;
+    font-family: 'IBM Plex Sans', sans-serif;
     font-size: 0.85em;
     padding: 8px 10px;
     outline: none;
@@ -1162,7 +1384,7 @@ body.is-admin .leaflet-control-admin a::after {
     align-items: baseline;
     gap: 6px;
     padding: 5px 7px;
-    border-radius: 2px;
+    border-radius: 0;
     font-size: 0.85em;
     color: #998c7c;
     cursor: pointer;
@@ -1183,13 +1405,13 @@ body.is-admin .leaflet-control-admin a::after {
 
 /* рендер ссылки внутри попапа (публичная сторона) */
 a.desc-link {
-    color: #977b61;
+    color: #C9A24D;
     text-decoration: underline;
     text-underline-offset: 2px;
     cursor: pointer;
 }
 
-a.desc-link:hover { color: #dcd0c0; }
+a.desc-link:hover { color: #E6CF95; }
 
 .desc-link-icon {
     width: 12px;
@@ -1199,21 +1421,3 @@ a.desc-link:hover { color: #dcd0c0; }
     margin-right: 1px;
 }
 
-/* Кнопки «Редактировать»/«Удалить» внутри попапа локации (только для админа) */
-.popup-admin-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 8px;
-}
-
-.popup-admin-actions a {
-    font-size: 0.78em;
-    color: #977b61;
-    cursor: pointer;
-    text-decoration: underline;
-}
-
-.popup-admin-actions a:hover { color: #dcd0c0; }
-
-.popup-admin-actions a.popup-delete { color: #d98b8b; }
-.popup-admin-actions a.popup-delete:hover { color: #ff8888; }

@@ -12,7 +12,7 @@
 
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-	<link href="https://fonts.googleapis.com/css2?family=Arimo:ital,wght@0,400..700;1,400..700&family=El+Messiri:wght@400..700&family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&display=swap" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400..700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
 
 	<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 	<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -24,6 +24,23 @@
 
 <body>
 
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+	<filter id="inner-gold" x="-60%" y="-60%" width="220%" height="220%">
+		<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="a"/>
+		<feGaussianBlur stdDeviation="0.5"/>
+		<feComposite in2="a" operator="arithmetic" k2="-1" k3="1"/>
+		<feColorMatrix type="matrix" values="0 0 0 0 0.901961 0 0 0 0 0.811765 0 0 0 0 0.584314 0 0 0 0.66 0"/>
+		<feBlend in2="SourceGraphic"/>
+	</filter>
+	<filter id="inner-red" x="-60%" y="-60%" width="220%" height="220%">
+		<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="a"/>
+		<feGaussianBlur stdDeviation="0.5"/>
+		<feComposite in2="a" operator="arithmetic" k2="-1" k3="1"/>
+		<feColorMatrix type="matrix" values="0 0 0 0 0.901961 0 0 0 0 0.376118 0 0 0 0 0.306667 0 0 0 0.66 0"/>
+		<feBlend in2="SourceGraphic"/>
+	</filter>
+</svg>
+
 <div id="sidebar-wrapper">
 	<div id="sidebar">
 		<div id="sidebar-inner">
@@ -32,18 +49,19 @@
 
 				<div class="sidebar-header-row">
 					<h2 id="map-title">Карта Хейвена</h2>
-					<div id="admin-status"><!-- генерируется JS --></div>
+					<button id="sidebar-toggle" class="icon-btn" title="Свернуть сайдбар">
+						<svg width="12" height="11" viewBox="0 0 12 11" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M10.5 0C11.3284 0 12 0.671573 12 1.5V9.5C12 10.3284 11.3284 11 10.5 11H1.5C0.671573 11 0 10.3284 0 9.5V1.5C1.28852e-07 0.671573 0.671573 0 1.5 0H10.5ZM4.5 10H10.5C10.7761 10 11 9.77614 11 9.5V1.5C11 1.22386 10.7761 1 10.5 1H4.5V10ZM1.5 1C1.22386 1 1 1.22386 1 1.5V9.5C1 9.77614 1.22386 10 1.5 10H3.5V1H1.5Z" fill="#787167"/></svg>
+					</button>
 				</div>
 				<hr class="sidebar-divider">
 
-				<button id="add-marker-btn" class="admin-primary-btn admin-only hidden">+ Добавить маркер</button>
-
-				<p class="sidebar-section-label">Локации</p>
-				<label class="layer-checkbox" id="master-row">
-					<input type="checkbox" id="toggle-all-markers" checked>
-					<span>Все пометки</span>
-				</label>
-				<div id="individual-checkboxes">
+				<div class="sidebar-section-label-row">
+					<p class="sidebar-section-label">Локации</p>
+					<button type="button" id="add-marker-btn" class="icon-btn admin-only hidden" title="Добавить маркер">
+						<svg width="8" height="8" viewBox="0 0 8 8" fill="none" xmlns="http://www.w3.org/2000/svg" style="overflow:visible"><path d="M4.44434 3.55566H8V4.44434H4.44434V8H3.55566V4.44434H0V3.55566H3.55566V0H4.44434V3.55566Z" fill="currentColor"/></svg>
+					</button>
+				</div>
+				<div id="individual-checkboxes" class="layer-icon-row">
 					<!-- генерируется JS -->
 				</div>
 
@@ -66,48 +84,70 @@
 			</div>
 
 			<div id="edit-marker-view" class="hidden">
-				<button id="edit-back-btn" class="admin-back-btn">← Назад</button>
-				<h3 id="edit-marker-title">Новый маркер</h3>
+				<div class="sidebar-header-row">
+					<h3 id="edit-marker-title">Новый маркер</h3>
+					<button id="edit-sidebar-toggle" class="icon-btn" title="Свернуть сайдбар">
+						<svg width="12" height="11" viewBox="0 0 12 11" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M10.5 0C11.3284 0 12 0.671573 12 1.5V9.5C12 10.3284 11.3284 11 10.5 11H1.5C0.671573 11 0 10.3284 0 9.5V1.5C1.28852e-07 0.671573 0.671573 0 1.5 0H10.5ZM4.5 10H10.5C10.7761 10 11 9.77614 11 9.5V1.5C11 1.22386 10.7761 1 10.5 1H4.5V10ZM1.5 1C1.22386 1 1 1.22386 1 1.5V9.5C1 9.77614 1.22386 10 1.5 10H3.5V1H1.5Z" fill="#787167"/></svg>
+					</button>
+				</div>
+				<hr class="sidebar-divider">
 
 				<form id="marker-form">
-					<label>Название (рус)*
-						<input type="text" id="f-runame" required>
+					<label><span>Название (рус) <span class="required-mark">*</span></span>
+						<input type="text" id="f-runame" autocomplete="off" required>
 					</label>
 					<label>Название (англ)
-						<input type="text" id="f-engname">
+						<input type="text" id="f-engname" autocomplete="off">
 					</label>
-					<label>Описание
+					<div class="form-field">
+						<!-- Явная связка for/id, а не <label> вокруг всего поля: кнопки
+						тулбара тоже "labelable" элементы, и если бы они лежали внутри
+						<label> раньше textarea в разметке, клик по слову "Описание"
+						(а в части браузеров — и по самому textarea) мог бы уходить
+						implicit-ассоциацией на первую попавшуюся кнопку (¶), а не на
+						textarea, - именно это раньше "подсвечивало" кнопку абзаца. -->
+						<label for="f-description">Описание</label>
 						<div class="desc-editor">
 							<div class="desc-toolbar">
-								<button type="button" class="toolbar-btn" data-wrap="p" title="Абзац">¶</button>
+								<button type="button" class="toolbar-btn" data-wrap="p" title="Абзац">
+									<svg width="8" height="9" viewBox="0 0 8 9" fill="currentColor"><path d="M2.85714 9V5.625C2.06667 5.625 1.39286 5.35078 0.835714 4.80234C0.278571 4.25391 0 3.59062 0 2.8125C0 2.03437 0.278571 1.37109 0.835714 0.822656C1.39286 0.274219 2.06667 0 2.85714 0H8V1.125H6.85714V9H5.71429V1.125H4V9H2.85714Z"/></svg>
+								</button>
+								<button type="button" class="toolbar-btn" data-wrap="blockquote" title="Цитата">
+									<svg width="9" height="7" viewBox="0 0 9 7" fill="currentColor"><path d="M3.74362 0V2.87428C3.74362 5.0925 2.3445 6.59594 0.375 7L0.001875 6.1635C0.913875 5.80689 1.5 4.74872 1.5 3.88889H0V0H3.74362ZM9 0V2.87428C9 5.0925 7.5945 6.59633 5.625 7L5.2515 6.1635C6.16388 5.80689 6.75 4.74872 6.75 3.88889H5.25638V0H9Z"/></svg>
+								</button>
+								<button type="button" id="insert-link-btn" class="toolbar-btn" title="Вставить ссылку на локацию/провинцию/фракцию">
+									<svg width="10" height="5" viewBox="0 0 10 5" fill="currentColor"><path d="M4.5 5H2.5C1.80833 5 1.21875 4.75625 0.73125 4.26875C0.24375 3.78125 0 3.19167 0 2.5C0 1.80833 0.24375 1.21875 0.73125 0.73125C1.21875 0.24375 1.80833 0 2.5 0H4.5V1H2.5C2.08333 1 1.72917 1.14583 1.4375 1.4375C1.14583 1.72917 1 2.08333 1 2.5C1 2.91667 1.14583 3.27083 1.4375 3.5625C1.72917 3.85417 2.08333 4 2.5 4H4.5V5ZM3 3V2H7V3H3ZM5.5 5V4H7.5C7.91667 4 8.27083 3.85417 8.5625 3.5625C8.85417 3.27083 9 2.91667 9 2.5C9 2.08333 8.85417 1.72917 8.5625 1.4375C8.27083 1.14583 7.91667 1 7.5 1H5.5V0H7.5C8.19167 0 8.78125 0.24375 9.26875 0.73125C9.75625 1.21875 10 1.80833 10 2.5C10 3.19167 9.75625 3.78125 9.26875 4.26875C8.78125 4.75625 8.19167 5 7.5 5H5.5Z"/></svg>
+								</button>
 								<div class="sep"></div>
-								<button type="button" class="toolbar-btn" data-wrap="b" title="Жирный (Ctrl+B)"><b>B</b></button>
-								<button type="button" class="toolbar-btn" data-wrap="i" title="Курсив (Ctrl+I)"><i>I</i></button>
+								<button type="button" class="toolbar-btn" data-wrap="b" title="Жирный (Ctrl+B)">
+									<svg width="7" height="8" viewBox="0 0 7 8" fill="currentColor"><path d="M0 8V0H3.71875C4.44792 0 5.12099 0.190476 5.73798 0.571429C6.35497 0.952381 6.66346 1.48095 6.66346 2.15714C6.66346 2.64286 6.53445 3.01667 6.27644 3.27857C6.01843 3.54048 5.77724 3.72857 5.55288 3.84286C5.83333 3.94762 6.14463 4.14286 6.48678 4.42857C6.82893 4.71429 7 5.14286 7 5.71429C7 6.5619 6.63542 7.15476 5.90625 7.49286C5.17708 7.83095 4.49279 8 3.85337 8H0ZM2.03606 6.4H3.78606C4.32452 6.4 4.65264 6.28333 4.77043 6.05C4.88822 5.81667 4.94711 5.64762 4.94711 5.54286C4.94711 5.4381 4.88822 5.26905 4.77043 5.03571C4.65264 4.80238 4.30769 4.68571 3.73558 4.68571H2.03606V6.4ZM2.03606 3.14286H3.60096C3.97115 3.14286 4.24038 3.0619 4.40865 2.9C4.57692 2.7381 4.66106 2.55714 4.66106 2.35714C4.66106 2.12857 4.5657 1.94286 4.375 1.8C4.18429 1.65714 3.9375 1.58571 3.63462 1.58571H2.03606V3.14286Z"/></svg>
+								</button>
+								<button type="button" class="toolbar-btn" data-wrap="i" title="Курсив (Ctrl+I)">
+									<svg width="7" height="8" viewBox="0 0 7 8" fill="currentColor"><path d="M0 8V6.57143H2.15385L3.76923 1.42857H1.61538V0H7V1.42857H5.11538L3.5 6.57143H5.38462V8H0Z"/></svg>
+								</button>
+								<button type="button" class="toolbar-btn" data-action="clear" title="Убрать разметку">
+									<svg width="11" height="11" viewBox="0 0 11 11" fill="currentColor"><path d="M6.55556 4.19444L5.26389 2.90278L3.58333 1.22222H10.3333V2.88889H7.11111L6.55556 4.19444ZM10.2222 11L5.61111 6.38889L4.5 9H2.68056L4.33333 5.11111L0 0.777778L0.777778 0L11 10.2222L10.2222 11Z"/></svg>
+								</button>
 								<div class="sep"></div>
 								<button type="button" class="toolbar-btn" data-align="left" title="По левому краю">
-									<svg viewBox="0 0 16 12" width="14" height="12" fill="currentColor"><rect y="0" width="16" height="1.6" rx="0.8"/><rect y="5.2" width="10" height="1.6" rx="0.8"/><rect y="10.4" width="13" height="1.6" rx="0.8"/></svg>
+									<svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><path d="M0 10V8.88889H10V10H0ZM0 7.77778V6.66667H6.66667V7.77778H0ZM0 5.55556V4.44444H10V5.55556H0ZM0 3.33333V2.22222H6.66667V3.33333H0ZM0 1.11111V0H10V1.11111H0Z"/></svg>
 								</button>
 								<button type="button" class="toolbar-btn" data-align="center" title="По центру">
-									<svg viewBox="0 0 16 12" width="14" height="12" fill="currentColor"><rect x="0" y="0" width="16" height="1.6" rx="0.8"/><rect x="3" y="5.2" width="10" height="1.6" rx="0.8"/><rect x="1.5" y="10.4" width="13" height="1.6" rx="0.8"/></svg>
+									<svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><path d="M0 10V8.88889H10V10H0ZM2.22222 7.77778V6.66667H7.77778V7.77778H2.22222ZM0 5.55556V4.44444H10V5.55556H0ZM2.22222 3.33333V2.22222H7.77778V3.33333H2.22222ZM0 1.11111V0H10V1.11111H0Z"/></svg>
 								</button>
 								<button type="button" class="toolbar-btn" data-align="right" title="По правому краю">
-									<svg viewBox="0 0 16 12" width="14" height="12" fill="currentColor"><rect x="0" y="0" width="16" height="1.6" rx="0.8"/><rect x="6" y="5.2" width="10" height="1.6" rx="0.8"/><rect x="3" y="10.4" width="13" height="1.6" rx="0.8"/></svg>
+									<svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><path d="M0 1.11111V0H10V1.11111H0ZM3.33333 3.33333V2.22222H10V3.33333H3.33333ZM0 5.55556V4.44444H10V5.55556H0ZM3.33333 7.77778V6.66667H10V7.77778H3.33333ZM0 10V8.88889H10V10H0Z"/></svg>
 								</button>
-								<div class="sep"></div>
-								<button type="button" id="insert-link-btn" class="toolbar-btn" title="Вставить ссылку на локацию/провинцию/фракцию">
-									<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-								</button>
-								<button type="button" class="toolbar-btn" data-action="clear" title="Убрать разметку">T<span class="tx-small">x</span></button>
 							</div>
 							<textarea id="f-description"></textarea>
 						</div>
-					</label>
+					</div>
 					<label>Фракция
-						<input type="text" id="f-faction" list="faction-options">
+						<input type="text" id="f-faction" list="faction-options" autocomplete="off">
 						<datalist id="faction-options"></datalist>
 					</label>
 					<label>Провинция
-						<input type="text" id="f-province" list="province-options">
+						<input type="text" id="f-province" list="province-options" autocomplete="off">
 						<datalist id="province-options"></datalist>
 					</label>
 					<label>Тип
@@ -125,33 +165,46 @@
 					</label>
 					<fieldset id="f-traits">
 						<legend>Особенности</legend>
-						<!-- генерируется JS -->
+						<div id="traits-icons"><!-- генерируется JS --></div>
 					</fieldset>
 					<label>Картинка (путь)
-						<input type="text" id="f-image" placeholder="images/locations/...">
+						<input type="text" id="f-image" placeholder="images/locations/..." autocomplete="off">
 					</label>
 					<label>Координаты
 						<div class="coord-row">
-							<input type="number" id="f-lng" step="any" placeholder="lng" required>
-							<input type="number" id="f-lat" step="any" placeholder="lat" required>
+							<input type="number" id="f-lng" step="any" placeholder="lng" autocomplete="off" required>
+							<input type="number" id="f-lat" step="any" placeholder="lat" autocomplete="off" required>
 						</div>
 					</label>
 					<p class="admin-hint" id="place-hint">Кликните по карте, чтобы указать положение маркера.</p>
-
-					<button type="button" id="revert-default-btn" class="admin-secondary-btn hidden">↺ Восстановить по умолчанию</button>
-
-					<div class="form-buttons">
-						<button type="submit" class="admin-primary-btn">Сохранить</button>
-						<button type="button" id="delete-marker-btn" class="admin-danger-btn hidden">Удалить</button>
-					</div>
 					<p id="form-error"></p>
 				</form>
+
+				<div class="edit-footer-row">
+					<button type="button" id="edit-back-btn" class="admin-outline-btn">
+						<span class="btn__base"></span>
+						<span class="btn__line"></span>
+						<span class="btn__fill">Назад</span>
+					</button>
+					<div class="edit-footer-icons">
+						<button type="button" id="revert-default-btn" class="icon-btn hidden" title="Восстановить по умолчанию">
+							<svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg" style="overflow:visible"><path d="M3.87409 0L0 0.774818L1.17433 1.94915C0.493342 2.79812 0.0726392 3.8635 0.0726392 5.03632C0.0726392 7.77694 2.29419 10 5.03632 10C7.77845 10 10 7.77694 10 5.03632C10 2.98124 8.75303 1.21368 6.97337 0.460048V1.6586C8.14619 2.33202 8.93462 3.58808 8.93462 5.03632C8.93462 7.19128 7.19128 8.93462 5.03632 8.93462C2.88136 8.93462 1.13801 7.19128 1.13801 5.03632C1.13801 4.15557 1.4316 3.352 1.92494 2.69976L3.09927 3.87409L3.87409 0Z" fill="currentColor"/></svg>
+						</button>
+						<button type="button" id="delete-marker-btn" class="icon-btn hidden" title="Удалить">
+							<svg width="8" height="10" viewBox="0 0 8 10" fill="none" xmlns="http://www.w3.org/2000/svg" style="overflow:visible"><path d="M3.11111 0L2.66667 0.5H0V1.5H8V0.5H5.33333L4.88889 0H3.11111ZM0.606771 2.5L1.28559 9.13184C1.34426 9.62684 1.72311 10 2.16667 10H5.83247C6.27602 10 6.6553 9.62743 6.71441 9.12793L7.39323 2.5H0.606771Z" fill="currentColor"/></svg>
+						</button>
+					</div>
+					<button type="submit" form="marker-form" class="admin-outline-btn">
+						<span class="btn__base"></span>
+						<span class="btn__line"></span>
+						<span class="btn__fill">Сохранить</span>
+					</button>
+				</div>
 			</div>
 
 		</div>
 		<div id="sidebar-resize-handle" title="Потянуть, чтобы изменить ширину"></div>
 	</div>
-	<button id="sidebar-toggle" title="Свернуть/развернуть">◀</button>
 </div>
 
 <div id="revert-overlay" class="hidden">
@@ -164,7 +217,11 @@
 		</div>
 		<div id="revert-compare"><!-- генерируется JS --></div>
 		<div class="form-buttons">
-			<button type="button" id="revert-confirm-btn" class="admin-danger-btn">Восстановить</button>
+			<button type="button" id="revert-confirm-btn" class="admin-danger-btn">
+				<span class="btn__base"></span>
+				<span class="btn__line"></span>
+				<span class="btn__fill">Восстановить</span>
+			</button>
 			<button type="button" id="revert-cancel-btn" class="admin-back-btn">Отмена</button>
 		</div>
 	</div>
@@ -174,7 +231,11 @@
 	<form id="login-form">
 		<input type="email" id="login-email" placeholder="Почта" autocomplete="username" required>
 		<input type="password" id="login-password" placeholder="Пароль" autocomplete="current-password" required>
-		<button type="submit">Войти</button>
+		<button type="submit">
+			<span class="btn__base"></span>
+			<span class="btn__line"></span>
+			<span class="btn__fill">Войти</span>
+		</button>
 		<p id="login-error"></p>
 	</form>
 </div>
