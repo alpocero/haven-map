@@ -381,10 +381,15 @@ function buildTraitsHTML(traits) {
 
 
 // ─── ПОПАП ────────────────────────────────────────────────────────────────
+// Картинки локаций временно отключены (не удалены — сами файлы и пути в
+// данных остаются как есть, просто не рендерим <img>). Чтобы вернуть,
+// поставить обратно true.
+const SHOW_LOCATION_IMAGES = false;
+
 function buildPopupHTML(props, opts = {}) {
 	return `
 		<div class="popup-content">
-			${props.image
+			${SHOW_LOCATION_IMAGES && props.image
 				? `<img class="location-img" src="${props.image}" alt="">`
 				: ''}
 			<div class="popup-text">
@@ -764,27 +769,36 @@ function setSidebarWidth(w) {
 	sidebar.style.width = w + 'px';
 }
 
-sidebarResizeHandle.addEventListener('mousedown', function(e) {
+// Pointer Events, а не mousedown/mousemove/mouseup — те стреляют только от
+// настоящей мыши. На тач-устройствах (iPad и т.п.) их не было бы вообще, и
+// ручка растягивания реагировала бы только на курсор-иконку/подсветку, а
+// сама ширина не менялась. Pointer Events унифицируют мышь/тач/перо; заодно
+// setPointerCapture держит события на ручке, даже если палец/курсор уйдёт
+// за её узкие 6px во время перетаскивания.
+sidebarResizeHandle.addEventListener('pointerdown', function(e) {
 	resizingSidebar = true;
 	resizeStartX = e.clientX;
 	resizeStartW = sidebar.getBoundingClientRect().width;
 	sidebar.classList.add('resizing');
 	document.body.style.userSelect = 'none';
+	sidebarResizeHandle.setPointerCapture(e.pointerId);
 	e.preventDefault();
 });
 
-window.addEventListener('mousemove', function(e) {
+sidebarResizeHandle.addEventListener('pointermove', function(e) {
 	if (!resizingSidebar) return;
 	setSidebarWidth(resizeStartW + (e.clientX - resizeStartX));
 });
 
-window.addEventListener('mouseup', function() {
+function endSidebarResize() {
 	if (!resizingSidebar) return;
 	resizingSidebar = false;
 	sidebar.classList.remove('resizing');
 	document.body.style.userSelect = '';
 	forceHoverRecalc(sidebar);
-});
+}
+sidebarResizeHandle.addEventListener('pointerup', endSidebarResize);
+sidebarResizeHandle.addEventListener('pointercancel', endSidebarResize);
 
 
 // ─── ZOOM CONTROL (bottomright) ───────────────────────────────────────────
@@ -1470,6 +1484,45 @@ descriptionInput.addEventListener('keydown', function(e) {
 	if (!(e.ctrlKey || e.metaKey)) return;
 	if (e.key.toLowerCase() === 'b') { e.preventDefault(); wrapSelection(...WRAP_TAGS.b); }
 	if (e.key.toLowerCase() === 'i') { e.preventDefault(); wrapSelection(...WRAP_TAGS.i); }
+});
+
+// ─── АДМИНКА: РАСКРЫТИЕ ОПИСАНИЯ В БОЛЬШОЕ ОКНО ─────────────────────────────
+// Тот же стиль, что у диалога "Восстановить по умолчанию" (#revert-overlay).
+// Не дублируем тулбар/textarea в разметке — .desc-editor целиком переезжает
+// в диалог через appendChild (со всеми уже навешанными обработчиками) и
+// возвращается на своё место в форме при закрытии.
+const descExpandOverlay = document.getElementById('desc-expand-overlay');
+const descExpandDialog  = document.getElementById('desc-expand-dialog');
+const descExpandDoneBtn = document.getElementById('desc-expand-done-btn');
+const descEditorEl      = descriptionInput.closest('.desc-editor');
+const descEditorHome    = descEditorEl.parentElement; // .form-field — куда возвращать при закрытии
+
+function openDescExpand() {
+	descExpandDialog.insertBefore(descEditorEl, descExpandDialog.querySelector('.form-buttons'));
+	descExpandOverlay.classList.remove('hidden');
+	descriptionInput.focus();
+}
+
+function closeDescExpand() {
+	descExpandOverlay.classList.add('hidden');
+	descEditorHome.appendChild(descEditorEl);
+}
+
+descExpandDoneBtn.addEventListener('click', closeDescExpand);
+descExpandOverlay.addEventListener('mousedown', function(e) {
+	if (e.target === descExpandOverlay) closeDescExpand();
+});
+document.addEventListener('keydown', function(e) {
+	if (e.key === 'Escape' && !descExpandOverlay.classList.contains('hidden')) closeDescExpand();
+});
+
+// Клик где угодно в области описания (сама textarea, пустое место, надпись
+// "Описание" — она связана с textarea через for/id и форвардит клик) —
+// кроме кнопок тулбара, они и в компактном виде работают как обычно.
+descEditorEl.addEventListener('click', function(e) {
+	if (descExpandOverlay.contains(descEditorEl)) return; // уже открыто
+	if (e.target.closest('.toolbar-btn')) return;
+	openDescExpand();
 });
 
 function allLinkables() {

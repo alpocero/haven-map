@@ -72,19 +72,7 @@ html, body {
 	height: 100%;
 	cursor: col-resize;
 	z-index: 5;
-}
-#sidebar-resize-handle::before {
-	content: '';
-	position: absolute;
-	top: 0; left: 2px;
-	width: 2px;
-	height: 100%;
-	background: transparent;
-	transition: background 0.15s;
-}
-#sidebar-resize-handle:hover::before,
-#sidebar.resizing #sidebar-resize-handle::before {
-	background: #977b61;
+	touch-action: none; /* иначе на тач-устройствах жест уходит в скролл/зум страницы вместо resize-логики в JS */
 }
 
 #normal-view {
@@ -556,6 +544,16 @@ h1, h2, h3 {
     line-height: 31px;
     color: #EFE7D6;
     mix-blend-mode: screen;
+    /* line-height:31px — это полный line-box шрифта (ascent+descent), а не
+       высота самих букв: у El Messiri у "Утренний" есть выносные элементы
+       (р), из-за которых зазор ascent/descent несимметричный, и центр
+       line-box не совпадает с видимым центром текста — align-items:center
+       у .title-row центрует именно line-box. text-box-trim обрезает рамку
+       строки до реальных границ букв (cap-height/baseline), после чего
+       центрирование по строке = центрирование по видимому тексту. Именно
+       это и просил Figma-экспорт (там были leading-trim/text-edge). */
+    text-box-trim: trim-both;
+    text-box-edge: cap alphabetic;
 }
 
 .popup-content .name-eng {
@@ -758,8 +756,18 @@ button.layer-icon-btn { cursor: pointer; }
 /* ─── БЛОК ЦИТАТЫ (кнопка Quote в тулбаре описания) ─────────────────────────
    Ступенчатая рамка из Scalable Notched Frame.dc.html (раздел 01):
    ::before — линия без маски (даёт "пол" яркости), ::after — та же линия,
-   замаскированная зерном static.png (mask-size: auto + repeat — не cover,
-   иначе зерно растягивается вместе с блоком, а не тайлится 1:1). */
+   замаскированная зерном static.png. mask-size: auto здесь не подходит —
+   static.png сам по себе большой (511×389) малоконтрастный мрамор, и при
+   auto на маленьком элементе (тут — 10px рамка) виден только один гладкий
+   кусочек картинки без зерна вообще. Явные 24px возвращают настоящее
+   тайлящееся зерно (mask-repeat: repeat всё ещё делает всю работу —
+   просто размер тайла подобран под реальный масштаб элементов, раз сам
+   файл, не выдумка — так же, без mask-size, у canvas-элементов с абсолютно
+   тем же mask_w_trans.png (511×389, тот же размер, что у нашего static.png)
+   сделано на сайте thewitcher.com: mask-size там нигде не задан — то есть
+   действует дефолт auto + repeat. Смысла масштабировать/тайлить вручную нет,
+   играет роль только mask-position — 0 0 (левый верхний угол) у static.png
+   попадает в блёклый участок без узора, center — в контрастный. */
 .description blockquote {
     position: relative;
     margin: 8px 0;
@@ -791,11 +799,9 @@ button.layer-icon-btn { cursor: pointer; }
 .description blockquote::after {
     mask-image: url(images/static.png);
     mask-mode: luminance;
-    mask-size: auto;
-    mask-repeat: repeat;
+    mask-position: center;
     -webkit-mask-image: url(images/static.png);
-    -webkit-mask-size: auto;
-    -webkit-mask-repeat: repeat;
+    -webkit-mask-position: center;
 }
 
 /* ─── ПОПАП РЕГИОНА (фракция/провинция) ────────────────────────────────── */
@@ -937,7 +943,11 @@ body.is-admin .leaflet-control-admin a::after {
    без модификатора). __base/__line — один и тот же контур-"талия" друг под
    другом (__base просто полупрозрачная заливка-"пол", __line — та же заливка
    поверх, замаскированная зерном static.png), __fill — непрозрачная заливка
-   с текстом и второй, чуть более узкой версией контура. */
+   с текстом и второй, чуть более узкой версией контура. mask-size/repeat не
+   трогаем (auto + repeat по умолчанию — так же на thewitcher.com, у их
+   canvas-масок с тем же по размеру 511×389 файлом mask-size нигде не задан);
+   меняем только mask-position — у static.png левый верхний угол (0 0 по
+   умолчанию) блёклый, без узора, а center попадает в контрастную область. */
 .admin-outline-btn, .admin-danger-btn, #login-form button {
     all: unset;
     box-sizing: border-box;
@@ -967,11 +977,9 @@ body.is-admin .leaflet-control-admin a::after {
 .admin-outline-btn .btn__line, .admin-danger-btn .btn__line, #login-form button .btn__line {
     mask-image: url(images/static.png);
     mask-mode: luminance;
-    mask-size: auto;
-    mask-repeat: repeat;
+    mask-position: center;
     -webkit-mask-image: url(images/static.png);
-    -webkit-mask-size: auto;
-    -webkit-mask-repeat: repeat;
+    -webkit-mask-position: center;
 }
 
 .admin-outline-btn .btn__fill, .admin-danger-btn .btn__fill, #login-form button .btn__fill {
@@ -1077,6 +1085,54 @@ body.is-admin .leaflet-control-admin a::after {
 
 .revert-value.diff { color: #dcd0c0; background: #3a2f22; padding: 1px 4px; }
 
+/* ─── БОЛЬШОЕ ОКНО РЕДАКТИРОВАНИЯ ОПИСАНИЯ (тот же стиль, что #revert-dialog) ── */
+#desc-expand-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.55);
+}
+
+#desc-expand-dialog {
+    width: min(700px, 90vw);
+    max-height: 85vh;
+    background: #0a0a0af0;
+    backdrop-filter: blur(8px);
+    padding: 22px 24px;
+    box-shadow: 0 3px 20px rgba(0, 0, 0, 0.5);
+    font-family: 'IBM Plex Sans', sans-serif;
+    color: #dcd0c0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+#desc-expand-dialog h3 {
+    font-family: 'El Messiri', sans-serif;
+    font-weight: 600;
+    margin: 0;
+}
+
+/* .desc-editor приезжает сюда из формы целиком (со своим тулбаром) —
+   растягиваем её на всё доступное место в диалоге. */
+#desc-expand-dialog .desc-editor {
+    flex: 1;
+    min-height: 0;
+}
+
+#desc-expand-dialog #f-description {
+    height: 50vh;
+    max-height: 60vh;
+}
+
+#desc-expand-dialog .form-buttons {
+    flex-shrink: 0;
+    justify-content: flex-end;
+}
+
 .admin-back-btn {
     background: none;
     border: none;
@@ -1171,7 +1227,7 @@ body.is-admin .leaflet-control-admin a::after {
 #marker-form input[type="text"],
 #marker-form input[type="number"],
 #marker-form select,
-#marker-form textarea {
+.desc-editor textarea {
     background: rgba(7, 7, 7, 0.5);
     border: 1px solid #343130;
     border-radius: 0;
@@ -1185,7 +1241,7 @@ body.is-admin .leaflet-control-admin a::after {
 
 #marker-form input:focus,
 #marker-form select:focus,
-#marker-form textarea:focus {
+.desc-editor textarea:focus {
     border-color: #776d61;
 }
 
@@ -1280,6 +1336,12 @@ button.trait-icon-btn { cursor: pointer; }
     border: 1px solid #343130;
     border-radius: 0;
     overflow: hidden;
+    /* textarea внутри считает свой font-size (0.95em) от этого элемента —
+       раньше .desc-editor лежала внутри <label> (0.78em) вместе с остальными
+       полями, теперь она вынесена в .form-field рядом с <label> (см.
+       комментарий там) и без этого 0.78em текст в описании стал заметно
+       крупнее, чем в обычных input. Восстанавливаем тот же множитель. */
+    font-size: 0.78em;
 }
 .desc-editor:focus-within { border-color: #776d61; }
 
@@ -1321,7 +1383,10 @@ button.trait-icon-btn { cursor: pointer; }
 .toolbar-btn:active { background: #ffffff22; }
 .toolbar-btn svg { color: inherit; }
 
-#marker-form #f-description {
+/* Без #marker-form — #f-description при раскрытии в большое окно (см.
+   openDescExpand в script.js) физически переезжает в #desc-expand-dialog,
+   вне формы, и правила, завязанные на #marker-form, там уже не действуют. */
+#f-description {
     resize: vertical;
     min-height: 60px;
     height: 78px;
@@ -1331,7 +1396,7 @@ button.trait-icon-btn { cursor: pointer; }
     border-radius: 0;
     padding: 8px 9px;
 }
-#marker-form #f-description:focus { border-color: transparent; }
+#f-description:focus { border-color: transparent; }
 
 #f-description::-webkit-scrollbar       { width: 4px; }
 #f-description::-webkit-scrollbar-track { background: transparent; }

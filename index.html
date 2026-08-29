@@ -227,6 +227,22 @@
 	</div>
 </div>
 
+<div id="desc-expand-overlay" class="hidden">
+	<div id="desc-expand-dialog">
+		<h3>Описание</h3>
+		<!-- .desc-editor (тулбар + textarea) переезжает сюда из формы через JS
+		     при открытии — см. openDescExpand в script.js — и возвращается назад
+		     при закрытии, чтобы не дублировать разметку/обработчики тулбара. -->
+		<div class="form-buttons">
+			<button type="button" id="desc-expand-done-btn" class="admin-outline-btn">
+				<span class="btn__base"></span>
+				<span class="btn__line"></span>
+				<span class="btn__fill">Готово</span>
+			</button>
+		</div>
+	</div>
+</div>
+
 <div id="login-popover" class="hidden">
 	<form id="login-form">
 		<input type="email" id="login-email" placeholder="Почта" autocomplete="username" required>
