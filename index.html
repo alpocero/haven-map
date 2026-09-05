@@ -12,7 +12,7 @@
 
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-	<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400..700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400..700&display=swap" rel="stylesheet">
 
 	<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 	<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -48,38 +48,78 @@
 			<div id="normal-view">
 
 				<div class="sidebar-header-row">
-					<h2 id="map-title">Карта Хейвена</h2>
+					<h2 id="map-title">Карта Хейвена<span class="fx-icon fx-icon--title-caret"><img class="fx-icon__layer fx-icon__layer--default" src="images/ui/title-caret--default.svg" alt=""><img class="fx-icon__layer fx-icon__layer--hover" src="images/ui/title-caret--hover.svg" alt=""></span></h2>
 					<button id="sidebar-toggle" class="icon-btn" title="Свернуть сайдбар">
-						<svg width="12" height="11" viewBox="0 0 12 11" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M10.5 0C11.3284 0 12 0.671573 12 1.5V9.5C12 10.3284 11.3284 11 10.5 11H1.5C0.671573 11 0 10.3284 0 9.5V1.5C1.28852e-07 0.671573 0.671573 0 1.5 0H10.5ZM4.5 10H10.5C10.7761 10 11 9.77614 11 9.5V1.5C11 1.22386 10.7761 1 10.5 1H4.5V10ZM1.5 1C1.22386 1 1 1.22386 1 1.5V9.5C1 9.77614 1.22386 10 1.5 10H3.5V1H1.5Z" fill="#787167"/></svg>
+						<span class="fx-icon fx-icon--sidebar-toggle"><img class="fx-icon__layer fx-icon__layer--default" src="images/ui/sidebar-toggle--default.svg" alt=""><img class="fx-icon__layer fx-icon__layer--hover" src="images/ui/sidebar-toggle--hover.svg" alt=""><img class="fx-icon__layer fx-icon__layer--focus" src="images/ui/sidebar-toggle--focus.svg" alt=""></span>
 					</button>
 				</div>
 				<hr class="sidebar-divider">
 
-				<div class="sidebar-section-label-row">
-					<p class="sidebar-section-label">Локации</p>
-					<button type="button" id="add-marker-btn" class="icon-btn admin-only hidden" title="Добавить маркер">
-						<svg width="8" height="8" viewBox="0 0 8 8" fill="none" xmlns="http://www.w3.org/2000/svg" style="overflow:visible"><path d="M4.44434 3.55566H8V4.44434H4.44434V8H3.55566V4.44434H0V3.55566H3.55566V0H4.44434V3.55566Z" fill="currentColor"/></svg>
-					</button>
-				</div>
-				<div id="individual-checkboxes" class="layer-icon-row">
-					<!-- генерируется JS -->
-				</div>
-
-				<hr class="sidebar-divider">
-
-				<p class="sidebar-section-label">Слои карты</p>
-				<div id="map-layer-checkboxes">
-					<!-- генерируется JS -->
+				<div id="locations-section" class="sb-section">
+					<div class="sidebar-section-label-row">
+						<p class="sidebar-section-label sidebar-section-label--toggle" id="locations-section-label">Локации</p>
+						<button type="button" id="add-marker-btn" class="icon-btn admin-only hidden" title="Добавить маркер">
+							<span class="fx-icon fx-icon--plus"><img class="fx-icon__layer fx-icon__layer--default" src="images/ui/plus--default.svg" alt=""><img class="fx-icon__layer fx-icon__layer--hover" src="images/ui/plus--hover.svg" alt=""><img class="fx-icon__layer fx-icon__layer--focus" src="images/ui/plus--focus.svg" alt=""></span>
+						</button>
+					</div>
+					<div id="individual-checkboxes" class="layer-icon-row">
+						<!-- генерируется JS -->
+					</div>
 				</div>
 
-				<hr class="sidebar-divider">
+				<div id="maplayers-section" class="sb-section">
+					<p class="sidebar-section-label sidebar-section-label--toggle" id="maplayers-section-label">Слои карты</p>
+					<div id="map-layer-checkboxes">
+						<!-- генерируется JS -->
+					</div>
+				</div>
 
-				<input type="text" id="sidebar-search" placeholder="Поиск...">
+				<div id="provinces-section" class="sb-section">
+					<p class="sidebar-section-label" id="provinces-section-label">Провинции</p>
+					<div class="search-row">
+						<span class="fx-icon fx-icon--search"><img class="fx-icon__layer fx-icon__layer--default" src="images/ui/search--default.svg" alt=""><img class="fx-icon__layer fx-icon__layer--hover" src="images/ui/search--hover.svg" alt=""><img class="fx-icon__layer fx-icon__layer--focus" src="images/ui/search--focus.svg" alt=""></span>
+						<div class="search-field">
+							<input type="text" id="sidebar-search" placeholder="Введите название провинции или места">
+							<button type="button" id="sidebar-search-clear" class="icon-btn hidden" title="Очистить">
+								<svg width="8" height="8" viewBox="0 0 8 8" fill="none" xmlns="http://www.w3.org/2000/svg" style="overflow:visible"><path d="M0.7 0L4 3.3L7.3 0L8 0.7L4.7 4L8 7.3L7.3 8L4 4.7L0.7 8L0 7.3L3.3 4L0 0.7L0.7 0Z" fill="currentColor"/></svg>
+							</button>
+						</div>
+						<button type="button" id="search-filter-toggle" class="icon-btn" title="Фильтры">
+							<span class="fx-icon fx-icon--filter"><img class="fx-icon__layer fx-icon__layer--default" src="images/ui/filter--default.svg" alt=""><img class="fx-icon__layer fx-icon__layer--hover" src="images/ui/filter--hover.svg" alt=""><img class="fx-icon__layer fx-icon__layer--focus" src="images/ui/filter--focus.svg" alt=""></span>
+						</button>
+					</div>
+					<div id="search-filter-panel" class="hidden">
+						<div class="filter-section">
+							<p class="filter-section-label">Тип локации</p>
+							<div id="filter-type-row" class="filter-pill-row"><!-- генерируется JS --></div>
+						</div>
+						<div class="filter-section">
+							<div class="filter-section-label-row">
+								<p class="filter-section-label">Особенности</p>
+								<div id="filter-trait-mode" class="trait-mode-toggle">
+									<button type="button" data-mode="or" class="trait-mode-btn selected">любая</button>
+									<button type="button" data-mode="and" class="trait-mode-btn">все сразу</button>
+									<button type="button" data-mode="exclude" class="trait-mode-btn">искл</button>
+								</div>
+							</div>
+							<div id="filter-trait-row" class="filter-pill-row"><!-- генерируется JS --></div>
+						</div>
+						<div class="filter-section">
+							<div class="filter-section-label-row">
+								<p class="filter-section-label">Персонажи</p>
+								<div id="filter-character-mode" class="trait-mode-toggle">
+									<button type="button" data-mode="or" class="trait-mode-btn selected">любой</button>
+									<button type="button" data-mode="and" class="trait-mode-btn">все сразу</button>
+									<button type="button" data-mode="exclude" class="trait-mode-btn">искл</button>
+								</div>
+							</div>
+							<div id="filter-character-row" class="filter-pill-row"><!-- генерируется JS --></div>
+						</div>
+						<button type="button" id="filter-reset-btn" class="admin-back-btn hidden">Сбросить фильтры</button>
+					</div>
 
-				<hr class="sidebar-divider">
-
-				<p class="sidebar-section-label">Регионы</p>
-				<div id="location-list"></div>
+					<div id="location-list"></div>
+				</div>
 
 			</div>
 
@@ -87,16 +127,16 @@
 				<div class="sidebar-header-row">
 					<h3 id="edit-marker-title">Новый маркер</h3>
 					<button id="edit-sidebar-toggle" class="icon-btn" title="Свернуть сайдбар">
-						<svg width="12" height="11" viewBox="0 0 12 11" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M10.5 0C11.3284 0 12 0.671573 12 1.5V9.5C12 10.3284 11.3284 11 10.5 11H1.5C0.671573 11 0 10.3284 0 9.5V1.5C1.28852e-07 0.671573 0.671573 0 1.5 0H10.5ZM4.5 10H10.5C10.7761 10 11 9.77614 11 9.5V1.5C11 1.22386 10.7761 1 10.5 1H4.5V10ZM1.5 1C1.22386 1 1 1.22386 1 1.5V9.5C1 9.77614 1.22386 10 1.5 10H3.5V1H1.5Z" fill="#787167"/></svg>
+						<span class="fx-icon fx-icon--sidebar-toggle"><img class="fx-icon__layer fx-icon__layer--default" src="images/ui/sidebar-toggle--default.svg" alt=""><img class="fx-icon__layer fx-icon__layer--hover" src="images/ui/sidebar-toggle--hover.svg" alt=""><img class="fx-icon__layer fx-icon__layer--focus" src="images/ui/sidebar-toggle--focus.svg" alt=""></span>
 					</button>
 				</div>
 				<hr class="sidebar-divider">
 
 				<form id="marker-form">
-					<label><span>Название (рус) <span class="required-mark">*</span></span>
+					<label><span>Название (рус.) <span class="required-mark">*</span></span>
 						<input type="text" id="f-runame" autocomplete="off" required>
 					</label>
-					<label>Название (англ)
+					<label>Название (англ.)
 						<input type="text" id="f-engname" autocomplete="off">
 					</label>
 					<div class="form-field">
@@ -115,7 +155,7 @@
 								<button type="button" class="toolbar-btn" data-wrap="blockquote" title="Цитата">
 									<svg width="9" height="7" viewBox="0 0 9 7" fill="currentColor"><path d="M3.74362 0V2.87428C3.74362 5.0925 2.3445 6.59594 0.375 7L0.001875 6.1635C0.913875 5.80689 1.5 4.74872 1.5 3.88889H0V0H3.74362ZM9 0V2.87428C9 5.0925 7.5945 6.59633 5.625 7L5.2515 6.1635C6.16388 5.80689 6.75 4.74872 6.75 3.88889H5.25638V0H9Z"/></svg>
 								</button>
-								<button type="button" id="insert-link-btn" class="toolbar-btn" title="Вставить ссылку на локацию/провинцию/фракцию">
+								<button type="button" id="insert-link-btn" class="toolbar-btn js-insert-link" title="Вставить ссылку на локацию/провинцию/фракцию">
 									<svg width="10" height="5" viewBox="0 0 10 5" fill="currentColor"><path d="M4.5 5H2.5C1.80833 5 1.21875 4.75625 0.73125 4.26875C0.24375 3.78125 0 3.19167 0 2.5C0 1.80833 0.24375 1.21875 0.73125 0.73125C1.21875 0.24375 1.80833 0 2.5 0H4.5V1H2.5C2.08333 1 1.72917 1.14583 1.4375 1.4375C1.14583 1.72917 1 2.08333 1 2.5C1 2.91667 1.14583 3.27083 1.4375 3.5625C1.72917 3.85417 2.08333 4 2.5 4H4.5V5ZM3 3V2H7V3H3ZM5.5 5V4H7.5C7.91667 4 8.27083 3.85417 8.5625 3.5625C8.85417 3.27083 9 2.91667 9 2.5C9 2.08333 8.85417 1.72917 8.5625 1.4375C8.27083 1.14583 7.91667 1 7.5 1H5.5V0H7.5C8.19167 0 8.78125 0.24375 9.26875 0.73125C9.75625 1.21875 10 1.80833 10 2.5C10 3.19167 9.75625 3.78125 9.26875 4.26875C8.78125 4.75625 8.19167 5 7.5 5H5.5Z"/></svg>
 								</button>
 								<div class="sep"></div>
@@ -167,16 +207,29 @@
 						<legend>Особенности</legend>
 						<div id="traits-icons"><!-- генерируется JS --></div>
 					</fieldset>
+					<fieldset id="f-characters">
+						<legend>Персонажи</legend>
+						<div id="character-icons"><!-- генерируется JS --></div>
+					</fieldset>
+					<fieldset id="f-system-traits">
+						<legend>Системные особенности</legend>
+						<div id="system-traits-chips"><!-- генерируется JS --></div>
+						<div class="system-trait-add-row">
+							<input type="text" id="system-trait-new-input" placeholder="Новая особенность..." autocomplete="off">
+							<button type="button" id="system-trait-add-btn" class="icon-btn" title="Добавить">
+								<svg width="8" height="8" viewBox="0 0 8 8" fill="none" xmlns="http://www.w3.org/2000/svg" style="overflow:visible"><path d="M4.44434 3.55566H8V4.44434H4.44434V8H3.55566V4.44434H0V3.55566H3.55566V0H4.44434V3.55566Z" fill="currentColor"/></svg>
+							</button>
+						</div>
+					</fieldset>
 					<label>Картинка (путь)
 						<input type="text" id="f-image" placeholder="images/locations/..." autocomplete="off">
 					</label>
-					<label>Координаты
+					<label><span>Координаты <span class="trait label-help-icon" data-tooltip="Кликните по карте, чтобы указать положение маркера"><svg width="5" height="8" viewBox="0 0 5 8" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.79752 5.27785C1.79752 4.67727 1.86811 4.21705 2.0093 3.89718C2.15048 3.57732 2.39325 3.31293 2.7376 3.10404C3.01309 2.93431 3.1801 2.78743 3.23864 2.6634C3.29718 2.53937 3.32645 2.37944 3.32645 2.1836C3.32645 2.00082 3.25585 1.85067 3.11467 1.73317C2.97348 1.61567 2.80992 1.55692 2.62397 1.55692C2.45868 1.55692 2.26412 1.6124 2.04029 1.72338C1.81646 1.83435 1.65634 2.07262 1.55992 2.43819L0 1.8213C0.206612 1.2142 0.549242 0.758874 1.02789 0.455324C1.50654 0.151775 2.03857 0 2.62397 0C3.32645 0 3.89807 0.207262 4.33884 0.621787C4.77961 1.03631 5 1.55692 5 2.1836C5 2.60139 4.93802 2.95553 4.81405 3.24602C4.69008 3.53652 4.44904 3.81232 4.09091 4.07344C3.84298 4.24317 3.68113 4.408 3.60537 4.56793C3.52961 4.72787 3.48829 4.9645 3.4814 5.27785H1.79752ZM2.62397 8C2.30028 8 2.02652 7.89392 1.80269 7.68176C1.57886 7.4696 1.46694 7.21012 1.46694 6.9033C1.46694 6.59649 1.57886 6.33537 1.80269 6.11995C2.02652 5.90453 2.30028 5.79682 2.62397 5.79682C2.94766 5.79682 3.22314 5.90453 3.45041 6.11995C3.67769 6.33537 3.79132 6.59649 3.79132 6.9033C3.79132 7.21012 3.67769 7.4696 3.45041 7.68176C3.22314 7.89392 2.94766 8 2.62397 8Z" fill="#3E3C3A"/></svg></span></span>
 						<div class="coord-row">
 							<input type="number" id="f-lng" step="any" placeholder="lng" autocomplete="off" required>
 							<input type="number" id="f-lat" step="any" placeholder="lat" autocomplete="off" required>
 						</div>
 					</label>
-					<p class="admin-hint" id="place-hint">Кликните по карте, чтобы указать положение маркера.</p>
 					<p id="form-error"></p>
 				</form>
 
@@ -230,9 +283,46 @@
 <div id="desc-expand-overlay" class="hidden">
 	<div id="desc-expand-dialog">
 		<h3>Описание</h3>
-		<!-- .desc-editor (тулбар + textarea) переезжает сюда из формы через JS
-		     при открытии — см. openDescExpand в script.js — и возвращается назад
-		     при закрытии, чтобы не дублировать разметку/обработчики тулбара. -->
+		<!-- Полный дубль поля "Описание" (свой тулбар + textarea) — не переезд
+		     и не клон исходного, а обычная статичная разметка с другими id;
+		     кнопки тулбара находят "свою" textarea через closest('.desc-editor')
+		     (см. script.js), поэтому один и тот же обработчик обслуживает оба
+		     поля. На каждый ввод в #f-description-expand значение пишется
+		     обратно в настоящее #f-description. -->
+		<div class="desc-editor">
+			<div class="desc-toolbar">
+				<button type="button" class="toolbar-btn" data-wrap="p" title="Абзац">
+					<svg width="8" height="9" viewBox="0 0 8 9" fill="currentColor"><path d="M2.85714 9V5.625C2.06667 5.625 1.39286 5.35078 0.835714 4.80234C0.278571 4.25391 0 3.59062 0 2.8125C0 2.03437 0.278571 1.37109 0.835714 0.822656C1.39286 0.274219 2.06667 0 2.85714 0H8V1.125H6.85714V9H5.71429V1.125H4V9H2.85714Z"/></svg>
+				</button>
+				<button type="button" class="toolbar-btn" data-wrap="blockquote" title="Цитата">
+					<svg width="9" height="7" viewBox="0 0 9 7" fill="currentColor"><path d="M3.74362 0V2.87428C3.74362 5.0925 2.3445 6.59594 0.375 7L0.001875 6.1635C0.913875 5.80689 1.5 4.74872 1.5 3.88889H0V0H3.74362ZM9 0V2.87428C9 5.0925 7.5945 6.59633 5.625 7L5.2515 6.1635C6.16388 5.80689 6.75 4.74872 6.75 3.88889H5.25638V0H9Z"/></svg>
+				</button>
+				<button type="button" id="insert-link-btn-expand" class="toolbar-btn js-insert-link" title="Вставить ссылку на локацию/провинцию/фракцию">
+					<svg width="10" height="5" viewBox="0 0 10 5" fill="currentColor"><path d="M4.5 5H2.5C1.80833 5 1.21875 4.75625 0.73125 4.26875C0.24375 3.78125 0 3.19167 0 2.5C0 1.80833 0.24375 1.21875 0.73125 0.73125C1.21875 0.24375 1.80833 0 2.5 0H4.5V1H2.5C2.08333 1 1.72917 1.14583 1.4375 1.4375C1.14583 1.72917 1 2.08333 1 2.5C1 2.91667 1.14583 3.27083 1.4375 3.5625C1.72917 3.85417 2.08333 4 2.5 4H4.5V5ZM3 3V2H7V3H3ZM5.5 5V4H7.5C7.91667 4 8.27083 3.85417 8.5625 3.5625C8.85417 3.27083 9 2.91667 9 2.5C9 2.08333 8.85417 1.72917 8.5625 1.4375C8.27083 1.14583 7.91667 1 7.5 1H5.5V0H7.5C8.19167 0 8.78125 0.24375 9.26875 0.73125C9.75625 1.21875 10 1.80833 10 2.5C10 3.19167 9.75625 3.78125 9.26875 4.26875C8.78125 4.75625 8.19167 5 7.5 5H5.5Z"/></svg>
+				</button>
+				<div class="sep"></div>
+				<button type="button" class="toolbar-btn" data-wrap="b" title="Жирный (Ctrl+B)">
+					<svg width="7" height="8" viewBox="0 0 7 8" fill="currentColor"><path d="M0 8V0H3.71875C4.44792 0 5.12099 0.190476 5.73798 0.571429C6.35497 0.952381 6.66346 1.48095 6.66346 2.15714C6.66346 2.64286 6.53445 3.01667 6.27644 3.27857C6.01843 3.54048 5.77724 3.72857 5.55288 3.84286C5.83333 3.94762 6.14463 4.14286 6.48678 4.42857C6.82893 4.71429 7 5.14286 7 5.71429C7 6.5619 6.63542 7.15476 5.90625 7.49286C5.17708 7.83095 4.49279 8 3.85337 8H0ZM2.03606 6.4H3.78606C4.32452 6.4 4.65264 6.28333 4.77043 6.05C4.88822 5.81667 4.94711 5.64762 4.94711 5.54286C4.94711 5.4381 4.88822 5.26905 4.77043 5.03571C4.65264 4.80238 4.30769 4.68571 3.73558 4.68571H2.03606V6.4ZM2.03606 3.14286H3.60096C3.97115 3.14286 4.24038 3.0619 4.40865 2.9C4.57692 2.7381 4.66106 2.55714 4.66106 2.35714C4.66106 2.12857 4.5657 1.94286 4.375 1.8C4.18429 1.65714 3.9375 1.58571 3.63462 1.58571H2.03606V3.14286Z"/></svg>
+				</button>
+				<button type="button" class="toolbar-btn" data-wrap="i" title="Курсив (Ctrl+I)">
+					<svg width="7" height="8" viewBox="0 0 7 8" fill="currentColor"><path d="M0 8V6.57143H2.15385L3.76923 1.42857H1.61538V0H7V1.42857H5.11538L3.5 6.57143H5.38462V8H0Z"/></svg>
+				</button>
+				<button type="button" class="toolbar-btn" data-action="clear" title="Убрать разметку">
+					<svg width="11" height="11" viewBox="0 0 11 11" fill="currentColor"><path d="M6.55556 4.19444L5.26389 2.90278L3.58333 1.22222H10.3333V2.88889H7.11111L6.55556 4.19444ZM10.2222 11L5.61111 6.38889L4.5 9H2.68056L4.33333 5.11111L0 0.777778L0.777778 0L11 10.2222L10.2222 11Z"/></svg>
+				</button>
+				<div class="sep"></div>
+				<button type="button" class="toolbar-btn" data-align="left" title="По левому краю">
+					<svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><path d="M0 10V8.88889H10V10H0ZM0 7.77778V6.66667H6.66667V7.77778H0ZM0 5.55556V4.44444H10V5.55556H0ZM0 3.33333V2.22222H6.66667V3.33333H0ZM0 1.11111V0H10V1.11111H0Z"/></svg>
+				</button>
+				<button type="button" class="toolbar-btn" data-align="center" title="По центру">
+					<svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><path d="M0 10V8.88889H10V10H0ZM2.22222 7.77778V6.66667H7.77778V7.77778H2.22222ZM0 5.55556V4.44444H10V5.55556H0ZM2.22222 3.33333V2.22222H7.77778V3.33333H2.22222ZM0 1.11111V0H10V1.11111H0Z"/></svg>
+				</button>
+				<button type="button" class="toolbar-btn" data-align="right" title="По правому краю">
+					<svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><path d="M0 1.11111V0H10V1.11111H0ZM3.33333 3.33333V2.22222H10V3.33333H3.33333ZM0 5.55556V4.44444H10V5.55556H0ZM3.33333 7.77778V6.66667H10V7.77778H3.33333ZM0 10V8.88889H10V10H0Z"/></svg>
+				</button>
+			</div>
+			<textarea id="f-description-expand"></textarea>
+		</div>
 		<div class="form-buttons">
 			<button type="button" id="desc-expand-done-btn" class="admin-outline-btn">
 				<span class="btn__base"></span>

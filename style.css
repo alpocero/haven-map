@@ -1,6 +1,66 @@
 /* ─── ШРИФТЫ ─────────────────────────────────────────────────────────────
-   IBM Plex Sans (текст) и El Messiri (заголовки) подключены через Google Fonts
-   в <head> index.html. */
+   El Messiri (заголовки) подключён через Google Fonts в <head> index.html.
+   Beaufort for LoL (текст) — локальные файлы, тестовая замена IBM Plex Sans. */
+@font-face {
+	font-family: 'Beaufort for LoL';
+	src: url('fonts/beaufort-for-lol/BeaufortforLOL-Light.otf') format('opentype');
+	font-weight: 300;
+	font-style: normal;
+}
+@font-face {
+	font-family: 'Beaufort for LoL';
+	src: url('fonts/beaufort-for-lol/BeaufortforLOL-LightItalic.otf') format('opentype');
+	font-weight: 300;
+	font-style: italic;
+}
+@font-face {
+	font-family: 'Beaufort for LoL';
+	src: url('fonts/beaufort-for-lol/BeaufortforLOL-Regular.otf') format('opentype');
+	font-weight: 400;
+	font-style: normal;
+}
+@font-face {
+	font-family: 'Beaufort for LoL';
+	src: url('fonts/beaufort-for-lol/BeaufortforLOL-Italic.otf') format('opentype');
+	font-weight: 400;
+	font-style: italic;
+}
+@font-face {
+	font-family: 'Beaufort for LoL';
+	src: url('fonts/beaufort-for-lol/BeaufortforLOL-Medium.otf') format('opentype');
+	font-weight: 500;
+	font-style: normal;
+}
+@font-face {
+	font-family: 'Beaufort for LoL';
+	src: url('fonts/beaufort-for-lol/BeaufortforLOL-MediumItalic.otf') format('opentype');
+	font-weight: 500;
+	font-style: italic;
+}
+@font-face {
+	font-family: 'Beaufort for LoL';
+	src: url('fonts/beaufort-for-lol/BeaufortforLOL-Bold.otf') format('opentype');
+	font-weight: 700;
+	font-style: normal;
+}
+@font-face {
+	font-family: 'Beaufort for LoL';
+	src: url('fonts/beaufort-for-lol/BeaufortforLOL-BoldItalic.otf') format('opentype');
+	font-weight: 700;
+	font-style: italic;
+}
+@font-face {
+	font-family: 'Beaufort for LoL';
+	src: url('fonts/beaufort-for-lol/BeaufortforLOL-Heavy.otf') format('opentype');
+	font-weight: 900;
+	font-style: normal;
+}
+@font-face {
+	font-family: 'Beaufort for LoL';
+	src: url('fonts/beaufort-for-lol/BeaufortforLOL-HeavyItalic.otf') format('opentype');
+	font-weight: 900;
+	font-style: italic;
+}
 
 
 /* ─── ЛЕЙАУТ ─────────────────────────────────────────────────────────── */
@@ -9,6 +69,14 @@ html, body {
 	width: 100%;
 	margin: 0;
 	overflow: hidden;
+	font-family: 'Beaufort for LoL', sans-serif;
+}
+
+/* input/button/select/textarea не наследуют font-family от предков по
+   умолчанию (сбрасывается UA-стилем на системный шрифт) — возвращаем
+   наследование явно, чтобы не дублировать шрифт на каждом элементе формы. */
+button, input, select, textarea, optgroup, option {
+	font-family: inherit;
 }
 
 #map {
@@ -46,19 +114,18 @@ html, body {
 	width: 320px;
 	height: 100%;
 	background: #030303d4;
-	backdrop-filter: blur(8px);
-	font-family: 'IBM Plex Sans', sans-serif;
+	backdrop-filter: blur(15px);
 	overflow-x: hidden;
 	flex-shrink: 0;
 	position: relative;
-	box-shadow: 0 3px 14px rgba(0, 0, 0, 0.4);
+	box-shadow: 0 0 6px rgba(0, 0, 0, 0.5);
 }
 
 #sidebar-inner {
 	width: 100%;
 	height: 100%;
 	overflow: hidden;
-	padding: 20px 17px;
+	padding: 20px 18px; /* py-[20px] px-[18px] на самом фрейме "sidebar" в Figma (обновлено) */
 	box-sizing: border-box;
 	display: flex;
 	flex-direction: column;
@@ -109,11 +176,15 @@ html, body {
 }
 .icon-btn:hover { opacity: 0.75; }
 .icon-btn svg { overflow: visible; display: block; }
+/* Кнопки со своей fx-icon (см. ниже) сами отвечают за подсветку через смену
+   слоёв — общий opacity-hover тут только погасил бы картинку зря. */
+.icon-btn:has(.fx-icon):hover { opacity: 1; }
 
 /* Золотое/красное внутреннее свечение (SVG-фильтры #inner-gold/#inner-red в
-   index.html) — только для этих трёх иконок и карандаша редактирования ниже;
-   обычные icon-btn (сворачивание сайдбара) остаются на простом opacity-hover. */
-#add-marker-btn:hover,
+   index.html) — для карандаша редактирования и восстановления по умолчанию/
+   удаления в форме маркера (там своих fx-icon-ассетов из Figma нет, эта форма
+   не часть дизайна сайдбара). Обычные icon-btn (сворачивание сайдбара)
+   остаются на простом opacity-hover либо на своей fx-icon. */
 #revert-default-btn:hover {
 	opacity: 1;
 	color: #C9A24D;
@@ -125,12 +196,126 @@ html, body {
 	filter: url(#inner-red) drop-shadow(0 0 4.5px rgba(201, 84, 61, 0.66));
 }
 
+/* ─── FX-ICON: кнопки-иконки из Figma (COMPONENTS__GENERAL) ─────────────────
+   plus-icon/search-icon/filter-icon/sidebar-visibility/button__collapse —
+   один и тот же приём во всех пяти: маленькая обёртка родного размера
+   (для раскладки/зазоров), внутри — несколько наложенных <img> с реальными
+   экспортами Figma (градиент ink-600→ink-500 + зерно + внутреннее свечение,
+   см. images/ui/*.svg), каждый чуть больше обёртки (bleed под размытие) и
+   абсолютно спозиционирован через inset — те же проценты, что в Figma
+   (inset задаёт бокс целиком, отдельные width/height не нужны). Состояния
+   переключаются кроссфейдом (opacity), какой слой активен — решает конкретный
+   модификатор ниже (:hover/:active/.active/:focus-within и т.д.), картинка не
+   меняется через JS. */
+.fx-icon {
+	position: relative;
+	display: inline-block;
+	flex-shrink: 0;
+}
+.fx-icon__layer {
+	position: absolute;
+	display: block;
+	pointer-events: none;
+	opacity: 0;
+	transition: opacity 0.15s ease;
+}
+.fx-icon__layer--default { opacity: 1; }
+
+.fx-icon--plus { width: 11px; height: 11px; }
+.fx-icon--plus .fx-icon__layer--default { inset: -9.09%; }
+.fx-icon--plus .fx-icon__layer--hover,
+.fx-icon--plus .fx-icon__layer--focus { inset: -36.36%; }
+/* plus-icon: hover — курсор наведён, focus — нажатие/клавиатурный фокус */
+.icon-btn:hover .fx-icon--plus .fx-icon__layer--default { opacity: 0; }
+.icon-btn:hover .fx-icon--plus .fx-icon__layer--hover { opacity: 1; }
+.icon-btn:active .fx-icon--plus .fx-icon__layer--default,
+.icon-btn:focus-visible .fx-icon--plus .fx-icon__layer--default { opacity: 0; }
+.icon-btn:active .fx-icon--plus .fx-icon__layer--hover,
+.icon-btn:focus-visible .fx-icon--plus .fx-icon__layer--hover { opacity: 0; }
+.icon-btn:active .fx-icon--plus .fx-icon__layer--focus,
+.icon-btn:focus-visible .fx-icon--plus .fx-icon__layer--focus { opacity: 1; }
+
+.fx-icon--sidebar-toggle { width: 12px; height: 11px; }
+.fx-icon--sidebar-toggle .fx-icon__layer--default { inset: -9.09% -8.33%; }
+.fx-icon--sidebar-toggle .fx-icon__layer--hover,
+.fx-icon--sidebar-toggle .fx-icon__layer--focus { inset: -36.36% -33.33%; }
+.icon-btn:hover .fx-icon--sidebar-toggle .fx-icon__layer--default { opacity: 0; }
+.icon-btn:hover .fx-icon--sidebar-toggle .fx-icon__layer--hover { opacity: 1; }
+.icon-btn:active .fx-icon--sidebar-toggle .fx-icon__layer--default,
+.icon-btn:focus-visible .fx-icon--sidebar-toggle .fx-icon__layer--default { opacity: 0; }
+.icon-btn:active .fx-icon--sidebar-toggle .fx-icon__layer--hover,
+.icon-btn:focus-visible .fx-icon--sidebar-toggle .fx-icon__layer--hover { opacity: 0; }
+.icon-btn:active .fx-icon--sidebar-toggle .fx-icon__layer--focus,
+.icon-btn:focus-visible .fx-icon--sidebar-toggle .fx-icon__layer--focus { opacity: 1; }
+
+/* filter-icon: focus в Figma — не клавиатурный фокус, а "фильтры открыты"
+   (тот же смысл, что у уже существующего .active на #search-filter-toggle) */
+.fx-icon--filter { width: 11px; height: 9px; }
+.fx-icon--filter .fx-icon__layer--default { inset: -11.11% -9.09%; }
+.fx-icon--filter .fx-icon__layer--hover,
+.fx-icon--filter .fx-icon__layer--focus { inset: -44.44% -36.36%; }
+#search-filter-toggle:hover .fx-icon--filter .fx-icon__layer--default { opacity: 0; }
+#search-filter-toggle:hover .fx-icon--filter .fx-icon__layer--hover { opacity: 1; }
+#search-filter-toggle.active .fx-icon--filter .fx-icon__layer--default,
+#search-filter-toggle.active .fx-icon--filter .fx-icon__layer--hover { opacity: 0; }
+#search-filter-toggle.active .fx-icon--filter .fx-icon__layer--focus { opacity: 1; }
+
+/* search-icon: hover — наведение на всю строку поиска, focus — реально
+   печатают (:focus-within на .search-row, а не на самой лупе) */
+.fx-icon--search { width: 11px; height: 11px; }
+.fx-icon--search .fx-icon__layer--default { inset: -9.09%; }
+.fx-icon--search .fx-icon__layer--hover,
+.fx-icon--search .fx-icon__layer--focus { inset: -36.36%; }
+.search-row:hover .fx-icon--search .fx-icon__layer--default { opacity: 0; }
+.search-row:hover .fx-icon--search .fx-icon__layer--hover { opacity: 1; }
+.search-row:focus-within .fx-icon--search .fx-icon__layer--default,
+.search-row:focus-within .fx-icon--search .fx-icon__layer--hover { opacity: 0; }
+.search-row:focus-within .fx-icon--search .fx-icon__layer--focus { opacity: 1; }
+
+/* button__collapse: декоративный "▾" у заголовка — только default/hover */
+.fx-icon--title-caret { width: 8px; height: 5px; }
+.fx-icon--title-caret .fx-icon__layer--default { inset: -20% -12.5%; }
+.fx-icon--title-caret .fx-icon__layer--hover { inset: -80% -50%; }
+#map-title:hover .fx-icon--title-caret .fx-icon__layer--default { opacity: 0; }
+#map-title:hover .fx-icon--title-caret .fx-icon__layer--hover { opacity: 1; }
+
+/* checkbox (.checkbox в COMPONENTS__GENERAL): та же fx-icon-механика, но
+   поверх настоящего <input type="checkbox"> — сам инпут визуально спрятан
+   (opacity:0, но кликабелен/фокусируем, разметка доступности не теряется),
+   3 слоя решают между собой через :hover/:checked на .checkbox-fx. */
+.checkbox-fx {
+	position: relative;
+	display: inline-block;
+	flex-shrink: 0;
+	width: 10px;
+	height: 10px;
+}
+.checkbox-fx input[type="checkbox"] {
+	position: absolute;
+	inset: 0;
+	margin: 0;
+	opacity: 0;
+	cursor: pointer;
+	z-index: 1;
+}
+.checkbox-fx .fx-icon__layer--default { inset: -10%; }
+.checkbox-fx .fx-icon__layer--hover,
+.checkbox-fx .fx-icon__layer--checked { inset: -40%; }
+.checkbox-fx:hover .fx-icon__layer--default { opacity: 0; }
+.checkbox-fx:hover .fx-icon__layer--hover { opacity: 1; }
+.checkbox-fx:has(input:checked) .fx-icon__layer--default,
+.checkbox-fx:has(input:checked) .fx-icon__layer--hover { opacity: 0; }
+.checkbox-fx:has(input:checked) .fx-icon__layer--checked { opacity: 1; }
+
 
 
 
 
 /* ─── САЙДБАР ────────────────────────────────────────────────────────── */
 #map-title {
+	display: inline-flex;
+	align-items: flex-end;
+	gap: 3px;
 	font-family: 'El Messiri', sans-serif;
 	font-size: 1.3em;
 	font-weight: 600;
@@ -138,18 +323,63 @@ html, body {
 	line-height: 1.2;
 }
 
+/* Декоративный "▾" рядом с заголовком — из шапки сайдбара в Figma
+   (scrollbar-title/Frame 5), функции не несёт. */
 .sidebar-divider {
 	border: none;
 	border-top: 1px solid #343130;
 	margin: 12px 0;
 }
+/* В обычном виде <hr> ничего своего не добавляет — весь отступ вокруг него
+   даёт общий gap-[10px] на #normal-view (см. ниже); 12px 0 остаётся только
+   дефолтом для формы редактирования маркера, где раскладки Figma нет. */
+#normal-view > .sidebar-divider { margin: 0; }
+
+/* ─── СЕКЦИИ САЙДБАРА ────────────────────────────────────────────────────
+   В Figma между "header"/"locations"/"map-layers"/"provinces" нет разделительных
+   линий (кроме одной, после шапки) — отступ держится общим gap-[10px] на
+   самом сайдбаре плюс собственным pt/pb КАЖДОЙ секции. Раньше это считалось
+   вручную в одно составное margin-top на заголовке секции (10+14=24,
+   4+10+14=28...) — тем самым числа переставали быть отслеживаемыми и не
+   обновлялись при правках дизайна. Теперь #normal-view сам даёт 10px между
+   всеми секциями через gap, а каждая секция — обёртка <div class="sb-section">
+   с ЕДИНСТВЕННЫМ своим числом (pt и/или pb), 1:1 как в Figma. */
+#normal-view { gap: 10px; }
+
+#locations-section { padding-top: 11px; }   /* pt-[11px] у "locations" */
+
+#maplayers-section {
+	padding-top: 14px;    /* pt-[14px] у "map-layers" */
+	padding-bottom: 4px;  /* pb-[4px] у "map-layers" */
+}
+#maplayers-section-label { margin-bottom: 10px; } /* gap-[10px] у "map-layers" (не общие 7px секций с заголовком+рядом) */
+
+#provinces-section {
+	padding-top: 14px;    /* pt-[14px] у "provinces" */
+	display: flex;
+	flex-direction: column;
+	gap: 7px;              /* gap-[7px] у "provinces" — между заголовком/поиском/фильтрами/списком */
+	flex: 1;                /* flex-[1_0_0] у "provinces" — тянется на всё оставшееся место */
+	min-height: 0;
+}
+#provinces-section-label { margin-bottom: 0; } /* иначе унаследованный .sidebar-section-label{margin-bottom:7px} удвоил бы gap-7 у секции */
 
 .sidebar-section-label {
 	font-size: 0.72em;
+	font-weight: 500;
 	text-transform: uppercase;
 	color: #787167;
-	margin: 0 0 7px;
+	margin-top: 0;      /* сбрасывает дефолтный UA margin-block:1em у <p> — иначе он
+	                       тихо подмешивался всякий раз, когда сюда не задавали
+	                       явный margin-top (сам сброс замечен только сейчас,
+	                       потому что раньше это место почти всегда перекрывалось
+	                       отдельным margin-top на конкретных #id) */
+	margin-bottom: 7px;
 }
+
+/* Клик по заголовку включает/выключает все пункты секции разом — меняется
+   только курсор, никакой подсветки/тултипа. */
+.sidebar-section-label--toggle { cursor: pointer; }
 
 /* «Локации» + кнопка «+ добавить маркер» в одну строку */
 .sidebar-section-label-row {
@@ -168,29 +398,25 @@ html, body {
 .layer-checkbox {
 	display: flex;
 	align-items: center;
-	gap: 7px;
+	gap: 5px; /* gap-[5px] у ".checkbox" в Figma */
 	font-size: 0.84em;
-	color: #b8a898;
+	/* Невключенный слой — тусклая подпись (ink-500), включенный — светлее
+	   (parch-200), как в Figma (.checkbox default/checked): состояние читается
+	   не только по галочке, но и по яркости самой подписи. */
+	color: #6a655d;
 	cursor: pointer;
-	padding: 2px 0;
 	user-select: none;
+	/* без padding — строка ".checkbox" в Figma ровно 10px высотой, по чекбоксу,
+	   без своих внутренних отступов */
 }
 
-
+.layer-checkbox:has(input:checked) { color: #cfc7b8; }
 .layer-checkbox:hover { color: #dcd0c0; }
-
-.layer-checkbox input[type="checkbox"] {
-	cursor: pointer;
-	accent-color: #977b61;
-	flex-shrink: 0;
-	width: 13px;
-	height: 13px;
-}
 
 #map-layer-checkboxes {
 	display: flex;
 	flex-direction: column;
-	gap: 1px;
+	gap: 8px; /* gap-[8px] у map-layers-grid в Figma */
 }
 
 
@@ -236,7 +462,6 @@ html, body {
     color: #ff9999;
     padding: 2px 7px;
     border-radius: 0;
-    font-family: 'IBM Plex Sans', sans-serif;
     font-size: 12px;
     white-space: nowrap;
     border: 1px solid rgba(255, 80, 80, 0.35);
@@ -250,7 +475,6 @@ html, body {
     color: #ff9999;
     padding: 2px 7px;
     border-radius: 0;
-    font-family: 'IBM Plex Sans', sans-serif;
     font-size: 12px;
     white-space: nowrap;
     border: 1px solid rgba(255, 80, 80, 0.25);
@@ -333,90 +557,363 @@ h1, h2, h3 {
 }
 
 /* ─── SEARCH ──────────────────────────────────────────────────────────── */
+	/* Поле поиска в Figma (search-input-active) лежит прямо на фоне сайдбара,
+	   совсем без рамки, фона или свечения ни в одном состоянии — иконка лупы,
+	   текст и воронка фильтра просто в одну строку. Реакция на фокус —
+	   исключительно смена яркости: плейсхолдер/текст ink-700 в покое, parch-200
+	   на фокусе (search-input__placeholder-text default/focus), плюс своя
+	   fx-icon-подсветка у самой лупы (.search-row:focus-within, см. выше). */
+	.search-row {
+		display: flex;
+		align-items: center;
+		gap: 5px;
+		padding: 6px 0; /* py-[6px] у "search-input-active" в Figma — на всей строке, не только на инпуте */
+	}
+
+	.search-field {
+		position: relative;
+		flex: 1;
+		min-width: 0;
+	}
+
 	#sidebar-search {
 		width: 100%;
 		box-sizing: border-box;
-		background: #070707d4;
-		border: 1px solid #343130;
+		background: none;
+		border: none;
 		border-radius: 0;
-		color: #dcd0c0;
-		font-family: 'IBM Plex Sans', sans-serif;
+		color: #cfc7b8; /* parch-200 — как активный (сфокусированный) текст */
 		font-size: 0.84em;
-		padding: 6px 10px;
+		padding: 0 24px 0 0;
 		outline: none;
-
-		transition: border-color 0.2s ease, box-shadow 0.2s ease;
 	}
 
-	#sidebar-search:focus {
-		border-color: #776d61;
-		box-shadow: inset 0 0 8px rgba(148, 111, 76, 0.35),
-					inset 0 0 2px rgba(153, 117, 83, 0.5);
-		animation: searchGlow 2s ease-in-out infinite;
+	.search-field .icon-btn {
+		position: absolute;
+		top: 50%;
+		right: 8px;
+		transform: translateY(-50%);
+		color: #787167;
+	}
+	.search-field .icon-btn:hover { opacity: 0.75; }
+
+	#search-filter-toggle {
+		flex-shrink: 0;
+		color: #787167;
+	}
+	#search-filter-toggle:hover { opacity: 0.75; }
+	#search-filter-toggle.active { color: #977b61; }
+
+	#search-filter-panel {
+		display: flex;
+		flex-direction: column;
+		gap: 14px; /* gap-[14px] внутри самого "filter"-фрейма */
+		padding: 10px; /* p-[10px] у "filter" */
+		background: rgba(7, 7, 7, 0.5);
+		border: 1px solid #343130;
 	}
 
-	@keyframes searchGlow {
-    0%   { box-shadow: inset 0 0 8px  rgba(151, 123, 97, 0.35),
-                       inset 0 0 2px  rgba(151, 123, 97, 0.5); }
-    50%  { box-shadow: inset 0 0 14px rgba(151, 123, 97, 0.55),
-                       inset 0 0 4px  rgba(151, 123, 97, 0.7); }
-    100% { box-shadow: inset 0 0 8px  rgba(151, 123, 97, 0.35),
-                       inset 0 0 2px  rgba(151, 123, 97, 0.5); }
-}
-	#sidebar-search::placeholder { color: #534f49; }
+	.filter-section { display: flex; flex-direction: column; gap: 5px; }
 
-	/* ─── LOCATION LIST ───────────────────────────────────────────────────── */
-	.province-group { margin-bottom: 4px; }
+	.filter-section-label-row {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
+
+	.filter-section-label {
+		font-size: 0.72em;
+		text-transform: uppercase;
+		color: #787167;
+		margin: 0;
+	}
+
+	.filter-pill-row {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 5px;
+	}
+
+	.filter-pill {
+		display: inline-flex;
+		align-items: center;
+		background: none;
+		border: none;
+		border-radius: 0;
+		padding: 0;
+		cursor: pointer;
+		outline: none;
+	}
+
+	/* Тип локации — двумя подрядами (18px город/поселение/форт, 16px
+	   остальные), тот же приём, что у верхнего быстрого ряда «Локации» —
+	   см. #individual-checkboxes ниже и .icon-toggle-group. */
+	#filter-type-row {
+		align-items: flex-end;
+		gap: 11px;
+	}
+	/* Особенности/Персонажи — один ряд 16px-иконок (+ текстовые пилюли у
+	   особенностей), 12px между ними, 1px отступа слева — как в
+	   COMPONENTS__TRAITS/COMPONENTS__CHARACTERS. */
+	#filter-trait-row, #filter-character-row {
+		align-items: center;
+		gap: 12px;
+		padding-left: 1px;
+	}
+
+	/* ─── ПЕРЕКЛЮЧАТЕЛИ ИКОНОК/ТЕКСТА («Локации», «Тип локации», «Особенности»,
+	   «Персонажи») — общая система для верхнего быстрого ряда и панели
+	   фильтров. Растущая от курсора (см. setOrigin в script.js) заливка —
+	   градиент + зерно шума — с золотой линией понизу; hover тусклее,
+	   selected ярче. Цвета/геометрия градиента, шума и линии взяты дословно
+	   из forAnimation.fig (element-effect__16--hover/element-effect__18--hover).
+	   Геометрия эффект-слоя посчитана через bottom+height (без top): у
+	   16px-иконки так получается верх на -2px (итого 18×21px), у 18px — на
+	   0 (20×21px) — ровно как в компонентах COMPONENTS__LOCATION-TYPE, без
+	   отдельного правила на каждый размер. У текстовых пилюль
+	   (.icon-toggle--text) вынос по бокам -2px (не -1px, как у иконок) —
+	   в компоненте COMPONENTS__TRAITS→text та же коробка 61px на 57px текста,
+	   то есть +2px слева и справа. */
+	.icon-toggle {
+		position: relative;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		-webkit-user-select: none;
+		user-select: none;
+	}
+	.icon-toggle.icon-toggle--16 { width: 16px; height: 16px; }
+	.icon-toggle.icon-toggle--18 { width: 18px; height: 18px; }
+	.icon-toggle.icon-toggle--text { width: auto; height: 16px; }
+
+	.icon-toggle .icon-toggle__icon {
+		position: relative;
+		z-index: 2;
+		width: 100%;
+		height: 100%;
+		object-fit: contain;
+		display: block;
+		pointer-events: none;
+		opacity: .55;
+		filter: saturate(.15);
+		transition: opacity .17s ease, filter .17s ease;
+	}
+	.icon-toggle:hover .icon-toggle__icon { opacity: .8; filter: saturate(.6); }
+	.icon-toggle.selected .icon-toggle__icon { opacity: 1; filter: saturate(1); }
+
+	.icon-toggle .icon-toggle__label {
+		position: relative;
+		z-index: 2;
+		font-family: 'Beaufort for LoL', Georgia, serif;
+		font-size: 10px;
+		line-height: normal;
+		letter-spacing: 0.02em;
+		text-transform: uppercase;
+		white-space: nowrap;
+		color: #6a655d; /* ink-500 */
+		transition: color .17s ease;
+	}
+	.icon-toggle:hover .icon-toggle__label { color: #9a9285; } /* parch-400 */
+	.icon-toggle.selected .icon-toggle__label { color: #e6cf95; } /* brass-300 */
+
+	.icon-toggle .icon-toggle__fx {
+		position: absolute;
+		left: -1px;
+		right: -1px;
+		bottom: -3px;
+		height: 21px;
+		z-index: 1;
+		pointer-events: none;
+		transform: scaleX(0);
+		transform-origin: var(--ft-origin, 50%) bottom;
+		transition: transform .16s cubic-bezier(.16, .84, .24, 1);
+	}
+	.icon-toggle--text .icon-toggle__fx { left: -2px; right: -2px; }
+	.icon-toggle:hover .icon-toggle__fx,
+	.icon-toggle.selected .icon-toggle__fx { transform: scaleX(1); }
+
+	.icon-toggle .icon-toggle__layer { position: absolute; inset: 0; opacity: 0; transition: opacity .17s ease; }
+	.icon-toggle:hover .icon-toggle__layer--hover { opacity: 1; }
+	.icon-toggle.selected .icon-toggle__layer--hover { opacity: 0; }
+	.icon-toggle.selected .icon-toggle__layer--selected { opacity: 1; }
+
+	.icon-toggle .icon-toggle__grad { position: absolute; left: 0; right: 0; top: 0; bottom: 1px; }
+	.icon-toggle .icon-toggle__line { position: absolute; left: 0; right: 0; bottom: 0; height: 1px; }
+
+	/* Зерно шума из .fig, замаскированное фрактальным шумом (тот же приём,
+	   что у forAnimation.fig-экспорта) */
+	.icon-toggle .icon-toggle__noise {
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		mask-image: url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2264%22%20height=%2264%22%3E%3Cfilter%20id=%22n%22%3E%3CfeTurbulence%20type=%22fractalNoise%22%20baseFrequency=%220.9%22%20numOctaves=%223%22%20stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect%20width=%2264%22%20height=%2264%22%20filter=%22url(%23n)%22/%3E%3C/svg%3E");
+		-webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2264%22%20height=%2264%22%3E%3Cfilter%20id=%22n%22%3E%3CfeTurbulence%20type=%22fractalNoise%22%20baseFrequency=%220.9%22%20numOctaves=%223%22%20stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect%20width=%2264%22%20height=%2264%22%20filter=%22url(%23n)%22/%3E%3C/svg%3E");
+		mask-size: 64px 64px;
+		-webkit-mask-size: 64px 64px;
+	}
+
+	.icon-toggle .icon-toggle__layer--hover .icon-toggle__grad {
+		background: linear-gradient(0deg, rgba(122, 95, 42, .35) -22.41%, rgba(122, 95, 42, .021) 61.35%, rgba(122, 95, 42, 0) 101.30%);
+	}
+	.icon-toggle .icon-toggle__layer--hover .icon-toggle__noise { background-color: rgba(122, 95, 42, .06); }
+	.icon-toggle .icon-toggle__layer--hover .icon-toggle__line {
+		background: linear-gradient(0deg, rgb(77, 60, 26) 50%, rgb(122, 95, 42) 78.37%);
+		box-shadow: inset 0 0 .8px rgba(207, 199, 184, .76), inset 0 0 1px rgba(0, 0, 0, .55);
+	}
+
+	.icon-toggle .icon-toggle__layer--selected .icon-toggle__grad {
+		background: linear-gradient(0deg, rgba(150, 118, 62, .75) -22.41%, rgba(150, 118, 62, .045) 61.35%, rgba(150, 118, 62, 0) 101.30%);
+		transform: translateY(3px);
+		transition: transform .19s cubic-bezier(.16, .84, .24, 1);
+	}
+	.icon-toggle.selected .icon-toggle__layer--selected .icon-toggle__grad { transform: translateY(0); }
+	.icon-toggle .icon-toggle__layer--selected .icon-toggle__noise { background-color: rgba(150, 118, 62, .06); }
+	.icon-toggle .icon-toggle__layer--selected .icon-toggle__line {
+		background: rgb(201, 162, 77);
+		box-shadow: inset 0 0 .8px rgb(255, 245, 219);
+	}
+
+	/* .just-selected — одноразовая метка именно той кнопки, которую только
+	   что включили (см. lastToggled*Key в script.js): buildFilter*Row()
+	   пересоздаёт ВЕСЬ ряд на каждый клик, и обычный transition тут не
+	   сыграл бы — новый DOM-узел появляется сразу в конечном состоянии,
+	   кадра "до" браузер не увидит. У верхнего быстрого ряда «Локации»
+	   кнопки не пересоздаются — там для того же эффекта достаточно обычного
+	   transition на :hover/.selected выше. */
+	.icon-toggle.just-selected .icon-toggle__fx {
+		animation: iconToggleFxIn 160ms cubic-bezier(.16, .84, .24, 1);
+	}
+	@keyframes iconToggleFxIn {
+		from { transform: scaleX(0); }
+		to   { transform: scaleX(1); }
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.icon-toggle .icon-toggle__fx,
+		.icon-toggle .icon-toggle__layer,
+		.icon-toggle .icon-toggle__icon,
+		.icon-toggle .icon-toggle__label { transition: none; }
+	}
+
+	.icon-toggle-group { display: flex; align-items: center; }
+	.icon-toggle-group--18 { gap: 10px; }
+	.icon-toggle-group--16 { gap: 12px; }
+
+	.trait-mode-toggle {
+		display: flex;
+		align-items: center;
+		gap: 1px;
+	}
+	.trait-mode-btn {
+		background: none;
+		border: none;
+		color: #3e3c3a; /* ink-600, невыбрано */
+		font-size: 10px;
+		text-align: right;
+		padding: 5px 0; /* py-[5px] общий; лево/право — только там, где есть сосед (см. ниже) */
+		cursor: pointer;
+		transition: color 0.15s;
+	}
+	/* "или"/"и"/"искл" в Figma — pr-[4px] / px-[4px] / pl-[4px]: паддинг только
+	   на стороне, где стоит сосед (gap-px между кнопками уже даёт 1px) — с
+	   краёв группы паддинга нет вообще. */
+	.trait-mode-btn[data-mode="or"] { padding-right: 4px; }
+	.trait-mode-btn[data-mode="and"] { padding-left: 4px; padding-right: 4px; }
+	.trait-mode-btn[data-mode="exclude"] { padding-left: 4px; }
+	.trait-mode-btn:hover { color: #9a9285; } /* parch-400 */
+	.trait-mode-btn.selected {
+		color: #9a9285; /* parch-400 */
+		text-shadow: 0 0 4px rgba(106, 101, 93, 0.8);
+	}
+
+	#filter-reset-btn { align-self: flex-start; padding: 0; }
+
+	/* default/focus у search-input__placeholder-text в Figma: ink-700 в покое,
+	   parch-200 на фокусе — никакой рамки/фона/свечения, только яркость. */
+	#sidebar-search::placeholder { color: #282726; transition: color 0.15s ease; }
+	#sidebar-search:focus::placeholder { color: #cfc7b8; }
+
+	/* ─── LOCATION LIST ───────────────────────────────────────────────────────
+	   Раскладка "родословного дерева" из Figma (provinces-list): треугольник +
+	   название сверху, вертикальная линия-"рельса" слева от списка локаций
+	   снизу. Линия — не картинка (в Figma это картинка фиксированной высоты
+	   под конкретный пример), а растянутый на всю высоту .province-body div,
+	   т.к. список у нас живой и разной длины на каждую провинцию. */
+	.province-group { margin-bottom: 12px; }
+	.province-group:last-child { margin-bottom: 0; }
 
 	.province-header {
 		font-family: 'El Messiri', sans-serif;
-		font-size: 1em;
-		line-height: 1.1;
-		color: #aca294;
-		font-weight: 600;
-		padding: 4px 0 1px;
+		font-size: 16px;
+		line-height: 1;
+		color: #cfc7b8; /* parch-200 */
+		font-weight: 400;
 		cursor: pointer;
 		user-select: none;
 		display: flex;
 		align-items: center;
-		gap: 5px;
+		gap: 6px;
+	}
+
+	/* Провинции без вложенного списка ("свёрнутые" по умолчанию — collapsed
+	   без .province-body) в Figma получают чуть другой зазор и небольшой
+	   горизонтальный паддинг всей строки: gap-[7px] + px-[2px], а не
+	   общие gap-[6px] у разворачиваемых. */
+	.province-group.collapsed .province-header {
+		gap: 7px;
+		padding: 0 2px;
 	}
 
 	.province-header::before {
-		content: '▾';
-		font-size: 0.85em;
-		transition: transform 0.15s;
+		content: '';
+		width: 8px;
+		height: 5px;
 		flex-shrink: 0;
+		background: currentColor;
+		clip-path: polygon(0 0, 100% 0, 50% 100%);
+		transition: transform 0.15s;
 	}
 
 	.province-group.collapsed .province-header::before {
 		transform: rotate(-90deg);
 	}
 
-	.location-items {
-		list-style: none;
-		margin: 0 0 10px 0;
-		padding: 0 0 0 12px;
+	.province-body {
+		display: grid;
+		grid-template-columns: 8px 1fr;
+		column-gap: 6px;
+		margin-top: 6px;
 	}
 
-	.province-group.collapsed .location-items { display: none; }
+	.province-group.collapsed .province-body { display: none; }
+
+	.province-rail {
+		justify-self: center;
+		width: 1px;
+		background: rgba(154, 146, 133, 0.35); /* parch-400, приглушённая */
+	}
+
+	.location-items {
+		list-style: none;
+		margin: 0;
+		padding-left: 5px; /* pl-[5px] у "ul" в Figma — список чуть больше отступает от рельсы, чем название провинции */
+	}
 
 	.location-item {
-		font-size: 0.85em;
-	    color: #998c7c;
-		padding: 2px 6px;
-		border-radius: 0;
+		font-size: 14px;
+		line-height: 22px;
+	    color: #9a9285; /* parch-400 */
 		cursor: pointer;
-		transition: background 0.12s, color 0.12s;
+		transition: color 0.12s;
 	}
 
 	.location-item:hover {
-		background: #272421;
 		color: #dcd0c0;
 	}
 
 	.province-header.has-region .province-header-text:hover {
-		color: #dcd0c0;
+		color: #e6cf95; /* brass-300 */
 	}
 
 	/* ─── RESET VIEW BUTTON ───────────────────────────────────────────────── */
@@ -509,11 +1006,14 @@ h1, h2, h3 {
 
 .popup-content {
     width: 300px;
-    font-family: 'IBM Plex Sans', sans-serif;
     color: #dcd0c0;
     display: grid;
     grid-template-areas: "stack";  /* один именованный слот */
     overflow: hidden;
+    /* .leaflet-container сбрасывает шрифт на Helvetica Neue своим же
+       правилом (специфичность по классу выше, чем у global body/html) —
+       наследование сюда не пробивается, нужно переобъявить локально. */
+    font-family: 'Beaufort for LoL', sans-serif;
 }
 
 .location-img,
@@ -653,14 +1153,17 @@ h1, h2, h3 {
     display: block;
 }
 
-/* Локации — ряд иконок-переключателей (тот же язык, что «Особенности» в форме
-   редактирования): ч/б, пока слой скрыт, цветная со свечением — когда показан.
-   Идёт после .trait, чтобы переопределить его cursor/display для кнопок. */
+/* Локации — быстрый ряд иконок-переключателей видимости слоёв, тем же
+   .icon-toggle, что и «Тип локации»/«Особенности»/«Персонажи» в панели
+   фильтров (см. блок «ПЕРЕКЛЮЧАТЕЛИ ИКОНОК/ТЕКСТА» выше) — два подряда,
+   18px (город/поселение/форт) и 16px (остальные), см. individualGroup18/16
+   в script.js. Идёт после .trait, чтобы переопределить его cursor/display
+   для кнопок. */
 .layer-icon-row {
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
-    gap: 10px;
+    align-items: flex-end;
+    gap: 11px;
 }
 
 .layer-icon-btn {
@@ -668,36 +1171,12 @@ h1, h2, h3 {
     border: none;
     padding: 0;
     line-height: 0;
-    color: #787167; /* используется SVG-иконкой «все пометки» через currentColor */
 }
 
 /* button.trait/button.layer-icon-btn (элемент+класс) специфичнее, чем .trait
    (класс), поэтому курсор здесь побеждает .trait{cursor:default} независимо
    от порядка правил в файле, а не только потому, что объявлен позже. */
 button.layer-icon-btn { cursor: pointer; }
-
-.layer-icon-btn img {
-    width: 16px;
-    height: 16px;
-    object-fit: contain;
-    filter: grayscale(1) brightness(0.55);
-    transition: filter 0.15s;
-}
-
-.layer-icon-btn svg { filter: grayscale(1) brightness(0.9); transition: filter 0.15s; }
-
-.layer-icon-btn:hover img { filter: grayscale(0.5) brightness(0.8); }
-.layer-icon-btn:hover svg { filter: grayscale(0.3) brightness(1.1); }
-
-.layer-icon-btn.selected img { filter: drop-shadow(0 0 3px #977b61); }
-.layer-icon-btn.selected svg { filter: drop-shadow(0 0 3px #977b61); color: #dcd0c0; }
-
-.layer-icon-btn.partial svg { filter: drop-shadow(0 0 2px #776d61); color: #b8a898; }
-
-.layer-icon-btn-all {
-    padding-right: 10px;
-    border-right: 1px solid #343130;
-}
 
 .trait-tooltip {
     position: fixed;
@@ -707,7 +1186,6 @@ button.layer-icon-btn { cursor: pointer; }
     background: #0a0a0aba;
     backdrop-filter: blur(8px);
     color: #aca294;
-    font-family: 'IBM Plex Sans', sans-serif;
     font-size: 0.75em;
     white-space: normal;
     padding: 7px 10px;
@@ -725,7 +1203,6 @@ button.layer-icon-btn { cursor: pointer; }
 
 .leaflet-control-layers-expanded {
     padding: 6px 10px 6px 6px;
-    font-family: 'IBM Plex Sans', sans-serif;
     color: #dcd0c0;
     background: #0a0a0ac4;
     background-color: #0a0a0ac4;
@@ -835,6 +1312,9 @@ body.is-admin #add-marker-btn.admin-only { display: flex !important; }
     justify-content: space-between;
     gap: 8px;
 }
+/* pt-[14px] у "header" в Figma — сверх py-[20px] самого сайдбара; только для
+   обычного вида, у формы редактирования маркера в Figma этой раскладки нет. */
+#normal-view > .sidebar-header-row { padding-top: 14px; }
 
 /* ─── ИКОНКА ВХОДА/ВЫХОДА (Leaflet-контрол, topright) ────────────────────
    Одна и та же кнопка: не авторизован — иконка «войти» (дверь со стрелкой
@@ -908,7 +1388,6 @@ body.is-admin .leaflet-control-admin a::after {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    font-family: 'IBM Plex Sans', sans-serif;
 }
 
 #login-form input {
@@ -916,7 +1395,6 @@ body.is-admin .leaflet-control-admin a::after {
     border: 1px solid #343130;
     border-radius: 0;
     color: #dcd0c0;
-    font-family: 'IBM Plex Sans', sans-serif;
     font-size: 0.85em;
     padding: 7px 9px;
     outline: none;
@@ -956,7 +1434,6 @@ body.is-admin .leaflet-control-admin a::after {
     padding: 1px;
     display: inline-flex;
     cursor: pointer;
-    font-family: 'IBM Plex Sans', sans-serif;
 }
 
 .admin-outline-btn .btn__base, .admin-outline-btn .btn__line,
@@ -1030,7 +1507,6 @@ body.is-admin .leaflet-control-admin a::after {
     backdrop-filter: blur(8px);
     padding: 22px 24px;
     box-shadow: 0 3px 20px rgba(0, 0, 0, 0.5);
-    font-family: 'IBM Plex Sans', sans-serif;
     color: #dcd0c0;
 }
 
@@ -1093,7 +1569,8 @@ body.is-admin .leaflet-control-admin a::after {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(0, 0, 0, 0.55);
+    background: #0303035e;
+    backdrop-filter: blur(8px);
 }
 
 #desc-expand-dialog {
@@ -1103,7 +1580,6 @@ body.is-admin .leaflet-control-admin a::after {
     backdrop-filter: blur(8px);
     padding: 22px 24px;
     box-shadow: 0 3px 20px rgba(0, 0, 0, 0.5);
-    font-family: 'IBM Plex Sans', sans-serif;
     color: #dcd0c0;
     display: flex;
     flex-direction: column;
@@ -1116,18 +1592,6 @@ body.is-admin .leaflet-control-admin a::after {
     margin: 0;
 }
 
-/* .desc-editor приезжает сюда из формы целиком (со своим тулбаром) —
-   растягиваем её на всё доступное место в диалоге. */
-#desc-expand-dialog .desc-editor {
-    flex: 1;
-    min-height: 0;
-}
-
-#desc-expand-dialog #f-description {
-    height: 50vh;
-    max-height: 60vh;
-}
-
 #desc-expand-dialog .form-buttons {
     flex-shrink: 0;
     justify-content: flex-end;
@@ -1137,7 +1601,6 @@ body.is-admin .leaflet-control-admin a::after {
     background: none;
     border: none;
     color: #998c7c;
-    font-family: 'IBM Plex Sans', sans-serif;
     font-size: 0.82em;
     cursor: pointer;
     padding: 0 0 10px;
@@ -1193,7 +1656,10 @@ body.is-admin .leaflet-control-admin a::after {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    padding: 0 10px 10px; /* симметрично слева/справа — справа тот же зазор под скроллбар */
+    /* паддинг только справа — зазор между скроллбаром и рамкой инпутов;
+       слева паддинга нет, чтобы контент стоял вплотную к общему отступу
+       #sidebar-inner (17px), как и всё остальное в сайдбаре. */
+    padding: 0 10px 10px 0;
 }
 
 #marker-form::-webkit-scrollbar       { width: 4px; }
@@ -1204,10 +1670,10 @@ body.is-admin .leaflet-control-admin a::after {
     display: flex;
     flex-direction: column;
     gap: 4px;
-    font-size: 0.78em;
+    font-size: 0.72em;
+    font-weight: 500;
     color: #787167;
     text-transform: uppercase;
-    letter-spacing: 0.03em;
 }
 
 /* Поле "Описание" — единственное, где <label> пришлось бы обернуть сразу
@@ -1227,16 +1693,43 @@ body.is-admin .leaflet-control-admin a::after {
 #marker-form input[type="text"],
 #marker-form input[type="number"],
 #marker-form select,
-.desc-editor textarea {
+.desc-editor textarea,
+#system-trait-new-input,
+#f-description-expand {
     background: rgba(7, 7, 7, 0.5);
     border: 1px solid #343130;
     border-radius: 0;
     color: #dcd0c0;
-    font-family: 'IBM Plex Sans', sans-serif;
-    font-size: 0.95em;
+    /* rem, а не em: #system-trait-new-input не лежит в <label> (в отличие от
+       остальных полей формы), поэтому одинаковый em дал бы разный итоговый
+       размер в зависимости от предка. rem у всех считается от корня
+       одинаково — 0.684rem воспроизводит тот же маленький масштаб, что был
+       у остальных полей исторически (0.72em лейбла × 0.95em инпута = 0.684).
+       #system-trait-new-input объединён в это же правило, а не описан
+       отдельно, — раньше отдельное описание с другим значением тут же
+       расходилось с остальными при любой правке этого блока. */
+    font-size: 0.684rem;
     padding: 7px 9px;
     outline: none;
     resize: vertical;
+}
+
+/* #f-description-expand теперь тоже лежит внутри .desc-editor (свой тулбар,
+   см. index.html) — border/background убираем здесь же, как у компактной
+   #f-description: рамку/фон рисует .desc-editor целиком, а не сама textarea,
+   иначе получилась бы рамка внутри рамки. Общий с компактными полями
+   рем-размер (0.684rem) выше здесь мелковат для комфортного письма в большом
+   окне — увеличиваем; height вместо flex:1 — у #desc-expand-dialog нет
+   собственной фиксированной высоты (только max-height), так что flex-grow
+   расти некуда, и textarea осталась бы с высотой в свой контент. */
+#f-description-expand {
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    height: 50vh;
+    max-height: 60vh;
+    font-size: 0.95rem;
+    resize: none;
 }
 
 #marker-form input:focus,
@@ -1255,7 +1748,21 @@ body.is-admin .leaflet-control-admin a::after {
 .coord-row { display: flex; gap: 6px; }
 .coord-row input { width: 50%; }
 
-#f-traits {
+/* "?" рядом с «Координаты» — свой (не системный) тултип через .trait/
+   .trait-tooltip (см. document.addEventListener('mouseover', ...)), текст
+   берётся из data-tooltip. top:-Ne — приподнимает иконку над строкой
+   лейбла (relative-позиционирование не занимает места в потоке, поэтому
+   существующие отступы формы не меняются); наведение меняет только курсор. */
+.label-help-icon {
+    display: inline-flex; /* .trait задаёт block-level display:flex — здесь
+        нужен инлайновый, иначе иконка растягивается на всю ширину строки
+        внутри обёртывающего <span> */
+    top: -5px;
+    cursor: help;
+}
+.label-help-icon svg { display: block; }
+
+#f-traits, #f-characters {
     border: none;
     padding: 0;
     display: flex;
@@ -1263,17 +1770,17 @@ body.is-admin .leaflet-control-admin a::after {
     gap: 4px;
 }
 
-#f-traits legend {
-    font-size: 0.78em;
+#f-traits legend, #f-characters legend {
+    font-size: 0.72em;
+    font-weight: 500;
     color: #787167;
     text-transform: uppercase;
-    letter-spacing: 0.03em;
     padding: 0;
 }
 
-/* Особенности — ряд иконок-переключателей вместо списка чекбоксов;
+/* Особенности/Персонажи — ряд иконок-переключателей вместо списка чекбоксов;
    выбранная иконка становится цветной, невыбранная — приглушённой. */
-#traits-icons {
+#traits-icons, #character-icons {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
@@ -1302,6 +1809,74 @@ button.trait-icon-btn { cursor: pointer; }
 .trait-icon-btn.selected img {
     filter: drop-shadow(0 0 3px #977b61);
 }
+
+/* Системные особенности — те же принципы токена/переключателя, что и
+   .filter-pill в поиске (см. там), но живут в форме маркера: свои особенности
+   без иконки, которые не показываются в попапе — см. buildTraitsHTML,
+   он молча пропускает любой ключ, которого нет в TRAITS. */
+#f-system-traits {
+    border: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+#f-system-traits legend {
+    font-size: 0.72em;
+    font-weight: 500;
+    color: #787167;
+    text-transform: uppercase;
+    padding: 0;
+}
+
+#system-traits-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+#system-traits-chips:empty { display: none; }
+
+/* Без рамки — тот же язык, что у иконок особенностей (.trait-icon-btn):
+   состояние держится на filter (свечение), а не на бордере/фоне. */
+.system-trait-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: none;
+    border: none;
+    color: #998c7c;
+    font-size: 0.78em;
+    padding: 3px 2px;
+    cursor: pointer;
+    transition: filter 0.15s, color 0.15s;
+}
+.system-trait-chip:hover { color: #dcd0c0; }
+.system-trait-chip.selected {
+    color: #dcd0c0;
+    filter: drop-shadow(0 0 3px #977b61);
+}
+
+.system-trait-add-row {
+    display: flex;
+    gap: 6px;
+}
+
+/* Оформление (фон/рамка/цвет/размер шрифта/паддинг) теперь берётся из общего
+   правила выше (#system-trait-new-input в списке рядом с остальными полями
+   формы) — здесь только раскладка в строке; :focus тоже общий, см.
+   #marker-form input:focus выше, он уже покрывает и это поле. */
+#system-trait-new-input {
+    flex: 1;
+    min-width: 0;
+}
+
+#system-trait-add-btn {
+    flex-shrink: 0;
+    color: #787167;
+}
+#system-trait-add-btn:hover { opacity: 0.75; }
 
 .form-buttons {
     display: flex;
@@ -1336,12 +1911,6 @@ button.trait-icon-btn { cursor: pointer; }
     border: 1px solid #343130;
     border-radius: 0;
     overflow: hidden;
-    /* textarea внутри считает свой font-size (0.95em) от этого элемента —
-       раньше .desc-editor лежала внутри <label> (0.78em) вместе с остальными
-       полями, теперь она вынесена в .form-field рядом с <label> (см.
-       комментарий там) и без этого 0.78em текст в описании стал заметно
-       крупнее, чем в обычных input. Восстанавливаем тот же множитель. */
-    font-size: 0.78em;
 }
 .desc-editor:focus-within { border-color: #776d61; }
 
@@ -1375,7 +1944,6 @@ button.trait-icon-btn { cursor: pointer; }
     border-radius: 0;
     color: #dcd0c0;
     cursor: pointer;
-    font-family: 'IBM Plex Sans', sans-serif;
     font-size: 12px;
     line-height: 1;
 }
@@ -1398,9 +1966,12 @@ button.trait-icon-btn { cursor: pointer; }
 }
 #f-description:focus { border-color: transparent; }
 
-#f-description::-webkit-scrollbar       { width: 4px; }
-#f-description::-webkit-scrollbar-track { background: transparent; }
-#f-description::-webkit-scrollbar-thumb { background: #3d3531; border-radius: 0px; }
+#f-description::-webkit-scrollbar,
+#f-description-expand::-webkit-scrollbar       { width: 4px; }
+#f-description::-webkit-scrollbar-track,
+#f-description-expand::-webkit-scrollbar-track { background: transparent; }
+#f-description::-webkit-scrollbar-thumb,
+#f-description-expand::-webkit-scrollbar-thumb { background: #3d3531; border-radius: 0px; }
 
 #link-picker {
     position: fixed;
@@ -1420,7 +1991,6 @@ button.trait-icon-btn { cursor: pointer; }
     border: none;
     border-bottom: 1px solid #343130;
     color: #dcd0c0;
-    font-family: 'IBM Plex Sans', sans-serif;
     font-size: 0.85em;
     padding: 8px 10px;
     outline: none;

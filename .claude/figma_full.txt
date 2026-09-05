@@ -1,0 +1,793 @@
+const imgImgUlfric = "https://www.figma.com/api/mcp/asset/12fc27ae-1864-4c94-8740-c53ff12e65f1.png";
+const imgImgMitra = "https://www.figma.com/api/mcp/asset/0d7c8594-ff78-454c-aefb-04a87657a3a9.png";
+const imgImgMane = "https://www.figma.com/api/mcp/asset/5a834f71-5f8a-4e38-9f11-00e3490451ee.png";
+const imgImgVein = "https://www.figma.com/api/mcp/asset/d0d30fec-2c2d-424a-8f84-f2832ab3d90c.png";
+const imgElementEffect16Hover = "https://www.figma.com/api/mcp/asset/5327c9c5-0663-4d4b-b293-58e4b975a051.svg";
+const imgImgAlgalon = "https://www.figma.com/api/mcp/asset/bcf57377-09a1-4463-9073-6dbbb6eb2c4a.png";
+const imgElementEffect16Hover1 = "https://www.figma.com/api/mcp/asset/b9997330-0aa0-4091-b1b7-f16db6184da9.svg";
+const imgImgSwordOfKhaine = "https://www.figma.com/api/mcp/asset/36e8cb70-2d22-4eed-b97d-0cf681634bf3.png";
+const imgImgForest = "https://www.figma.com/api/mcp/asset/d979b57c-eef0-4c41-8791-c0e38b122f2f.png";
+const imgImgMountain = "https://www.figma.com/api/mcp/asset/7eaa3faf-99a8-492e-acb1-ec02de4dece4.png";
+const imgImgColony = "https://www.figma.com/api/mcp/asset/8a136856-403e-4672-949e-70c20c426332.png";
+const imgImgPort = "https://www.figma.com/api/mcp/asset/76406eab-15e8-4080-b9c4-7e26183412a6.png";
+const imgQuest = "https://www.figma.com/api/mcp/asset/65ef1cbd-493a-4762-9cd9-f41b663bfce7.png";
+const imgPolarGates = "https://www.figma.com/api/mcp/asset/a53e54cf-21c1-4fc8-9f3b-c990acd25063.png";
+const imgPolarGates1 = "https://www.figma.com/api/mcp/asset/6c884fc8-4489-460b-b5c6-a430bf22c901.png";
+const imgElementEffect16Hover2 = "https://www.figma.com/api/mcp/asset/fc743001-b6c0-42eb-84e2-cc93a6447611.svg";
+const imgPointOfInterest = "https://www.figma.com/api/mcp/asset/a2316d43-9693-417a-9319-30506d4ca508.png";
+const imgPointOfInterest1 = "https://www.figma.com/api/mcp/asset/291edb19-3ba2-4574-a658-585f939fc08d.png";
+const imgElementEffect16Hover3 = "https://www.figma.com/api/mcp/asset/c06d0eb3-006b-46b7-8950-3bb8d7948e93.svg";
+const imgShrine = "https://www.figma.com/api/mcp/asset/a376fea4-1aff-4e80-aad1-55b22810107f.png";
+const imgShrine1 = "https://www.figma.com/api/mcp/asset/f03b39c3-243a-4bad-90f8-99bb1c4df94b.png";
+const imgCamp = "https://www.figma.com/api/mcp/asset/09de4a3d-3d83-4578-a8f5-7ee4933f6b97.png";
+const imgCamp1 = "https://www.figma.com/api/mcp/asset/9f2bef65-b340-4b86-ba68-46f991d206e3.png";
+const imgElementEffect16Hover4 = "https://www.figma.com/api/mcp/asset/af6f5980-5874-4044-a05b-7b27b3d0ef67.svg";
+const imgFort = "https://www.figma.com/api/mcp/asset/6acb42de-374f-4d80-86c9-6211e9249902.png";
+const imgFort1 = "https://www.figma.com/api/mcp/asset/6a2ee007-5070-411c-bd86-76fc9a482293.png";
+const imgElementEffect18Hover = "https://www.figma.com/api/mcp/asset/89bd0661-af56-4ef1-b88d-90924d7e8387.svg";
+const imgTown = "https://www.figma.com/api/mcp/asset/54b9aa28-eb9c-41e0-8ba3-efe568a47ac9.png";
+const imgTown1 = "https://www.figma.com/api/mcp/asset/49841420-e0e0-4526-8f0c-42c5b622e999.png";
+const imgCity = "https://www.figma.com/api/mcp/asset/61aaa17f-c037-436d-bd1b-b186c22a3453.png";
+const imgProperty1Focus = "https://www.figma.com/api/mcp/asset/2b4d653c-112c-4b42-83bc-dd2c48e14493.svg";
+const imgProperty1Focus1 = "https://www.figma.com/api/mcp/asset/16fd1445-623d-4907-9437-a863249660d1.svg";
+const imgProperty1Default = "https://www.figma.com/api/mcp/asset/9d8265f2-34c6-4cb4-a8f7-8bcb648754e3.svg";
+const imgProperty1Default1 = "https://www.figma.com/api/mcp/asset/99908c98-ecc0-480f-852f-ddfc20cc90bd.svg";
+const imgProperty1Default2 = "https://www.figma.com/api/mcp/asset/ea194bc8-9bb8-4866-a16c-264127e9c4d9.svg";
+const imgFrame5 = "https://www.figma.com/api/mcp/asset/2bbbcee3-a28a-4ec0-aba7-c031b39b3315.svg";
+const imgDivider = "https://www.figma.com/api/mcp/asset/eacf56bc-a5f8-488b-b3d0-d4c3b354342e.svg";
+const imgCheckbox = "https://www.figma.com/api/mcp/asset/3ec0a812-e9a7-489b-a6ab-8af0273995b8.svg";
+const imgMask = "https://www.figma.com/api/mcp/asset/8497999c-5257-4a85-9a5a-311fbd4b47b1.svg";
+const imgTriangle = "https://www.figma.com/api/mcp/asset/2a8dc8f7-9e61-430b-97fb-488837f09742.svg";
+const imgLine = "https://www.figma.com/api/mcp/asset/5aec4f84-4db5-469b-9ed5-bdcb10b0dacb.svg";
+const imgLine1 = "https://www.figma.com/api/mcp/asset/52bc9b9e-e90b-42a7-a014-fe3ad4603a02.svg";
+const imgLine2 = "https://www.figma.com/api/mcp/asset/28159777-dd73-45ea-bdba-a16cfb88cc40.svg";
+const imgTriangleCollapsed = "https://www.figma.com/api/mcp/asset/7cfdbf5a-a9cb-40bd-8169-a032e8a644fa.svg";
+const imgScrollbar = "https://www.figma.com/api/mcp/asset/6c325ebb-a45f-41dd-beec-de72141d8382.svg";
+
+type UlfricProps = {
+  className?: string;
+  property1?: "default";
+};
+
+function Ulfric({ className, property1 = "default" }: UlfricProps) {
+  return (
+    <div className={className || "content-stretch flex gap-[10px] isolate items-center opacity-55 relative"} data-node-id="207:318">
+      <div className="relative shrink-0 size-[16px] z-[2]" data-node-id="207:84" data-name="img-ulfric">
+        <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgImgUlfric} />
+      </div>
+      <div className="absolute h-[21px] left-[-1px] top-[-2px] w-[18px] z-[1]" data-node-id="207:85" data-name="element-effect__16--hover" />
+    </div>
+  );
+}
+
+type MitraProps = {
+  className?: string;
+  property1?: "default";
+};
+
+function Mitra({ className, property1 = "default" }: MitraProps) {
+  return (
+    <div className={className || "content-stretch flex gap-[10px] isolate items-center opacity-55 relative"} data-node-id="207:317">
+      <div className="relative shrink-0 size-[16px] z-[2]" data-node-id="207:79" data-name="img-mitra">
+        <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgImgMitra} />
+      </div>
+      <div className="absolute h-[21px] left-[-1px] top-[-2px] w-[18px] z-[1]" data-node-id="207:80" data-name="element-effect__16--hover" />
+    </div>
+  );
+}
+
+type ManeProps = {
+  className?: string;
+  property1?: "default";
+};
+
+function Mane({ className, property1 = "default" }: ManeProps) {
+  return (
+    <div className={className || "content-stretch flex gap-[10px] isolate items-center opacity-55 relative"} data-node-id="207:316">
+      <div className="relative shrink-0 size-[16px] z-[2]" data-node-id="207:74" data-name="img-mane">
+        <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgImgMane} />
+      </div>
+      <div className="absolute h-[21px] left-[-1px] top-[-2px] w-[18px] z-[1]" data-node-id="207:75" data-name="element-effect__16--hover" />
+    </div>
+  );
+}
+
+type VeinProps = {
+  className?: string;
+  property1?: "selected";
+};
+
+function Vein({ className, property1 = "selected" }: VeinProps) {
+  return (
+    <div className={className || "content-stretch flex gap-[10px] isolate items-center relative"} data-node-id="207:562">
+      <div className="relative shrink-0 size-[16px] z-[2]" data-node-id="207:162" data-name="img-vein">
+        <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgImgVein} />
+      </div>
+      <div className="absolute h-[21px] left-[-1px] top-[-2px] w-[18px] z-[1]" data-node-id="207:163" data-name="element-effect__16--hover">
+        <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgElementEffect16Hover} />
+      </div>
+    </div>
+  );
+}
+
+type AlgalonProps = {
+  className?: string;
+  property1?: "default";
+};
+
+function Algalon({ className, property1 = "default" }: AlgalonProps) {
+  return (
+    <div className={className || "content-stretch flex gap-[10px] isolate items-center opacity-55 relative"} data-node-id="207:314">
+      <div className="relative shrink-0 size-[16px] z-[2]" data-node-id="207:64" data-name="img-algalon">
+        <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgImgAlgalon} />
+      </div>
+      <div className="absolute h-[21px] left-[-1px] top-[-2px] w-[18px] z-[1]" data-node-id="207:65" data-name="element-effect__16--hover" />
+    </div>
+  );
+}
+
+type TextProps = {
+  className?: string;
+  property1?: "selected";
+};
+
+function Text({ className, property1 = "selected" }: TextProps) {
+  return (
+    <div className={className || "content-stretch flex gap-[10px] items-center justify-center relative w-[57px]"} data-node-id="207:524">
+      <div className="[word-break:break-word] flex flex-col font-['Beaufort_for_LOL:Regular'] justify-center leading-[0] not-italic relative shrink-0 text-[10px] text-[color:var(--brass-300,#e6cf95)] text-center uppercase whitespace-nowrap" data-node-id="207:283">
+        <p className="leading-[normal]">Кровь Иши</p>
+      </div>
+      <div className="absolute h-[21px] left-[-2px] top-[-3.5px] w-[61px]" data-node-id="207:284" data-name="element-effect__16--hover">
+        <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgElementEffect16Hover1} />
+      </div>
+    </div>
+  );
+}
+
+type SwordOfKhaineProps = {
+  className?: string;
+  property1?: "default";
+};
+
+function SwordOfKhaine({ className, property1 = "default" }: SwordOfKhaineProps) {
+  return (
+    <div className={className || "content-stretch flex gap-[10px] isolate items-center opacity-55 relative w-[16px]"} data-node-id="207:312">
+      <div className="relative shrink-0 size-[16px] z-[2]" data-node-id="207:110" data-name="img-sword_of_khaine">
+        <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgImgSwordOfKhaine} />
+      </div>
+      <div className="absolute h-[21px] left-[-1px] top-[-2px] w-[18px] z-[1]" data-node-id="207:111" data-name="element-effect__16--hover" />
+    </div>
+  );
+}
+
+type ForestProps = {
+  className?: string;
+  property1?: "selected";
+};
+
+function Forest({ className, property1 = "selected" }: ForestProps) {
+  return (
+    <div className={className || "content-stretch flex gap-[10px] isolate items-center relative w-[16px]"} data-node-id="207:510">
+      <div className="relative shrink-0 size-[16px] z-[2]" data-node-id="207:198" data-name="img-forest">
+        <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgImgForest} />
+      </div>
+      <div className="absolute h-[21px] left-[-1px] top-[-2px] w-[18px] z-[1]" data-node-id="207:199" data-name="element-effect__16--hover">
+        <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgElementEffect16Hover} />
+      </div>
+    </div>
+  );
+}
+
+type MountainProps = {
+  className?: string;
+  property1?: "selected";
+};
+
+function Mountain({ className, property1 = "selected" }: MountainProps) {
+  return (
+    <div className={className || "content-stretch flex gap-[10px] isolate items-center relative w-[16px]"} data-node-id="207:503">
+      <div className="relative shrink-0 size-[16px] z-[2]" data-node-id="207:193" data-name="img-mountain">
+        <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgImgMountain} />
+      </div>
+      <div className="absolute h-[21px] left-[-1px] top-[-2px] w-[18px] z-[1]" data-node-id="207:194" data-name="element-effect__16--hover">
+        <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgElementEffect16Hover} />
+      </div>
+    </div>
+  );
+}
+
+type ColonyProps = {
+  className?: string;
+  property1?: "default";
+};
+
+function Colony({ className, property1 = "default" }: ColonyProps) {
+  return (
+    <div className={className || "content-stretch flex gap-[10px] isolate items-center opacity-55 relative w-[16px]"} data-node-id="207:309">
+      <div className="relative shrink-0 size-[16px] z-[2]" data-node-id="207:95" data-name="img-colony">
+        <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgImgColony} />
+      </div>
+      <div className="absolute h-[21px] left-[-1px] top-[-2px] w-[18px] z-[1]" data-node-id="207:96" data-name="element-effect__16--hover" />
+    </div>
+  );
+}
+
+type PortProps = {
+  className?: string;
+  property1?: "default";
+};
+
+function Port({ className, property1 = "default" }: PortProps) {
+  return (
+    <div className={className || "content-stretch flex gap-[10px] isolate items-center opacity-55 relative w-[16px]"} data-node-id="207:308">
+      <div className="relative shrink-0 size-[16px] z-[2]" data-node-id="207:90" data-name="img-port">
+        <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgImgPort} />
+      </div>
+      <div className="absolute h-[21px] left-[-1px] top-[-2px] w-[18px] z-[1]" data-node-id="207:91" data-name="element-effect__16--hover" />
+    </div>
+  );
+}
+
+type QuestProps = {
+  className?: string;
+  property1?: "default";
+};
+
+function Quest({ className, property1 = "default" }: QuestProps) {
+  return (
+    <div className={className || "content-stretch flex isolate items-center opacity-55 relative w-[16px]"} data-node-id="207:307">
+      <div className="relative shrink-0 size-[16px] z-[2]" data-node-id="207:151" data-name="quest">
+        <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgQuest} />
+      </div>
+      <div className="absolute h-[21px] left-0 top-[-2px] w-[18px] z-[1]" data-node-id="207:152" data-name="element-effect__16--hover" />
+    </div>
+  );
+}
+
+type PolarGatesProps = {
+  className?: string;
+  property1?: "default" | "hover";
+};
+
+function PolarGates({ className, property1 = "default" }: PolarGatesProps) {
+  const isHover = property1 === "hover";
+  return (
+    <div className={className || `content-stretch flex isolate items-center relative w-[16px] ${isHover ? "" : "opacity-55"}`} id={isHover ? "node-207_460" : "node-207_306"}>
+      <div className={`relative shrink-0 size-[16px] z-[2] ${isHover ? "opacity-80" : ""}`} id={isHover ? "node-204_506" : "node-207_146"} data-name="polarGates">
+        <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={isHover ? imgPolarGates1 : imgPolarGates} />
+      </div>
+      <div className={`absolute h-[21px] top-[-2px] w-[18px] z-[1] ${isHover ? "left-[-1px]" : "left-px"}`} id={isHover ? "node-204_546" : "node-207_147"} data-name="element-effect__16--hover">
+        {isHover && <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgElementEffect16Hover2} />}
+      </div>
+    </div>
+  );
+}
+
+type PointOfInterestProps = {
+  className?: string;
+  property1?: "default" | "selected";
+};
+
+function PointOfInterest({ className, property1 = "default" }: PointOfInterestProps) {
+  const isSelected = property1 === "selected";
+  return (
+    <div className={className || `content-stretch flex isolate items-center relative w-[16px] ${isSelected ? "" : "opacity-55"}`} id={isSelected ? "node-207_456" : "node-207_305"}>
+      <div className="relative shrink-0 size-[16px] z-[2]" id={isSelected ? "node-207_234" : "node-207_141"} data-name="pointOfInterest">
+        <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={isSelected ? imgPointOfInterest1 : imgPointOfInterest} />
+      </div>
+      <div className={`absolute h-[21px] top-[-2px] w-[18px] z-[1] ${isSelected ? "left-[-1px]" : "left-px"}`} id={isSelected ? "node-207_235" : "node-207_142"} data-name="element-effect__16--hover">
+        {isSelected && <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgElementEffect16Hover3} />}
+      </div>
+    </div>
+  );
+}
+
+type ShrineProps = {
+  className?: string;
+  property1?: "default" | "selected";
+};
+
+function Shrine({ className, property1 = "default" }: ShrineProps) {
+  const isSelected = property1 === "selected";
+  return (
+    <div className={className || `content-stretch flex isolate items-center relative w-[16px] ${isSelected ? "" : "opacity-55"}`} id={isSelected ? "node-207_449" : "node-207_304"}>
+      <div className="relative shrink-0 size-[16px] z-[2]" id={isSelected ? "node-207_229" : "node-207_136"} data-name="shrine">
+        <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={isSelected ? imgShrine1 : imgShrine} />
+      </div>
+      <div className={`absolute h-[21px] top-[-2px] w-[18px] z-[1] ${isSelected ? "left-[-1px]" : "left-px"}`} id={isSelected ? "node-207_230" : "node-207_137"} data-name="element-effect__16--hover">
+        {isSelected && <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgElementEffect16Hover3} />}
+      </div>
+    </div>
+  );
+}
+
+type CampProps = {
+  className?: string;
+  property1?: "default" | "hover";
+};
+
+function Camp({ className, property1 = "default" }: CampProps) {
+  const isHover = property1 === "hover";
+  return (
+    <div className={className || `content-stretch flex isolate items-center relative ${isHover ? "" : "justify-center opacity-55 w-[16px]"}`} id={isHover ? "node-207_435" : "node-207_303"}>
+      <div className={`relative shrink-0 size-[16px] z-[2] ${isHover ? "opacity-80" : ""}`} id={isHover ? "node-204_502" : "node-207_131"} data-name="camp">
+        <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={isHover ? imgCamp1 : imgCamp} />
+      </div>
+      <div className={`absolute h-[21px] top-[-2px] w-[18px] z-[1] ${isHover ? "left-[-1px]" : "left-0"}`} id={isHover ? "node-204_537" : "node-207_132"} data-name="element-effect__16--hover">
+        {isHover && <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgElementEffect16Hover4} />}
+      </div>
+    </div>
+  );
+}
+
+type FortProps = {
+  className?: string;
+  property1?: "default" | "selected";
+};
+
+function Fort({ className, property1 = "default" }: FortProps) {
+  const isSelected = property1 === "selected";
+  return (
+    <div className={className || `content-stretch flex isolate items-center relative w-[18px] ${isSelected ? "" : "opacity-55"}`} id={isSelected ? "node-207_431" : "node-207_302"}>
+      <div className="relative shrink-0 size-[18px] z-[2]" id={isSelected ? "node-207_219" : "node-207_126"} data-name="fort">
+        <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={isSelected ? imgFort1 : imgFort} />
+      </div>
+      <div className="absolute h-[21px] left-[-1px] top-0 w-[20px] z-[1]" id={isSelected ? "node-207_220" : "node-207_127"} data-name="element-effect__18--hover">
+        {isSelected && <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgElementEffect18Hover} />}
+      </div>
+    </div>
+  );
+}
+
+type TownProps = {
+  className?: string;
+  property1?: "default" | "selected";
+};
+
+function Town({ className, property1 = "default" }: TownProps) {
+  const isSelected = property1 === "selected";
+  return (
+    <div className={className || `content-stretch flex isolate items-center relative w-[18px] ${isSelected ? "" : "opacity-55"}`} id={isSelected ? "node-207_410" : "node-207_300"}>
+      <div className="relative shrink-0 size-[18px] z-[2]" id={isSelected ? "node-207_214" : "node-207_121"} data-name="town">
+        <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={isSelected ? imgTown1 : imgTown} />
+      </div>
+      <div className="absolute h-[21px] left-[-1px] top-0 w-[20px] z-[1]" id={isSelected ? "node-207_215" : "node-207_122"} data-name="element-effect__18--hover">
+        {isSelected && <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgElementEffect18Hover} />}
+      </div>
+    </div>
+  );
+}
+
+type CityProps = {
+  className?: string;
+  property1?: "default";
+};
+
+function City({ className, property1 = "default" }: CityProps) {
+  return (
+    <div className={className || "content-stretch flex isolate items-start opacity-55 relative w-[18px]"} data-node-id="207:299">
+      <div className="relative shrink-0 size-[18px] z-[2]" data-node-id="207:116" data-name="city">
+        <img alt="" className="absolute inset-0 max-w-none object-cover pointer-events-none size-full" src={imgCity} />
+      </div>
+      <div className="absolute h-[21px] left-[-1px] top-0 w-[20px] z-[1]" data-node-id="207:117" data-name="element-effect__18--hover" />
+    </div>
+  );
+}
+
+type FilterIconProps = {
+  className?: string;
+  property1?: "focus";
+};
+
+function FilterIcon({ className, property1 = "focus" }: FilterIconProps) {
+  return (
+    <div className={className || "h-[9px] relative w-[11px]"} data-node-id="149:738">
+      <div className="absolute inset-[-44.44%_-36.36%]">
+        <img alt="" className="block max-w-none size-full" src={imgProperty1Focus} />
+      </div>
+    </div>
+  );
+}
+
+type SearchIconProps = {
+  className?: string;
+  property1?: "focus";
+};
+
+function SearchIcon({ className, property1 = "focus" }: SearchIconProps) {
+  return (
+    <div className={className || "relative size-[11px]"} data-node-id="150:860">
+      <div className="absolute inset-[-36.36%]">
+        <img alt="" className="block max-w-none size-full" src={imgProperty1Focus1} />
+      </div>
+    </div>
+  );
+}
+
+type CheckboxProps = {
+  className?: string;
+  property1?: "default";
+};
+
+function Checkbox({ className, property1 = "default" }: CheckboxProps) {
+  return (
+    <div className={className || "relative size-[10px]"} data-node-id="145:634">
+      <div className="absolute inset-[-10%]">
+        <img alt="" className="block max-w-none size-full" src={imgProperty1Default} />
+      </div>
+    </div>
+  );
+}
+
+type PlusIconProps = {
+  className?: string;
+  property1?: "default";
+};
+
+function PlusIcon({ className, property1 = "default" }: PlusIconProps) {
+  return (
+    <div className={className || "relative size-[11px]"} data-node-id="196:105">
+      <div className="absolute inset-[-9.09%]">
+        <img alt="" className="block max-w-none size-full" src={imgProperty1Default1} />
+      </div>
+    </div>
+  );
+}
+
+type SidebarVisibilityProps = {
+  className?: string;
+  property1?: "default";
+};
+
+function SidebarVisibility({ className, property1 = "default" }: SidebarVisibilityProps) {
+  return (
+    <div className={className || "h-[11px] relative w-[12px]"} data-node-id="196:91">
+      <div className="absolute inset-[-9.09%_-8.33%]">
+        <img alt="" className="block max-w-none size-full" src={imgProperty1Default2} />
+      </div>
+    </div>
+  );
+}
+
+export default function Sidebar() {
+  return (
+    <div className="backdrop-blur-[15px] bg-[rgba(3,3,3,0.83)] content-stretch flex flex-col gap-[10px] items-start px-[18px] py-[20px] relative shadow-[0px_0px_6px_0px_rgba(0,0,0,0.5)] size-full" data-node-id="145:4" data-name="sidebar">
+      <div className="content-stretch flex items-end justify-between pt-[14px] relative shrink-0 w-full" data-node-id="145:6" data-name="header">
+        <div className="content-stretch flex gap-[3px] items-end relative shrink-0" data-node-id="145:7" data-name="scrollbar-title">
+          <p className="[text-box-edge:cap_alphabetic] [text-box-trim:trim-both] [word-break:break-word] font-['El_Messiri:Bold'] font-bold leading-[1.2px] relative shrink-0 text-[#dcd0c0] text-[21px] whitespace-nowrap" data-node-id="145:8">
+            Карта Хейвена
+          </p>
+          <div className="h-[14px] relative shrink-0 w-[8px]" data-node-id="193:41">
+            <div className="absolute inset-[0_-12.5%]">
+              <img alt="" className="block max-w-none size-full" src={imgFrame5} />
+            </div>
+          </div>
+        </div>
+        <SidebarVisibility className="h-[11px] relative shrink-0 w-[12px]" />
+      </div>
+      <div className="h-0 relative shrink-0 w-[290px]" data-node-id="145:11" data-name="divider">
+        <div className="absolute inset-[-2px_0_0_0]">
+          <img alt="" className="block max-w-none size-full" src={imgDivider} />
+        </div>
+      </div>
+      <div className="content-stretch flex flex-col gap-[7px] items-start pt-[11px] relative shrink-0 w-full" data-node-id="145:13" data-name="locations">
+        <div className="content-stretch flex items-center justify-between relative shrink-0 w-full" data-node-id="145:14" data-name="header">
+          <p className="[text-box-edge:cap_alphabetic] [text-box-trim:trim-both] [word-break:break-word] font-['Beaufort_for_LOL:Bold'] leading-[99.98999786376953%] not-italic relative shrink-0 text-[12px] text-[color:var(--ink-500,#6a655d)] uppercase whitespace-nowrap" data-node-id="145:15">
+            Локации
+          </p>
+          <PlusIcon className="relative shrink-0 size-[11px]" />
+        </div>
+        <div className="content-stretch flex gap-[11px] items-end relative shrink-0 w-full" data-node-id="207:636" data-name="location-type">
+          <div className="content-stretch flex gap-[10px] items-center relative shrink-0" data-node-id="207:637" data-name="18x18">
+            <City className="content-stretch flex isolate items-start opacity-55 relative shrink-0 w-[18px]" />
+            <Town className="content-stretch flex isolate items-center relative shrink-0 w-[18px]" property1="selected" />
+            <Fort className="content-stretch flex isolate items-center relative shrink-0 w-[18px]" property1="selected" />
+          </div>
+          <div className="content-stretch flex gap-[12px] items-center relative shrink-0" data-node-id="207:641" data-name="16x16">
+            <Camp className="content-stretch flex isolate items-center justify-center opacity-55 relative shrink-0 w-[16px]" />
+            <Shrine className="content-stretch flex isolate items-center opacity-55 relative shrink-0 w-[16px]" />
+            <PointOfInterest className="content-stretch flex isolate items-center relative shrink-0 w-[16px]" property1="selected" />
+            <PolarGates className="content-stretch flex isolate items-center relative shrink-0 w-[16px]" property1="hover" />
+            <Quest className="content-stretch flex isolate items-center opacity-55 relative shrink-0 w-[16px]" />
+          </div>
+        </div>
+      </div>
+      <div className="content-stretch flex flex-col gap-[10px] items-start pb-[4px] pt-[14px] relative shrink-0 w-full" data-node-id="145:26" data-name="map-layers">
+        <p className="[text-box-edge:cap_alphabetic] [text-box-trim:trim-both] [word-break:break-word] font-['Beaufort_for_LOL:Bold'] leading-[99.98999786376953%] not-italic relative shrink-0 text-[12px] text-[color:var(--ink-500,#6a655d)] uppercase whitespace-nowrap" data-node-id="145:27">
+          Слои карты
+        </p>
+        <div className="content-stretch flex flex-col gap-[8px] items-start relative shrink-0 w-full" data-node-id="145:28" data-name="map-layers-grid">
+          <div className="content-stretch flex gap-[5px] items-center relative shrink-0 w-full" data-node-id="146:683" data-name=".checkbox">
+            <Checkbox className="relative shrink-0 size-[10px]" />
+            <p className="[text-box-edge:cap_alphabetic] [text-box-trim:trim-both] [word-break:break-word] font-['Beaufort_for_LOL:Regular'] leading-[99.98999786376953%] not-italic relative shrink-0 text-[14px] text-[color:var(--ink-500,#6a655d)] whitespace-nowrap" data-node-id="146:685">
+              Политическая карта
+            </p>
+          </div>
+          <div className="content-stretch flex gap-[5px] items-center relative shrink-0 w-full" data-node-id="146:684" data-name=".checkbox">
+            <div className="relative shrink-0 size-[10px]" data-node-id="146:676" data-name="checkbox">
+              <div className="absolute inset-[-40%]">
+                <img alt="" className="block max-w-none size-full" src={imgCheckbox} />
+              </div>
+            </div>
+            <p className="[text-box-edge:cap_alphabetic] [text-box-trim:trim-both] [word-break:break-word] font-['Beaufort_for_LOL:Regular'] leading-[99.98999786376953%] not-italic relative shrink-0 text-[14px] text-[color:var(--parch-200,#cfc7b8)] whitespace-nowrap" data-node-id="146:691">
+              Провинции
+            </p>
+          </div>
+        </div>
+      </div>
+      <div className="content-stretch flex flex-[1_0_0] flex-col gap-[7px] items-start min-h-px overflow-clip pt-[14px] relative w-full" data-node-id="145:119" data-name="provinces">
+        <p className="[text-box-edge:cap_alphabetic] [text-box-trim:trim-both] [word-break:break-word] font-['Beaufort_for_LOL:Bold'] leading-[99.98999786376953%] not-italic relative shrink-0 text-[12px] text-[color:var(--ink-500,#6a655d)] uppercase w-full" data-node-id="145:120">
+          Провинции
+        </p>
+        <div className="content-stretch flex items-center justify-between py-[6px] relative shrink-0 w-full" data-node-id="145:109" data-name="search-input-active">
+          <div className="content-stretch flex flex-[1_0_0] gap-[5px] items-center min-w-px relative" data-node-id="214:247" data-name="search-input">
+            <SearchIcon className="relative shrink-0 size-[11px]" />
+            <div className="h-[8px] relative shrink-0 w-[256px]" data-node-id="207:627" data-name="search-input__placeholder-text">
+              <p className="[text-box-edge:cap_alphabetic] [text-box-trim:trim-both] [word-break:break-word] absolute font-['Beaufort_for_LOL:Regular'] inset-0 leading-[99.98999786376953%] not-italic text-[12px] text-[color:var(--ink-700,#282726)]" data-node-id="I207:627;145:118">
+                Введите название провинции или места
+              </p>
+            </div>
+          </div>
+          <FilterIcon className="h-[9px] relative shrink-0 w-[11px]" />
+        </div>
+        <div className="content-stretch flex flex-col gap-[14px] items-start p-[10px] relative shrink-0 w-full" data-node-id="145:44" data-name="filter">
+          <div className="content-stretch flex flex-col gap-[5px] items-start relative shrink-0 w-full" data-node-id="145:45" data-name="location-type">
+            <p className="[text-box-edge:cap_alphabetic] [text-box-trim:trim-both] [word-break:break-word] font-['Beaufort_for_LOL:Medium'] leading-[99.98999786376953%] not-italic relative shrink-0 text-[10px] text-[color:var(--ink-500,#6a655d)] uppercase w-[269px]" data-node-id="145:46">
+              Тип Локации
+            </p>
+            <div className="content-stretch flex gap-[11px] items-end relative shrink-0 w-full" data-node-id="207:322" data-name="location-type">
+              <div className="content-stretch flex gap-[10px] items-center relative shrink-0" data-node-id="207:586" data-name="18x18">
+                <City className="content-stretch flex isolate items-start opacity-55 relative shrink-0 w-[18px]" />
+                <Town className="content-stretch flex isolate items-center opacity-55 relative shrink-0 w-[18px]" />
+                <Fort className="content-stretch flex isolate items-center opacity-55 relative shrink-0 w-[18px]" />
+              </div>
+              <div className="content-stretch flex gap-[12px] items-center relative shrink-0" data-node-id="207:587" data-name="16x16">
+                <Camp className="content-stretch flex isolate items-center relative shrink-0" property1="hover" />
+                <Shrine className="content-stretch flex isolate items-center relative shrink-0 w-[16px]" property1="selected" />
+                <PointOfInterest className="content-stretch flex isolate items-center opacity-55 relative shrink-0 w-[16px]" />
+                <PolarGates className="content-stretch flex isolate items-center opacity-55 relative shrink-0 w-[16px]" />
+                <Quest className="content-stretch flex isolate items-center opacity-55 relative shrink-0 w-[16px]" />
+              </div>
+            </div>
+          </div>
+          <div className="content-stretch flex flex-col gap-[5px] items-start relative shrink-0 w-full" data-node-id="180:189" data-name="traits">
+            <div className="content-stretch flex items-center justify-between relative shrink-0 w-full" data-node-id="180:190" data-name="traits-header">
+              <p className="[text-box-edge:cap_alphabetic] [text-box-trim:trim-both] [word-break:break-word] font-['Beaufort_for_LOL:Medium'] leading-[99.98999786376953%] not-italic relative shrink-0 text-[10px] text-[color:var(--ink-500,#6a655d)] uppercase whitespace-nowrap" data-node-id="180:191">
+                Особенности
+              </p>
+              <div className="content-stretch flex gap-px items-center justify-end relative shrink-0" data-node-id="180:192" data-name="opearions">
+                <div className="content-stretch flex items-center justify-center pr-[4px] py-[5px] relative shrink-0" data-node-id="180:193" data-name="or">
+                  <p className="[text-box-edge:cap_alphabetic] [text-box-trim:trim-both] [word-break:break-word] font-['Beaufort_for_LOL:Regular'] leading-[99.98999786376953%] lowercase not-italic relative shrink-0 text-[10px] text-[color:var(--parch-400,#9a9285)] text-right text-shadow-[0px_0px_4px_rgba(106,101,93,0.8)] whitespace-nowrap" data-node-id="180:194">
+                    Или
+                  </p>
+                </div>
+                <div className="content-stretch flex flex-col items-center justify-center px-[4px] py-[5px] relative shrink-0" data-node-id="180:195" data-name="and">
+                  <p className="[text-box-edge:cap_alphabetic] [text-box-trim:trim-both] [word-break:break-word] font-['Beaufort_for_LOL:Regular'] leading-[99.98999786376953%] lowercase not-italic relative shrink-0 text-[10px] text-[color:var(--ink-600,#3e3c3a)] text-right w-full" data-node-id="180:196">
+                    И
+                  </p>
+                </div>
+                <div className="content-stretch flex items-center justify-center pl-[4px] py-[5px] relative shrink-0" data-node-id="180:197" data-name="exclude">
+                  <p className="[text-box-edge:cap_alphabetic] [text-box-trim:trim-both] [word-break:break-word] font-['Beaufort_for_LOL:Regular'] leading-[99.98999786376953%] lowercase not-italic relative shrink-0 text-[10px] text-[color:var(--ink-600,#3e3c3a)] text-right whitespace-nowrap" data-node-id="180:198">
+                    Искл
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="content-stretch flex gap-[12px] items-center pl-px relative shrink-0 w-full" data-node-id="207:331" data-name="traits">
+              <Port className="content-stretch flex gap-[10px] isolate items-center opacity-55 relative shrink-0 w-[16px]" />
+              <Colony className="content-stretch flex gap-[10px] isolate items-center opacity-55 relative shrink-0 w-[16px]" />
+              <Mountain className="content-stretch flex gap-[10px] isolate items-center relative shrink-0 w-[16px]" />
+              <Forest className="content-stretch flex gap-[10px] isolate items-center relative shrink-0 w-[16px]" />
+              <SwordOfKhaine className="content-stretch flex gap-[10px] isolate items-center opacity-55 relative shrink-0 w-[16px]" />
+              <Text className="content-stretch flex gap-[10px] items-center justify-center relative shrink-0 w-[57px]" />
+            </div>
+          </div>
+          <div className="content-stretch flex flex-col gap-[5px] items-start relative shrink-0 w-full" data-node-id="183:373" data-name="characters">
+            <div className="content-stretch flex items-center justify-between relative shrink-0 w-full" data-node-id="183:374" data-name="characters-header">
+              <p className="[text-box-edge:cap_alphabetic] [text-box-trim:trim-both] [word-break:break-word] font-['Beaufort_for_LOL:Medium'] leading-[99.98999786376953%] not-italic relative shrink-0 text-[10px] text-[color:var(--ink-500,#6a655d)] uppercase whitespace-nowrap" data-node-id="183:375">
+                Персонажи
+              </p>
+              <div className="content-stretch flex gap-px items-center justify-end relative shrink-0" data-node-id="183:376" data-name="opearions">
+                <div className="content-stretch flex items-center justify-center pr-[4px] py-[5px] relative shrink-0" data-node-id="183:377" data-name="or">
+                  <p className="[text-box-edge:cap_alphabetic] [text-box-trim:trim-both] [word-break:break-word] font-['Beaufort_for_LOL:Regular'] leading-[99.98999786376953%] lowercase not-italic relative shrink-0 text-[10px] text-[color:var(--ink-600,#3e3c3a)] whitespace-nowrap" data-node-id="183:378">
+                    Или
+                  </p>
+                </div>
+                <div className="content-stretch flex flex-col items-center justify-center px-[4px] py-[5px] relative shrink-0" data-node-id="183:379" data-name="and">
+                  <p className="[text-box-edge:cap_alphabetic] [text-box-trim:trim-both] [word-break:break-word] font-['Beaufort_for_LOL:Regular'] leading-[99.98999786376953%] lowercase not-italic relative shrink-0 text-[10px] text-[color:var(--parch-400,#9a9285)] text-shadow-[0px_0px_4px_rgba(106,101,93,0.8)] w-full" data-node-id="183:380">
+                    И
+                  </p>
+                </div>
+                <div className="content-stretch flex items-center justify-center pl-[4px] py-[5px] relative shrink-0" data-node-id="183:381" data-name="exclude">
+                  <p className="[text-box-edge:cap_alphabetic] [text-box-trim:trim-both] [word-break:break-word] font-['Beaufort_for_LOL:Regular'] leading-[99.98999786376953%] lowercase not-italic relative shrink-0 text-[10px] text-[color:var(--ink-600,#3e3c3a)] whitespace-nowrap" data-node-id="183:382">
+                    Искл
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="content-stretch flex gap-[12px] items-center pl-px relative shrink-0 w-full" data-node-id="207:338" data-name="characters">
+              <Algalon className="content-stretch flex gap-[10px] isolate items-center opacity-55 relative shrink-0" />
+              <Vein className="content-stretch flex gap-[10px] isolate items-center relative shrink-0" />
+              <Mane className="content-stretch flex gap-[10px] isolate items-center opacity-55 relative shrink-0" />
+              <Mitra className="content-stretch flex gap-[10px] isolate items-center opacity-55 relative shrink-0" />
+              <Ulfric className="content-stretch flex gap-[10px] isolate items-center opacity-55 relative shrink-0" />
+            </div>
+          </div>
+          <div className="absolute contents left-0 top-0" data-node-id="208:718" data-name="sidebar__frame-masked">
+            <div className="absolute bg-gradient-to-b from-[var(--ink-600,#3e3c3a)] h-[157px] left-[-0.98px] mask-alpha mask-intersect mask-no-clip mask-no-repeat mask-position-[0.479px_0.5px] mask-size-[285px_156px] to-[rgba(62,60,58,0)] top-[-1px] w-[285.959px]" data-node-id="207:717" style={{ maskImage: `url("${imgMask}")` }} data-name="mask" />
+          </div>
+        </div>
+        <div className="content-stretch flex items-start justify-between relative shrink-0 w-full" data-node-id="145:121" data-name="provinces-list">
+          <div className="content-stretch flex flex-[1_0_0] flex-col gap-[12px] items-start min-w-px overflow-clip relative" data-node-id="145:122" data-name="provinces-list">
+            <div className="gap-x-[6px] gap-y-[6px] grid-cols-[repeat(2,fit-content(100%))] grid-rows-[repeat(2,fit-content(100%))] inline-grid relative shrink-0" data-node-id="145:123" data-name="avelorn">
+              <div className="col-1 h-[5px] justify-self-center relative row-1 self-center shrink-0 w-[8px]" data-node-id="145:124" data-name="triangle">
+                <div className="absolute inset-[-20%_-12.5%]">
+                  <img alt="" className="block max-w-none size-full" src={imgTriangle} />
+                </div>
+              </div>
+              <p className="[text-box-edge:cap_alphabetic] [text-box-trim:trim-both] [word-break:break-word] col-2 font-['El_Messiri:Regular'] font-normal justify-self-start leading-[99.98999786376953%] relative row-1 self-start shrink-0 text-[16px] text-[color:var(--parch-200,#cfc7b8)] whitespace-nowrap" data-node-id="145:125">
+                Авелорн
+              </p>
+              <div className="col-1 flex h-[66px] items-center justify-center justify-self-center relative row-2 self-center shrink-0 w-px" data-node-id="145:126">
+                <div className="flex-none rotate-90">
+                  <div className="h-px relative w-[66px]" data-name="line">
+                    <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgLine} />
+                  </div>
+                </div>
+              </div>
+              <div className="col-2 content-stretch flex items-center justify-self-start pl-[5px] relative row-2 self-center shrink-0" data-node-id="145:127" data-name="ul">
+                <div className="[text-box-edge:cap_alphabetic] [text-box-trim:trim-both] [word-break:break-word] flex flex-col font-['Beaufort_for_LOL:Regular'] justify-center leading-[0] not-italic relative shrink-0 text-[14px] text-[color:var(--parch-400,#9a9285)] whitespace-nowrap" data-node-id="145:128">
+                  <p className="leading-[22px] mb-0">Вечные Глины</p>
+                  <p className="leading-[22px] mb-0">Долина Геан</p>
+                  <p className="leading-[22px]">Тор Сароир</p>
+                </div>
+              </div>
+            </div>
+            <div className="gap-x-[6px] gap-y-[6px] grid-cols-[repeat(2,fit-content(100%))] grid-rows-[repeat(2,fit-content(100%))] inline-grid relative shrink-0" data-node-id="145:129" data-name="averland">
+              <div className="col-1 h-[5px] justify-self-center relative row-1 self-center shrink-0 w-[8px]" data-node-id="145:130" data-name="triangle">
+                <div className="absolute inset-[-20%_-12.5%]">
+                  <img alt="" className="block max-w-none size-full" src={imgTriangle} />
+                </div>
+              </div>
+              <p className="[text-box-edge:cap_alphabetic] [text-box-trim:trim-both] [word-break:break-word] col-2 font-['El_Messiri:Regular'] font-normal justify-self-start leading-[99.98999786376953%] relative row-1 self-start shrink-0 text-[16px] text-[color:var(--parch-200,#cfc7b8)] whitespace-nowrap" data-node-id="145:131">
+                Аверланд
+              </p>
+              <div className="col-1 flex h-[45px] items-center justify-center justify-self-center relative row-2 self-center shrink-0 w-px" data-node-id="145:132">
+                <div className="flex-none rotate-90">
+                  <div className="h-px relative w-[45px]" data-name="line">
+                    <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgLine1} />
+                  </div>
+                </div>
+              </div>
+              <div className="col-2 content-stretch flex items-center justify-self-start pl-[5px] relative row-2 self-center shrink-0" data-node-id="145:133" data-name="ul">
+                <div className="[text-box-edge:cap_alphabetic] [text-box-trim:trim-both] [word-break:break-word] flex flex-col font-['Beaufort_for_LOL:Regular'] justify-center leading-[0] not-italic relative shrink-0 text-[14px] text-[color:var(--parch-400,#9a9285)] whitespace-nowrap" data-node-id="145:134">
+                  <p className="leading-[22px] mb-0">Аверхайм</p>
+                  <p className="leading-[22px]">Гренцштадт</p>
+                </div>
+              </div>
+            </div>
+            <div className="gap-x-[6px] gap-y-[6px] grid-cols-[repeat(2,fit-content(100%))] grid-rows-[repeat(2,fit-content(100%))] inline-grid relative shrink-0" data-node-id="145:135" data-name="albion">
+              <div className="col-1 h-[5px] justify-self-center relative row-1 self-center shrink-0 w-[8px]" data-node-id="145:136" data-name="triangle">
+                <div className="absolute inset-[-20%_-12.5%]">
+                  <img alt="" className="block max-w-none size-full" src={imgTriangle} />
+                </div>
+              </div>
+              <p className="[text-box-edge:cap_alphabetic] [text-box-trim:trim-both] [word-break:break-word] col-2 font-['El_Messiri:Regular'] font-normal justify-self-start leading-[99.98999786376953%] relative row-1 self-start shrink-0 text-[16px] text-[color:var(--parch-200,#cfc7b8)] whitespace-nowrap" data-node-id="145:137">
+                Альбион
+              </p>
+              <div className="col-1 flex h-[89px] items-center justify-center justify-self-center relative row-2 self-center shrink-0 w-px" data-node-id="145:138">
+                <div className="flex-none rotate-90">
+                  <div className="h-px relative w-[89px]" data-name="line">
+                    <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgLine2} />
+                  </div>
+                </div>
+              </div>
+              <div className="col-2 content-stretch flex items-center justify-self-start pl-[5px] relative row-2 self-center shrink-0" data-node-id="145:139" data-name="ul">
+                <div className="[text-box-edge:cap_alphabetic] [text-box-trim:trim-both] [word-break:break-word] flex flex-col font-['Beaufort_for_LOL:Regular'] justify-center leading-[0] not-italic relative shrink-0 text-[14px] text-[color:var(--parch-400,#9a9285)] whitespace-nowrap" data-node-id="145:140">
+                  <p className="leading-[22px] mb-0">Конкуата</p>
+                  <p className="leading-[22px] mb-0">Остров Мертвецов</p>
+                  <p className="leading-[22px] mb-0">Северные Врата Древних</p>
+                  <p className="leading-[22px]">Цитадель Свинца</p>
+                </div>
+              </div>
+            </div>
+            <div className="gap-x-[7px] gap-y-[6px] grid-cols-[repeat(2,fit-content(100%))] grid-rows-[repeat(1,fit-content(100%))] inline-grid px-[2px] relative shrink-0" data-node-id="145:141" data-name="forest-of-arden">
+              <div className="col-1 flex h-[8px] items-center justify-center justify-self-center relative row-1 self-center shrink-0 w-[5px]" data-node-id="145:142">
+                <div className="-rotate-90 flex-none">
+                  <div className="h-[5px] relative w-[8px]" data-name="triangle-collapsed">
+                    <div className="absolute inset-[-20%_-12.5%]">
+                      <img alt="" className="block max-w-none size-full" src={imgTriangleCollapsed} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <p className="[text-box-edge:cap_alphabetic] [text-box-trim:trim-both] [word-break:break-word] col-2 font-['El_Messiri:Regular'] font-normal justify-self-start leading-[99.98999786376953%] relative row-1 self-start shrink-0 text-[16px] text-[color:var(--parch-200,#cfc7b8)] whitespace-nowrap" data-node-id="145:143">
+                Арденский лес
+              </p>
+            </div>
+            <div className="gap-x-[7px] gap-y-[6px] grid-cols-[repeat(2,fit-content(100%))] grid-rows-[repeat(1,fit-content(100%))] inline-grid px-[2px] relative shrink-0" data-node-id="145:144" data-name="atalan-mountains">
+              <div className="col-1 flex h-[8px] items-center justify-center justify-self-center relative row-1 self-center shrink-0 w-[5px]" data-node-id="145:145">
+                <div className="-rotate-90 flex-none">
+                  <div className="h-[5px] relative w-[8px]" data-name="triangle-collapsed">
+                    <div className="absolute inset-[-20%_-12.5%]">
+                      <img alt="" className="block max-w-none size-full" src={imgTriangleCollapsed} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <p className="[text-box-edge:cap_alphabetic] [text-box-trim:trim-both] [word-break:break-word] col-2 font-['El_Messiri:Regular'] font-normal justify-self-start leading-[99.98999786376953%] relative row-1 self-start shrink-0 text-[16px] text-[color:var(--parch-200,#cfc7b8)] whitespace-nowrap" data-node-id="145:146">
+                Аталанские горы
+              </p>
+            </div>
+            <div className="gap-x-[6px] gap-y-[6px] grid-cols-[repeat(2,fit-content(100%))] grid-rows-[repeat(2,fit-content(100%))] inline-grid relative shrink-0" data-node-id="145:147" data-name="bastonne">
+              <div className="col-1 h-[5px] justify-self-center relative row-1 self-center shrink-0 w-[8px]" data-node-id="145:148" data-name="triangle">
+                <div className="absolute inset-[-20%_-12.5%]">
+                  <img alt="" className="block max-w-none size-full" src={imgTriangle} />
+                </div>
+              </div>
+              <p className="[text-box-edge:cap_alphabetic] [text-box-trim:trim-both] [word-break:break-word] col-2 font-['El_Messiri:Regular'] font-normal justify-self-start leading-[99.98999786376953%] relative row-1 self-start shrink-0 text-[16px] text-[color:var(--parch-200,#cfc7b8)] whitespace-nowrap" data-node-id="145:149">
+                Бастонь
+              </p>
+              <div className="col-1 flex h-[45px] items-center justify-center justify-self-center relative row-2 self-center shrink-0 w-px" data-node-id="145:150">
+                <div className="flex-none rotate-90">
+                  <div className="h-px relative w-[45px]" data-name="line">
+                    <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgLine1} />
+                  </div>
+                </div>
+              </div>
+              <div className="col-2 content-stretch flex items-center justify-self-start pl-[5px] relative row-2 self-center shrink-0" data-node-id="145:151" data-name="ul">
+                <div className="[text-box-edge:cap_alphabetic] [text-box-trim:trim-both] [word-break:break-word] flex flex-col font-['Beaufort_for_LOL:Regular'] justify-center leading-[0] not-italic relative shrink-0 text-[14px] text-[color:var(--parch-400,#9a9285)] whitespace-nowrap" data-node-id="145:152">
+                  <p className="leading-[22px] mb-0">Замок Бастонь</p>
+                  <p className="leading-[22px]">Монфор</p>
+                </div>
+              </div>
+            </div>
+            <div className="gap-x-[6px] gap-y-[6px] grid-cols-[repeat(2,fit-content(100%))] grid-rows-[repeat(2,fit-content(100%))] inline-grid relative shrink-0" data-node-id="145:153" data-name="coast-of-araby">
+              <div className="col-1 h-[5px] justify-self-center relative row-1 self-center shrink-0 w-[8px]" data-node-id="145:154" data-name="triangle">
+                <div className="absolute inset-[-20%_-12.5%]">
+                  <img alt="" className="block max-w-none size-full" src={imgTriangle} />
+                </div>
+              </div>
+              <p className="[text-box-edge:cap_alphabetic] [text-box-trim:trim-both] [word-break:break-word] col-2 font-['El_Messiri:Regular'] font-normal justify-self-start leading-[99.98999786376953%] relative row-1 self-start shrink-0 text-[16px] text-[color:var(--parch-200,#cfc7b8)] whitespace-nowrap" data-node-id="145:155">
+                Берег Аравии
+              </p>
+              <div className="col-1 flex h-[66px] items-center justify-center justify-self-center relative row-2 self-center shrink-0 w-px" data-node-id="145:156">
+                <div className="flex-none rotate-90">
+                  <div className="h-px relative w-[66px]" data-name="line">
+                    <img alt="" className="absolute block inset-0 max-w-none size-full" src={imgLine} />
+                  </div>
+                </div>
+              </div>
+              <div className="col-2 content-stretch flex items-center justify-self-start pl-[5px] relative row-2 self-center shrink-0" data-node-id="145:157" data-name="ul">
+                <div className="[text-box-edge:cap_alphabetic] [text-box-trim:trim-both] [word-break:break-word] flex flex-col font-['Beaufort_for_LOL:Regular'] justify-center leading-[0] not-italic relative shrink-0 text-[14px] text-[color:var(--parch-400,#9a9285)] whitespace-nowrap" data-node-id="145:158">
+                  <p className="leading-[22px] mb-0">Аль-Хаикк</p>
+                  <p className="leading-[22px] mb-0">Кофер</p>
+                  <p className="leading-[22px]">Фирус</p>
+                </div>
+              </div>
+            </div>
+            <div className="gap-x-[6px] gap-y-[6px] grid-cols-[repeat(2,fit-content(100%))] grid-rows-[repeat(1,fit-content(100%))] inline-grid pl-[2px] relative shrink-0" data-node-id="145:159" data-name="coast-of-lyonesse">
+              <div className="col-1 flex h-[8px] items-center justify-center justify-self-center relative row-1 self-center shrink-0 w-[5px]" data-node-id="145:160">
+                <div className="-rotate-90 flex-none">
+                  <div className="h-[5px] relative w-[8px]" data-name="triangle">
+                    <div className="absolute inset-[-20%_-12.5%]">
+                      <img alt="" className="block max-w-none size-full" src={imgTriangleCollapsed} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <p className="[text-box-edge:cap_alphabetic] [text-box-trim:trim-both] [word-break:break-word] col-2 font-['El_Messiri:Regular'] font-normal justify-self-start leading-[99.98999786376953%] relative row-1 self-start shrink-0 text-[16px] text-[color:var(--parch-200,#cfc7b8)] whitespace-nowrap" data-node-id="145:161">
+                Берег Лионесса
+              </p>
+            </div>
+          </div>
+          <div className="h-[513px] relative shrink-0 w-[8.636px]" data-node-id="145:168" data-name="scrollbar">
+            <div className="absolute inset-[-0.19%_-11.58%_0_-11.58%]">
+              <img alt="" className="block max-w-none size-full" src={imgScrollbar} />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

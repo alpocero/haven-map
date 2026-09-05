@@ -136,9 +136,49 @@ function iconForDescLink(type, id) {
 	return LOCATION_ICONS[row?.location_type]?.url ?? LOCATION_ICONS['default'].url;
 }
 
+// ─── ЛЁГКИЙ MARKDOWN В ОПИСАНИИ ─────────────────────────────────────────────
+// Раньше форматирование вставлялось сырыми HTML-тегами прямо в текст (<b>,
+// <p>, <blockquote>...) — в textarea это выглядело нагромождением тегов.
+// Ссылки такими не были с самого начала (см. DESC_LINK_RE выше) — тот же
+// принцип распространили на остальное: **жирный**, _курсив_, пустая строка
+// между строк — новый абзац, ">" в начале строки — цитата (можно на
+// несколько строк и абзацев внутри). Выравнивание готового markdown-
+// синтаксиса не имеет — как и раньше, вставляется сырым
+// <div style="text-align:...">, и здесь просто проходит насквозь как есть.
+//
+// Обратная совместимость со старыми описаниями (целиком сырой HTML, без
+// единого markdown-символа) — тем же способом: «абзац» (кусок между пустыми
+// строками), уже начинающийся с "<", в <p> повторно не оборачивается, а
+// проходит как есть — так старые записи продолжают рендериться ровно как до
+// перехода.
+function renderInlineMarkdown(text) {
+	return text
+		.replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>')
+		.replace(/_([^_]+)_/g, '<i>$1</i>');
+}
+
+function renderMarkdownBlock(block) {
+	const trimmed = block.trim();
+	if (!trimmed) return '';
+	if (trimmed.startsWith('<')) return trimmed; // старый HTML или div-выравнивание — не трогаем
+
+	const lines = trimmed.split('\n');
+	if (lines.every(l => l.trim().startsWith('>') || !l.trim())) {
+		// цитата: снимаем ">" с каждой строки и внутри применяем те же правила
+		// абзацев/переносов (пустая строка — новый <p>, одиночный \n — <br>)
+		const inner = lines.map(l => l.replace(/^\s*>\s?/, '')).join('\n');
+		const innerHtml = inner.split(/\n\s*\n/).map(renderMarkdownBlock).join('');
+		return `<blockquote>${innerHtml}</blockquote>`;
+	}
+
+	const withBr = renderInlineMarkdown(trimmed).replace(/\n/g, '<br>');
+	return `<p>${withBr}</p>`;
+}
+
 function renderDescription(text) {
 	if (!text) return text;
-	return text.replace(DESC_LINK_RE, (match, label, type, id) => {
+	const html = text.split(/\n\s*\n/).map(renderMarkdownBlock).join('');
+	return html.replace(DESC_LINK_RE, (match, label, type, id) => {
 		const icon = `<img class="desc-link-icon" src="${iconForDescLink(type, id)}" alt="">`;
 		return `<a class="desc-link" data-ref-type="${type}" data-ref-id="${id}">${icon}${label}</a>`;
 	});
@@ -297,6 +337,21 @@ const FOCUS_FLY_DURATION = 0.6; // сек
 
 function focusLatLng(latlng) {
 	const targetZoom = Math.max(map.getZoom(), POLITICAL_TIER_ZOOM_BREAK);
+	const current = map.getCenter();
+	// Если карта и так уже стоит ровно в этой точке на нужном зуме (тот же
+	// маркер/регион кликнули второй раз подряд) — flyTo всё равно honestly
+	// проигрывает полную анимацию: кривая Ван Вейка-Нуутинена, на которой
+	// строится flyTo, вырождается при нулевой дистанции, и зум/пан за время
+	// анимации чуть уезжает в сторону и возвращается обратно — визуально
+	// маркеры на секунду "плывут" и встают на место. Без анимации, если уже
+	// на месте.
+	const alreadyThere = map.getZoom() === targetZoom &&
+		Math.abs(current.lat - latlng.lat) < 1e-9 &&
+		Math.abs(current.lng - latlng.lng) < 1e-9;
+	if (alreadyThere) {
+		map.setView(latlng, targetZoom, { animate: false });
+		return;
+	}
 	map.flyTo(latlng, targetZoom, { duration: FOCUS_FLY_DURATION });
 }
 
@@ -309,7 +364,10 @@ function focusRegion(id) {
 	if (!layer) return;
 	const center = layer.getBounds().getCenter();
 	focusLatLng(center);
-	setTimeout(() => layer.openPopup(center), FOCUS_FLY_DURATION * 1000);
+	setTimeout(() => {
+		layer.openPopup(center);
+		fitPopupWidth(layer.getPopup()); // на случай, если попап и так уже был открыт — см. комментарий у fitPopupWidth
+	}, FOCUS_FLY_DURATION * 1000);
 }
 
 
@@ -327,15 +385,18 @@ var quests       	 = L.layerGroup();
 // ─── КОНФИГ СЛОЁВ МАРКЕРОВ ────────────────────────────────────────────────
 // defaultOn: true  → добавляется на карту при старте
 // defaultOn: false → выключен по умолчанию
+// size — родной размер иконки в новой системе переключателей (см.
+// ICON_TOGGLE_FX_HTML/iconToggleIconHTML): 18px у город/поселение/форт,
+// 16px у остальных — как в компонентах COMPONENTS__LOCATION-TYPE в Figma.
 const MARKER_LAYERS = [
-    { label: 'Город',         		group: cities,			       defaultOn: true,  		icons: ['images/icons/city.png'] },
-    { label: 'Поселение',      		group: towns,					defaultOn: true,  		icons: ['images/icons/town.png'] },
-    { label: 'Форт',          		group: forts,        			defaultOn: true,  		icons: ['images/icons/fort.png'] },
-    { label: 'Лагерь',         		group: camps,			        defaultOn: true,  		icons: ['images/icons/camp.png'] },
-    { label: 'Святилище', 	   		group: shrines,      			defaultOn: true,		icons: ['images/icons/shrine.png'] },
-	{ label: 'Точка интереса',		group: pointsOfInterest, 		defaultOn: true,		icons: ['images/icons/pointOfInterest.png'] },
-    { label: 'Врата Древних',  		group: polarGates,   			defaultOn: false,  		icons: ['images/icons/polarGates.png'] },
-    { label: 'Задание',        		group: quests,       			defaultOn: true,  		icons: ['images/icons/quest.png'] },
+    { label: 'Город',         		group: cities,			       defaultOn: true,  		icons: ['images/icons/city.png'], size: 18 },
+    { label: 'Поселение',      		group: towns,					defaultOn: true,  		icons: ['images/icons/town.png'], size: 18 },
+    { label: 'Форт',          		group: forts,        			defaultOn: true,  		icons: ['images/icons/fort.png'], size: 18 },
+    { label: 'Лагерь',         		group: camps,			        defaultOn: true,  		icons: ['images/icons/camp.png'], size: 16 },
+    { label: 'Святилище', 	   		group: shrines,      			defaultOn: true,		icons: ['images/icons/shrine.png'], size: 16 },
+	{ label: 'Точка интереса',		group: pointsOfInterest, 		defaultOn: true,		icons: ['images/icons/pointOfInterest.png'], size: 16 },
+    { label: 'Врата Древних',  		group: polarGates,   			defaultOn: false,  		icons: ['images/icons/polarGates.png'], size: 16 },
+    { label: 'Задание',        		group: quests,       			defaultOn: true,  		icons: ['images/icons/quest.png'], size: 16 },
 ];
 
 const MAP_LAYERS = [
@@ -360,14 +421,23 @@ function getIcon(locationType) {
 
 // ─── ОСОБЕННОСТИ ──────────────────────────────────────────────────────────
 const TRAITS = {
-	'port':            { icon: 'images/icons/port.png',            tooltip: 'Порт'                             },
-	'settlement':      { icon: 'images/icons/town.png', 	       tooltip: 'Поселение'                        },
-	'mountain':        { icon: 'images/icons/mountain.png',        tooltip: 'Гора'                             },
-	'colony':          { icon: 'images/icons/colony.png',          tooltip: 'Древняя колония высших эльфов'    },
-	'capital_hef':     { icon: 'images/icons/capital_hef.png',     tooltip: 'Столица высших эльфов'            },
-	'capital_def':     { icon: 'images/icons/capital_def.png',     tooltip: 'Столица тёмных эльфов'            },
-	'forest':          { icon: 'images/icons/forest.png',          tooltip: 'Лес'                              },
+	'port':            { icon: 'images/icons/port.png',            tooltip: 'Порт' },
+	'mountain':        { icon: 'images/icons/mountain.png',        tooltip: 'Гора' },
+	'colony':          { icon: 'images/icons/colony.png',          tooltip: 'Древняя колония высших эльфов' },
+	'forest':          { icon: 'images/icons/forest.png',          tooltip: 'Лес' },
 	'sword_of_khaine': { icon: 'images/icons/sword_of_khaine.png', tooltip: '<b>Меч Кхейна</b><br><br><p style="color: #787167; margin: 0;">Некоторые считают этот меч самым могущественным оружием в мире, способным низвергать даже богов. Говорят, что сила этого артефакта настолько велика, что его повторное использование способно перекроить судьбы эльфов и изменить ход мировой истории.</p>' },
+};
+
+// Персонажи — по сути тоже "системные" особенности (не показываются в
+// попапе, см. buildTraitsHTML — он смотрит только в TRAITS), но, в отличие
+// от свободных системных, у них заранее заведённый список со своими
+// иконками — отдельная группа и в форме маркера, и в фильтрах.
+const CHARACTER_TRAITS = {
+	'algalon': { icon: 'images/icons/algalon.png', tooltip: 'Алгалон' },
+	'ulfric':  { icon: 'images/icons/ulfric.png',  tooltip: 'Ульфрик' },
+	'mane':    { icon: 'images/icons/mane.png',    tooltip: 'Грива'   },
+	'vein':    { icon: 'images/icons/vein.png',    tooltip: 'Вейн'    },
+	'mitra':   { icon: 'images/icons/mitra.png',   tooltip: 'Митра'   },
 };
 
 function buildTraitsHTML(traits) {
@@ -377,6 +447,22 @@ function buildTraitsHTML(traits) {
 		if (!t) return '';
 		return `<div class="trait" data-key="${key}"><img src="${t.icon}" alt=""></div>`;
 	}).join('');
+}
+
+// «Системные» особенности (свободные, без иконки) — не заведены заранее ни в
+// TRAITS, ни в CHARACTER_TRAITS, а просто произвольные строки в
+// markers.traits. buildTraitsHTML above молча пропускает любой ключ, которого
+// нет в TRAITS (значит и персонажей тоже), поэтому ни те, ни другие никогда
+// не подсвечиваются в попапе — этого достаточно, отдельного признака
+// "системная"/«персонаж» в данных не нужно. Список для формы
+// редактирования/панели фильтров собирается на лету из уже существующих
+// маркеров.
+function getAllSystemTraitKeys() {
+	const set = new Set();
+	allMarkerRows.forEach(row => (row.traits ?? []).forEach(t => {
+		if (!TRAITS[t] && !CHARACTER_TRAITS[t]) set.add(t);
+	}));
+	return [...set].sort((a, b) => a.localeCompare(b, 'ru'));
 }
 
 
@@ -466,6 +552,11 @@ async function loadMarkers() {
 			icon: getIcon(feature.properties.locationType)
 		});
 		marker.bindPopup(buildPopupHTML(feature.properties), { closeButton: false });
+		// Повторный клик прямо по иконке на карте, когда попап уже открыт —
+		// тот же сценарий, что и повторный клик по имени в сайдбаре (см.
+		// комментарий у fitPopupWidth): Leaflet сам popupopen второй раз не
+		// поднимает, поэтому размер попапа досчитываем на каждый клик явно.
+		marker.on('click', () => fitPopupWidth(marker.getPopup()));
 
 		markersById[feature.properties.id] = marker;
 
@@ -502,12 +593,6 @@ MAP_LAYERS.forEach(({ layer, defaultOn }) => {
 // когда слой показан на карте) ──────────────────────────────────────────
 const individualContainer = document.getElementById('individual-checkboxes');
 
-// Глаз мастер-кнопки: полностью открыт — показаны все типы; наполовину прикрыт —
-// показана только часть. Форма меняется, а не только цвет/свечение.
-const EYE_SVG_OPEN = '<svg viewBox="0 0 24 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 8s4-6 11-6 11 6 11 6-4 6-11 6-11-6-11-6z"/><circle cx="12" cy="8" r="2.5"/></svg>';
-const EYE_SVG_HALF = '<svg viewBox="0 0 24 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 8s4-6 11-6 11 6 11 6-4 6-11 6-11-6-11-6z"/><path d="M3 8h18"/><path d="M9.5 8a2.5 2.5 0 0 0 5 0"/></svg>';
-const ALL_MARKERS_ICON = EYE_SVG_OPEN;
-
 // Общий конструктор кнопки-иконки для рядов-переключателей (Локации/
 // Особенности): разметка (button.trait + доп. класс(ы), data-атрибуты,
 // картинка) — общая; поведение по клику и добавление в контейнер остаются за
@@ -521,8 +606,42 @@ function createTraitButton(extraClass, dataset, iconHTML) {
 	return btn;
 }
 
-const masterLayerBtn = createTraitButton('layer-icon-btn layer-icon-btn-all', { tooltip: 'Все пометки' }, ALL_MARKERS_ICON);
-individualContainer.appendChild(masterLayerBtn);
+// ─── ПЕРЕКЛЮЧАТЕЛИ ИКОНОК/ТЕКСТА (Локации/Тип локации/Особенности/Персонажи) —
+// растущая от курсора подсветка (градиент + зерно шума + линия понизу),
+// значения дословно из forAnimation.fig, геометрия/цвета — см. .icon-toggle*
+// в style.css. Разметка идентична для hover- и selected-слоя, слои переключает
+// CSS по :hover/.selected — здесь только собираем HTML один раз на кнопку. */
+const ICON_TOGGLE_FX_HTML =
+	'<span class="icon-toggle__fx">' +
+		'<span class="icon-toggle__layer icon-toggle__layer--hover"><span class="icon-toggle__grad"><span class="icon-toggle__noise"></span></span><span class="icon-toggle__line"></span></span>' +
+		'<span class="icon-toggle__layer icon-toggle__layer--selected"><span class="icon-toggle__grad"><span class="icon-toggle__noise"></span></span><span class="icon-toggle__line"></span></span>' +
+	'</span>';
+
+function iconToggleIconHTML(src, alt) {
+	return ICON_TOGGLE_FX_HTML + `<img class="icon-toggle__icon" src="${src}" alt="${alt ?? ''}">`;
+}
+function iconToggleTextHTML(label) {
+	return ICON_TOGGLE_FX_HTML + `<span class="icon-toggle__label">${label}</span>`;
+}
+
+// Заливка растёт из точки под курсором (--ft-origin, % по X) — один делегированный
+// слушатель на всё дерево работает и для кнопок, которых ещё нет на странице
+// (ряды фильтров пересоздаются целиком на каждый клик). Логика — один в один
+// setOrigin() из приложенной анимации (feature-toggle.js).
+function setIconToggleOrigin(el, clientX) {
+	const r = el.getBoundingClientRect();
+	if (!r.width) return;
+	const pct = Math.max(0, Math.min(100, ((clientX - r.left) / r.width) * 100));
+	el.style.setProperty('--ft-origin', pct + '%');
+}
+document.addEventListener('mouseover', function(e) {
+	const el = e.target.closest && e.target.closest('.icon-toggle');
+	if (el && !el.contains(e.relatedTarget)) setIconToggleOrigin(el, e.clientX);
+});
+document.addEventListener('mouseout', function(e) {
+	const el = e.target.closest && e.target.closest('.icon-toggle');
+	if (el && !el.contains(e.relatedTarget)) setIconToggleOrigin(el, e.clientX);
+});
 
 function setLayerButtonState(btn, group, on) {
 	btn.classList.toggle('selected', on);
@@ -530,21 +649,24 @@ function setLayerButtonState(btn, group, on) {
 	else    map.removeLayer(group);
 }
 
-const markerLayerButtons = MARKER_LAYERS.map(({ label, group, defaultOn, icons }) => {
-	const btn = createTraitButton('layer-icon-btn', { tooltip: label }, `<img src="${icons?.[0] ?? ''}" alt="${label}">`);
+// Два визуальных подряда — 18px (город/поселение/форт) и 16px (остальные) —
+// со своим зазором внутри группы (10px/12px) и между группами (11px), как в
+// Figma (COMPONENTS__LOCATION-TYPE, "18x18"/"16x16" внутри "location-type").
+const individualGroup18 = document.createElement('div');
+individualGroup18.className = 'icon-toggle-group icon-toggle-group--18';
+const individualGroup16 = document.createElement('div');
+individualGroup16.className = 'icon-toggle-group icon-toggle-group--16';
+individualContainer.appendChild(individualGroup18);
+individualContainer.appendChild(individualGroup16);
+
+const markerLayerButtons = MARKER_LAYERS.map(({ label, group, defaultOn, icons, size }) => {
+	const btn = createTraitButton(`layer-icon-btn icon-toggle icon-toggle--${size}`, { tooltip: label }, iconToggleIconHTML(icons?.[0] ?? '', label));
 	btn.classList.toggle('selected', defaultOn);
 	btn.addEventListener('click', function() {
 		setLayerButtonState(btn, group, !btn.classList.contains('selected'));
-		updateMasterLayerBtn();
 	});
-	individualContainer.appendChild(btn);
+	(size === 18 ? individualGroup18 : individualGroup16).appendChild(btn);
 	return btn;
-});
-
-masterLayerBtn.addEventListener('click', function() {
-	const turnOn = !markerLayerButtons.every(b => b.classList.contains('selected'));
-	markerLayerButtons.forEach((btn, i) => setLayerButtonState(btn, MARKER_LAYERS[i].group, turnOn));
-	updateMasterLayerBtn();
 });
 
 // ПКМ по иконке типа — «соло»: показать только этот тип, скрыв остальные.
@@ -557,20 +679,36 @@ markerLayerButtons.forEach((btn, idx) => {
 		markerLayerButtons.forEach((b, i) => {
 			setLayerButtonState(b, MARKER_LAYERS[i].group, isSoloed ? true : i === idx);
 		});
-		updateMasterLayerBtn();
 	});
 });
 
-function updateMasterLayerBtn() {
-	const allOn  = markerLayerButtons.every(b => b.classList.contains('selected'));
-	const allOff = markerLayerButtons.every(b => !b.classList.contains('selected'));
-	const partial = !allOn && !allOff;
-	masterLayerBtn.classList.toggle('selected', allOn);
-	masterLayerBtn.classList.toggle('partial', partial);
-	masterLayerBtn.innerHTML = partial ? EYE_SVG_HALF : EYE_SVG_OPEN;
-}
+// Заголовок «Локации» — замена прежней кнопки-глаза: клик включает/выключает
+// все типы разом. Наведение/нажатие меняет только курсор (см. CSS
+// .sidebar-section-label--toggle) — ни подсветки, ни тултипа быть не должно.
+document.getElementById('locations-section-label').addEventListener('click', function() {
+	const turnOn = !markerLayerButtons.every(b => b.classList.contains('selected'));
+	markerLayerButtons.forEach((btn, i) => setLayerButtonState(btn, MARKER_LAYERS[i].group, turnOn));
+});
 
-updateMasterLayerBtn();
+// locationType (как в Supabase/rowToFeature) -> LayerGroup слоя типов
+// маркеров — то же соответствие, что в switch внутри loadMarkers().
+const LOCATION_TYPE_TO_GROUP = {
+	city: cities, town: towns, fort: forts, camp: camps, shrine: shrines,
+	pointOfInterest: pointsOfInterest, polarGates: polarGates,
+	polarGatesBroken: polarGates, quest: quests,
+};
+
+// Если пользователь переходит к локации (из поиска или списка), а слой её
+// типа сейчас скрыт галочкой в «Локации» — маркер физически не на карте, и
+// открыть попап невозможно. Включаем слой автоматически, синхронизируя
+// иконку-переключатель и мастер-кнопку, чтобы это не выглядело багом.
+function ensureLocationTypeVisible(locationType) {
+	const group = LOCATION_TYPE_TO_GROUP[locationType];
+	if (!group || map.hasLayer(group)) return;
+	const idx = MARKER_LAYERS.findIndex(l => l.group === group);
+	if (idx === -1) return;
+	setLayerButtonState(markerLayerButtons[idx], group, true);
+}
 
 
 // ─── SIDEBAR: ЧЕКБОКСЫ СЛОЁВ КАРТЫ ───────────────────────────────────────
@@ -579,6 +717,14 @@ const mapLayerContainer = document.getElementById('map-layer-checkboxes');
 MAP_LAYERS.forEach(({ label, layer, defaultOn, id }) => {
 	const lbl = document.createElement('label');
 	lbl.className = 'layer-checkbox';
+
+	// .checkbox-fx — та же fx-icon-механика, что у остальных иконок из Figma
+	// (COMPONENTS__GENERAL→checkbox): настоящий input визуально спрятан
+	// (opacity:0 в CSS), но остаётся кликабельным/фокусируемым, поверх —
+	// 3 наложенных экспорта Figma (default/hover/checked), переключаемых
+	// через :hover/:checked на обёртке (см. style.css).
+	const fx = document.createElement('span');
+	fx.className = 'checkbox-fx';
 
 	const cb = document.createElement('input');
 	cb.type    = 'checkbox';
@@ -590,9 +736,31 @@ MAP_LAYERS.forEach(({ label, layer, defaultOn, id }) => {
 		else              map.removeLayer(layer);
 	});
 
-	lbl.appendChild(cb);
+	fx.appendChild(cb);
+	['default', 'hover', 'checked'].forEach(state => {
+		const img = document.createElement('img');
+		img.className = `fx-icon__layer fx-icon__layer--${state}`;
+		img.src = `images/ui/checkbox--${state}.svg`;
+		img.alt = '';
+		fx.appendChild(img);
+	});
+
+	lbl.appendChild(fx);
 	lbl.appendChild(document.createTextNode(' ' + label));
 	mapLayerContainer.appendChild(lbl);
+});
+
+// Заголовок «Слои карты» — тот же принцип, что у «Локации»: клик включает/
+// выключает все слои разом, курсор меняется по CSS, без тултипа.
+document.getElementById('maplayers-section-label').addEventListener('click', function() {
+	const checkboxes = [...mapLayerContainer.querySelectorAll('input[type="checkbox"]')];
+	const turnOn = !checkboxes.every(cb => cb.checked);
+	checkboxes.forEach(cb => {
+		if (cb.checked !== turnOn) {
+			cb.checked = turnOn;
+			cb.dispatchEvent(new Event('change'));
+		}
+	});
 });
 
 
@@ -652,6 +820,14 @@ function buildLocationList(features) {
 		}
 		provDiv.appendChild(header);
 
+		// .province-body — grid из двух колонок: узкая "рельса" (линия слева,
+		// растянутая на высоту всего списка через CSS grid) и сам список.
+		const body = document.createElement('div');
+		body.className = 'province-body';
+		const rail = document.createElement('div');
+		rail.className = 'province-rail';
+		body.appendChild(rail);
+
 		const ul = document.createElement('ul');
 		ul.className = 'location-items';
 
@@ -661,28 +837,78 @@ function buildLocationList(features) {
 				const li = document.createElement('li');
 				li.className     = 'location-item';
 				li.textContent   = f.properties.runame ?? '';
-				li.dataset.ru    = (f.properties.runame  ?? '').toLowerCase();
-				li.dataset.en    = (f.properties.engname ?? '').toLowerCase();
+				li.dataset.ru     = (f.properties.runame  ?? '').toLowerCase();
+				li.dataset.en     = (f.properties.engname ?? '').toLowerCase();
+				li.dataset.type   = f.properties.locationType ?? '';
+				li.dataset.traits = (f.properties.traits ?? []).join(',').toLowerCase();
 
 				li.addEventListener('click', function() {
 					const marker = markersById[f.properties.id];
 					if (marker) {
+						ensureLocationTypeVisible(f.properties.locationType);
 						focusLatLng(marker.getLatLng());
-						setTimeout(() => marker.openPopup(), FOCUS_FLY_DURATION * 1000);
+						setTimeout(() => {
+							marker.openPopup();
+							// на случай повторного клика по той же локации, когда попап и
+							// так уже открыт — см. комментарий у fitPopupWidth
+							fitPopupWidth(marker.getPopup());
+						}, FOCUS_FLY_DURATION * 1000);
 					}
 				});
 
 				ul.appendChild(li);
 			});
 
-		provDiv.appendChild(ul);
+		body.appendChild(ul);
+		provDiv.appendChild(body);
 		container.appendChild(provDiv);
 	});
+
+	// Список каждый раз строится заново с нуля (при старте и после
+	// добавления/сохранения/удаления маркера — см. loadMarkers), поэтому
+	// заново применяем действующий поиск/фильтры — иначе после, например,
+	// «Сохранить» список молча сбрасывался в непросеянный, хотя запрос в
+	// строке поиска оставался на месте.
+	applySidebarFilters();
+	// список особенностей в панели фильтров тоже мог пополниться — если
+	// только что сохранённый маркер завёл новую системную особенность
+	if (typeof buildFilterTraitRow === 'function') buildFilterTraitRow();
 }
 
-// ─── SIDEBAR: ПОИСК ───────────────────────────────────────────────────────
-document.getElementById('sidebar-search').addEventListener('input', function() {
-	const query = this.value.toLowerCase().trim();
+// ─── SIDEBAR: ПОИСК + ФИЛЬТРЫ ───────────────────────────────────────────────
+const sidebarSearchInput    = document.getElementById('sidebar-search');
+const sidebarSearchClearBtn = document.getElementById('sidebar-search-clear');
+
+let activeTypeFilter      = new Set(); // locationType — пусто = без фильтра («все»)
+let activeTraitFilter     = new Set(); // ключи особенностей (иконки + системные)
+let traitFilterMode       = 'or';      // 'or' — любая из выбранных, 'and' — все сразу, 'exclude' — ни одной
+
+// buildFilter*Row() пересоздаёт ВСЕ пилюли на каждый клик (в т.ч. уже
+// выбранные) — без этой метки CSS-анимация подсветки играла бы у всех
+// выбранных разом, а не только у той, что только что включили. Ставится в
+// toggle*Filter, используется/сбрасывается один раз в соответствующем build.
+let lastToggledTypeKey      = null;
+let lastToggledTraitKey     = null;
+let lastToggledCharacterKey = null;
+let activeCharacterFilter = new Set(); // ключи персонажей (CHARACTER_TRAITS) — своя группа/режим
+let characterFilterMode   = 'or';
+
+// И особенности, и персонажи в итоге лежат в одном item.dataset.traits — это
+// общая проверка "выбранный набор ключей совпадает с набором у локации" для
+// обеих групп, каждая со своим режимом ИЛИ/И/ИСКЛ.
+function matchesTraitSet(itemTraits, filterSet, mode) {
+	if (!filterSet.size) return true;
+	if (mode === 'exclude') return ![...filterSet].some(t => itemTraits.includes(t));
+	return mode === 'and'
+		? [...filterSet].every(t => itemTraits.includes(t))
+		: [...filterSet].some(t => itemTraits.includes(t));
+}
+
+function applySidebarFilters() {
+	const query = sidebarSearchInput.value.toLowerCase().trim();
+	sidebarSearchClearBtn.classList.toggle('hidden', !query);
+
+	const hasStructuralFilter = activeTypeFilter.size > 0 || activeTraitFilter.size > 0 || activeCharacterFilter.size > 0;
 
 	document.querySelectorAll('.province-group').forEach(provDiv => {
 		const header = provDiv.querySelector('.province-header');
@@ -694,18 +920,253 @@ document.getElementById('sidebar-search').addEventListener('input', function() {
 
 		let anyVisible = false;
 		provDiv.querySelectorAll('.location-item').forEach(item => {
-			const match = !query || regionMatch || item.dataset.ru.includes(query) || item.dataset.en.includes(query);
+			const textOk = !query || regionMatch || item.dataset.ru.includes(query) || item.dataset.en.includes(query);
+			const typeOk = !activeTypeFilter.size || activeTypeFilter.has(item.dataset.type);
+
+			const itemTraits = item.dataset.traits ? item.dataset.traits.split(',') : [];
+			const traitOk     = matchesTraitSet(itemTraits, activeTraitFilter, traitFilterMode);
+			const characterOk = matchesTraitSet(itemTraits, activeCharacterFilter, characterFilterMode);
+
+			const match = textOk && typeOk && traitOk && characterOk;
 			item.style.display = match ? '' : 'none';
 			if (match) anyVisible = true;
 		});
 
-		const groupVisible = anyVisible || regionMatch;
+		// Совпадение по названию/владельцу самой провинции разворачивает её
+		// целиком (все локации внутри) — но только пока нет фильтра по типу
+		// или особенностям: с ним пустая с виду группа не должна вылезать
+		// только потому, что угадалось название региона.
+		const groupVisible = anyVisible || (regionMatch && !hasStructuralFilter);
 
-		// При поиске автоматически разворачиваем провинцию
-		if (query && groupVisible) provDiv.classList.remove('collapsed');
+		// При поиске/фильтрах автоматически разворачиваем провинцию
+		if ((query || hasStructuralFilter) && groupVisible) provDiv.classList.remove('collapsed');
 		provDiv.style.display = groupVisible ? '' : 'none';
 	});
+}
+
+sidebarSearchInput.addEventListener('input', applySidebarFilters);
+
+sidebarSearchClearBtn.addEventListener('click', function() {
+	sidebarSearchInput.value = '';
+	sidebarSearchInput.focus();
+	applySidebarFilters();
 });
+
+// ─── SIDEBAR: ПАНЕЛЬ ФИЛЬТРОВ (тип локации + особенности) ───────────────────
+// locationType -> {type, label}, тот же порядок/подписи, что у иконок слоёв —
+// достаём type-ключ из LOCATION_TYPE_TO_GROUP, чтобы не заводить список labels
+// второй раз.
+const LOCATION_TYPE_LIST = MARKER_LAYERS.map(({ label, group }) => ({
+	type: Object.keys(LOCATION_TYPE_TO_GROUP).find(k => LOCATION_TYPE_TO_GROUP[k] === group),
+	label,
+}));
+
+const searchFilterToggle   = document.getElementById('search-filter-toggle');
+const searchFilterPanel    = document.getElementById('search-filter-panel');
+const filterTypeRow        = document.getElementById('filter-type-row');
+const filterTraitRow       = document.getElementById('filter-trait-row');
+const filterTraitModeEl    = document.getElementById('filter-trait-mode');
+const filterCharacterRow   = document.getElementById('filter-character-row');
+const filterCharacterModeEl = document.getElementById('filter-character-mode');
+const filterResetBtn       = document.getElementById('filter-reset-btn');
+
+searchFilterToggle.addEventListener('click', function() {
+	searchFilterPanel.classList.toggle('hidden');
+	searchFilterToggle.classList.toggle('active', !searchFilterPanel.classList.contains('hidden'));
+});
+
+function updateFilterResetVisibility() {
+	const active = activeTypeFilter.size > 0 || activeTraitFilter.size > 0 || activeCharacterFilter.size > 0;
+	filterResetBtn.classList.toggle('hidden', !active);
+	searchFilterToggle.classList.toggle('active', active || !searchFilterPanel.classList.contains('hidden'));
+}
+
+// Тип локации — множественный выбор (как особенности): пустой набор значит
+// «без фильтра», без отдельной пилюли «Все» под это.
+function toggleTypeFilter(type) {
+	if (activeTypeFilter.has(type)) {
+		activeTypeFilter.delete(type);
+		lastToggledTypeKey = null;
+	} else {
+		activeTypeFilter.add(type);
+		lastToggledTypeKey = type;
+	}
+	buildFilterTypeRow();
+	applySidebarFilters();
+	updateFilterResetVisibility();
+}
+
+function buildFilterTypeRow() {
+	filterTypeRow.innerHTML = '';
+	// Два подряда — 18px (город/поселение/форт) и 16px (остальные), см.
+	// комментарий у individualGroup18/16 выше.
+	const group18 = document.createElement('div');
+	group18.className = 'icon-toggle-group icon-toggle-group--18';
+	const group16 = document.createElement('div');
+	group16.className = 'icon-toggle-group icon-toggle-group--16';
+	filterTypeRow.appendChild(group18);
+	filterTypeRow.appendChild(group16);
+
+	LOCATION_TYPE_LIST.forEach(({ type, label }, i) => {
+		if (!type) return;
+		const layer = MARKER_LAYERS[i];
+		const icon = layer && layer.icons && layer.icons[0];
+		const size = layer?.size ?? 16;
+		const isSelected = activeTypeFilter.has(type);
+		const isJustSelected = isSelected && type === lastToggledTypeKey;
+		const btn = document.createElement('button');
+		btn.type = 'button';
+		btn.className = `filter-pill icon-only icon-toggle icon-toggle--${size}` +
+			(isSelected ? ' selected' : '') + (isJustSelected ? ' just-selected' : '');
+		btn.innerHTML = iconToggleIconHTML(icon, '');
+		btn.title = label;
+		btn.addEventListener('click', () => toggleTypeFilter(type));
+		(size === 18 ? group18 : group16).appendChild(btn);
+	});
+	lastToggledTypeKey = null; // метка одноразовая — использована выше, дальше сбрасываем
+}
+
+function toggleTraitFilter(key) {
+	// item.dataset.traits (см. buildLocationList) собран в нижнем регистре —
+	// activeTraitFilter должен сравниваться с ним в том же регистре, иначе
+	// системная особенность с заглавной буквой («Забытое место») никогда бы
+	// не совпадала с результатами, даже будучи выбранной в фильтре.
+	const k = key.toLowerCase();
+	if (activeTraitFilter.has(k)) {
+		activeTraitFilter.delete(k);
+		lastToggledTraitKey = null; // сняли выбор — анимировать нечего
+	} else {
+		activeTraitFilter.add(k);
+		lastToggledTraitKey = k; // только что включили — именно эту анимируем
+	}
+	buildFilterTraitRow();
+	applySidebarFilters();
+	updateFilterResetVisibility();
+}
+
+// tooltip у sword_of_khaine — не короткое имя, а целый HTML-абзац лора для
+// попапа (это осознанно, так и задумано на попапе — там оно выводится
+// полностью: жирным названием и описанием под ним). В фильтре так не нужно —
+// только имя. Отличаем "это лор-абзац" от "это уже короткое имя" по
+// присутствию тегов: если тегов нет (обычный tooltip вроде "Гора" или
+// "Древняя колония высших эльфов") — выводим как есть целиком, ничего не
+// обрезаем; если теги есть — это лор, и в подпись идут только первые два
+// слова названия.
+function traitFilterLabel(tooltip) {
+	if (!/<[^>]+>/.test(tooltip)) return tooltip;
+	const text = tooltip.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+	return text.split(' ').slice(0, 2).join(' ');
+}
+
+function buildFilterTraitRow() {
+	filterTraitRow.innerHTML = '';
+
+	// Пилюли разной ширины, в исходном порядке, при переносе строки почти
+	// всегда оставляют куски пустого места (короткая "Лес" одна на новой
+	// строке рядом с местом, куда бы влезла). Порядок между особенностями
+	// для пользователя не важен — сортируем по длине подписи, тогда короткие
+	// пилюли группируются вместе и flex-wrap упаковывает их плотнее, без
+	// специальной раскладки. Иконки и текстовые (системные) особенности при
+	// этом не перемешиваем — сперва все иконки, потом весь текст.
+	const entries = [
+		...Object.entries(TRAITS).map(([key, t]) => ({
+			key, label: traitFilterLabel(t.tooltip), icon: t.icon,
+		})),
+		...getAllSystemTraitKeys().map(key => ({ key, label: key, icon: null })),
+	];
+	entries.sort((a, b) => {
+		if (!!a.icon !== !!b.icon) return a.icon ? -1 : 1;
+		return a.label.length - b.label.length;
+	});
+
+	entries.forEach(({ key, label, icon }) => {
+		const btn = document.createElement('button');
+		btn.type = 'button';
+		const isSelected = activeTraitFilter.has(key.toLowerCase());
+		// just-selected — одноразовая метка именно той пилюли, которую только
+		// что включили (см. toggleTraitFilter/lastToggledTraitKey), чтобы
+		// анимация подсветки играла у неё одной, а не у всех уже выбранных
+		// разом (весь ряд здесь пересоздаётся заново на каждый клик).
+		const isJustSelected = isSelected && key.toLowerCase() === lastToggledTraitKey;
+		// С иконкой — только иконка (плюс title вместо подписи), без иконки
+		// (системные особенности) — текстовая пилюля с той же подсветкой.
+		btn.className = 'filter-pill' + (icon ? ' icon-only icon-toggle icon-toggle--16' : ' icon-toggle icon-toggle--text') +
+			(isSelected ? ' selected' : '') + (isJustSelected ? ' just-selected' : '');
+		if (icon) {
+			btn.innerHTML = iconToggleIconHTML(icon, '');
+			btn.title = label;
+		}
+		else btn.innerHTML = iconToggleTextHTML(label);
+		btn.addEventListener('click', () => toggleTraitFilter(key));
+		filterTraitRow.appendChild(btn);
+	});
+	lastToggledTraitKey = null; // метка одноразовая — использована выше, дальше сбрасываем
+}
+
+function toggleCharacterFilter(key) {
+	const k = key.toLowerCase();
+	if (activeCharacterFilter.has(k)) {
+		activeCharacterFilter.delete(k);
+		lastToggledCharacterKey = null;
+	} else {
+		activeCharacterFilter.add(k);
+		lastToggledCharacterKey = k;
+	}
+	buildFilterCharacterRow();
+	applySidebarFilters();
+	updateFilterResetVisibility();
+}
+
+function buildFilterCharacterRow() {
+	filterCharacterRow.innerHTML = '';
+	const entries = Object.entries(CHARACTER_TRAITS).map(([key, c]) => ({ key, label: c.tooltip, icon: c.icon }));
+	entries.sort((a, b) => a.label.length - b.label.length); // см. комментарий у buildFilterTraitRow
+
+	entries.forEach(({ key, label, icon }) => {
+		const btn = document.createElement('button');
+		btn.type = 'button';
+		const isSelected = activeCharacterFilter.has(key.toLowerCase());
+		const isJustSelected = isSelected && key.toLowerCase() === lastToggledCharacterKey;
+		btn.className = 'filter-pill icon-only icon-toggle icon-toggle--16' +
+			(isSelected ? ' selected' : '') + (isJustSelected ? ' just-selected' : '');
+		btn.innerHTML = iconToggleIconHTML(icon, '');
+		btn.title = label;
+		btn.addEventListener('click', () => toggleCharacterFilter(key));
+		filterCharacterRow.appendChild(btn);
+	});
+	lastToggledCharacterKey = null; // метка одноразовая — использована выше, дальше сбрасываем
+}
+
+filterTraitModeEl.querySelectorAll('.trait-mode-btn').forEach(btn => {
+	btn.addEventListener('click', () => {
+		traitFilterMode = btn.dataset.mode;
+		filterTraitModeEl.querySelectorAll('.trait-mode-btn').forEach(b => b.classList.toggle('selected', b === btn));
+		applySidebarFilters();
+	});
+});
+
+filterCharacterModeEl.querySelectorAll('.trait-mode-btn').forEach(btn => {
+	btn.addEventListener('click', () => {
+		characterFilterMode = btn.dataset.mode;
+		filterCharacterModeEl.querySelectorAll('.trait-mode-btn').forEach(b => b.classList.toggle('selected', b === btn));
+		applySidebarFilters();
+	});
+});
+
+filterResetBtn.addEventListener('click', () => {
+	activeTypeFilter.clear();
+	activeTraitFilter.clear();
+	activeCharacterFilter.clear();
+	buildFilterTypeRow();
+	buildFilterTraitRow();
+	buildFilterCharacterRow();
+	applySidebarFilters();
+	updateFilterResetVisibility();
+});
+
+buildFilterTypeRow();
+buildFilterTraitRow();
+buildFilterCharacterRow();
 
 
 // ─── SIDEBAR: TOGGLE ──────────────────────────────────────────────────────
@@ -1022,34 +1483,69 @@ document.addEventListener('keydown', function(e) {
 // база, от которой считаем, нужно ли раздвигать попап шире.
 const POPUP_DEFAULT_WIDTH = 300;
 
-map.on('popupopen', function(e) {
-	const popup    = e.popup.getElement();
-	const content  = popup.querySelector('.popup-content');
-	const h1       = popup.querySelector('h1');
-	const traits   = popup.querySelector('.traits');
-	const editIcon = popup.querySelector('.popup-edit-icon'); // видна только админу — .title-row шире на её ширину+отступ
+// Вынесена в отдельную функцию (не только колбэк popupopen), потому что
+// событие popupopen срабатывает лишь на первое открытие конкретного попапа.
+// Повторный вызов marker.openPopup(), когда попап и так уже открыт (второй
+// клик на то же имя локации в списке), popupopen заново не поднимает — но
+// Leaflet при этом всё равно перечитывает содержимое попапа из ИСХОДНОЙ
+// HTML-строки, переданной в bindPopup (наша .popup-content — не живой DOM-
+// узел, а строка, из которой innerHTML собирается заново), а в этой строке
+// никакой ширины не прописано — так и обнулялась. Поэтому пересчёт вызывается
+// явно на каждый openPopup(), а не только через map.on('popupopen', ...).
+function fitPopupWidth(popup) {
+	// setTimeout(0), а не сразу: при самом первом открытии конкретного попапа
+	// его разметка только что вставлена в DOM в этом же такте — браузер ещё
+	// не сделал layout, и h1.scrollWidth/offsetWidth читаются нулевыми или
+	// какими попало, из-за чего попап на первый клик не раздвигался вообще
+	// (а на второй — уже раздвигался, потому что DOM был готов). Один тик
+	// ожидания даёт браузеру досчитать раскладку перед замером.
+	setTimeout(() => {
+		const popupEl = popup?.getElement();
+		if (!popupEl) return;
+		const content = popupEl.querySelector('.popup-content');
+		if (!content) return;
+		const h1       = popupEl.querySelector('h1');
+		const traits   = popupEl.querySelector('.traits');
+		const editIcon = popupEl.querySelector('.popup-edit-icon'); // видна только админу — .title-row шире на её ширину+отступ
 
-	content.style.width = '';
-	if (!h1) return;
+		content.style.width = '';
+		if (h1) {
+			// h1.scrollWidth в уже перенёсшемся по словам контейнере — это ширина
+			// самой широкой из УЖЕ перенесённых строк, а не та, что нужна заголовку
+			// в одну строку целиком. Меряем принудительно в одну строку (nowrap),
+			// иначе после первого же переноса ширина считалась заниженной и попап
+			// не мог сам себя "распрямить".
+			const prevWhiteSpace = h1.style.whiteSpace;
+			h1.style.whiteSpace = 'nowrap';
+			const h1Width = h1.scrollWidth;
+			h1.style.whiteSpace = prevWhiteSpace;
 
-	// h1.scrollWidth в уже перенёсшемся по словам контейнере — это ширина
-	// самой широкой из УЖЕ перенесённых строк, а не та, что нужна заголовку
-	// в одну строку целиком. Меряем принудительно в одну строку (nowrap),
-	// иначе после первого же переноса ширина считалась заниженной и попап
-	// не мог сам себя "распрямить".
-	const prevWhiteSpace = h1.style.whiteSpace;
-	h1.style.whiteSpace = 'nowrap';
-	const h1Width = h1.scrollWidth;
-	h1.style.whiteSpace = prevWhiteSpace;
+			// Считаем ширину, нужную заголовку в одну строку вместе с иконкой
+			// редактирования и особенностями (если они есть) — если базовой ширины
+			// попапа не хватает, раздвигаем попап ровно настолько, чтобы всё
+			// поместилось в одну строку.
+			const editIconWidth = editIcon ? editIcon.offsetWidth + 6 : 0;
+			const neededWidth = editIconWidth + h1Width + 8 + (traits?.offsetWidth ?? 0) + 50;
+			if (neededWidth > POPUP_DEFAULT_WIDTH) content.style.width = neededWidth + 'px';
+		}
 
-	// Считаем ширину, нужную заголовку в одну строку вместе с иконкой
-	// редактирования и особенностями (если они есть) — если базовой ширины
-	// попапа не хватает, раздвигаем попап ровно настолько, чтобы всё
-	// поместилось в одну строку.
-	const editIconWidth = editIcon ? editIcon.offsetWidth + 6 : 0;
-	const neededWidth = editIconWidth + h1Width + 8 + (traits?.offsetWidth ?? 0) + 50;
-	if (neededWidth > POPUP_DEFAULT_WIDTH) content.style.width = neededWidth + 'px';
-});
+		// Попап уже был спозиционирован (по центру над маркером) под старую,
+		// узкую ширину контента — раздвинули её выше, но Leaflet сам заново не
+		// пересчитывает положение, поэтому попап визуально "съезжал" вбок
+		// относительно маркера. Нужно пересчитать позицию под новую ширину —
+		// но НЕ через popup.update(): он сначала дёргает _updateContent(),
+		// а наш контент передан в bindPopup строкой, а не живым узлом, и
+		// _updateContent на любое обновление заново подставляет innerHTML из
+		// этой исходной строки — стирая ширину, которую мы только что
+		// поставили, в том же самом вызове. _updateLayout()+_updatePosition()
+		// (без _updateContent) пересчитывают только размер/позицию контейнера
+		// под уже применённую ширину, содержимое не трогая.
+		popup._updateLayout();
+		popup._updatePosition();
+	}, 0);
+}
+
+map.on('popupopen', function(e) { fitPopupWidth(e.popup); });
 
 
 // ─── ТУЛТИП ───────────────────────────────────────────────────────────────
@@ -1059,9 +1555,10 @@ document.body.appendChild(traitTooltip);
 let pinned = false;
 
 // Текст тултипа: сначала свой data-tooltip на элементе (иконки слоёв в
-// «Локациях»), иначе — словарь TRAITS по data-key (особенности локации).
+// «Локациях»), иначе — словарь TRAITS/CHARACTER_TRAITS по data-key
+// (особенности/персонажи в форме и попапе локации).
 function traitTooltipContent(el) {
-	return el.dataset.tooltip ?? TRAITS[el.dataset.key]?.tooltip ?? '';
+	return el.dataset.tooltip ?? TRAITS[el.dataset.key]?.tooltip ?? CHARACTER_TRAITS[el.dataset.key]?.tooltip ?? '';
 }
 
 document.addEventListener('mouseover', function(e) {
@@ -1196,20 +1693,23 @@ const deleteMarkerBtn  = document.getElementById('delete-marker-btn');
 const revertDefaultBtn = document.getElementById('revert-default-btn');
 const markerForm       = document.getElementById('marker-form');
 const formErrorEl      = document.getElementById('form-error');
-const placeHint        = document.getElementById('place-hint');
 const traitsIconsEl    = document.getElementById('traits-icons');
+const characterIconsEl = document.getElementById('character-icons');
 
+// Особенности-иконки (TRAIT_LABELS/TRAITS) + персонажи (CHARACTER_TRAITS) +
+// системные (свободный текст, без иконки — см. getAllSystemTraitKeys) вместе
+// идут в одно поле traits при сохранении, различать их по данным потом не
+// нужно: buildTraitsHTML сам отсеивает всё, чего нет в TRAITS.
 function getSelectedTraits() {
-	return [...traitsIconsEl.querySelectorAll('.trait-icon-btn.selected')].map(b => b.dataset.key);
+	const iconTraits      = [...traitsIconsEl.querySelectorAll('.trait-icon-btn.selected')].map(b => b.dataset.key);
+	const characterTraits = [...characterIconsEl.querySelectorAll('.trait-icon-btn.selected')].map(b => b.dataset.key);
+	return [...iconTraits, ...characterTraits, ...selectedSystemTraits];
 }
 
 const TRAIT_LABELS = {
 	'port':            'Порт',
-	'settlement':      'Поселение',
 	'mountain':        'Гора',
 	'colony':          'Древняя колония высших эльфов',
-	'capital_hef':     'Столица высших эльфов',
-	'capital_def':     'Столица тёмных эльфов',
 	'forest':          'Лес',
 	'sword_of_khaine': 'Меч Кхейна',
 };
@@ -1222,6 +1722,62 @@ Object.entries(TRAIT_LABELS).forEach(([key, label]) => {
 	const btn = createTraitButton('trait-icon-btn', { key }, `<img src="${TRAITS[key]?.icon ?? ''}" alt="${label}">`);
 	btn.addEventListener('click', () => btn.classList.toggle('selected'));
 	traitsIconsEl.appendChild(btn);
+});
+
+// Тот же ряд-переключатель, что и особенности выше, но свой контейнер и свой
+// источник (CHARACTER_TRAITS) — персонажи в попапе не показываются.
+Object.entries(CHARACTER_TRAITS).forEach(([key, c]) => {
+	const btn = createTraitButton('trait-icon-btn', { key }, `<img src="${c.icon}" alt="${c.tooltip}">`);
+	btn.addEventListener('click', () => btn.classList.toggle('selected'));
+	characterIconsEl.appendChild(btn);
+});
+
+// ─── АДМИНКА: СИСТЕМНЫЕ ОСОБЕННОСТИ (без иконки) ────────────────────────────
+const systemTraitsChipsEl  = document.getElementById('system-traits-chips');
+const systemTraitNewInput  = document.getElementById('system-trait-new-input');
+const systemTraitAddBtn    = document.getElementById('system-trait-add-btn');
+
+// Выбор храним отдельным множеством (а не только .selected в DOM), потому что
+// список чипов перестраивается заново (buildSystemTraitsChips) каждый раз,
+// когда появляется свежедобавленная особенность — DOM-класс это не пережил бы.
+let selectedSystemTraits = new Set();
+
+function buildSystemTraitsChips() {
+	// Известные по всем маркерам + то, что уже выбрано в этой форме (в т.ч.
+	// только что вписанное вручную и ещё не сохранённое ни на одном маркере).
+	const keys = new Set([...getAllSystemTraitKeys(), ...selectedSystemTraits]);
+	systemTraitsChipsEl.innerHTML = '';
+	[...keys].sort((a, b) => a.localeCompare(b, 'ru')).forEach(key => {
+		const chip = document.createElement('button');
+		chip.type = 'button';
+		chip.className = 'system-trait-chip' + (selectedSystemTraits.has(key) ? ' selected' : '');
+		chip.textContent = key;
+		chip.addEventListener('click', () => {
+			if (selectedSystemTraits.has(key)) selectedSystemTraits.delete(key);
+			else selectedSystemTraits.add(key);
+			buildSystemTraitsChips();
+		});
+		systemTraitsChipsEl.appendChild(chip);
+	});
+}
+buildSystemTraitsChips();
+
+function addSystemTraitFromInput() {
+	const value = systemTraitNewInput.value.trim();
+	if (!value) return;
+	if (TRAITS[value]) {
+		// не даём завести системную особенность с тем же именем, что и
+		// готовая иконочная — иначе одна перекрывала бы другую в traits[]
+		formErrorEl.textContent = `«${value}» уже есть среди обычных особенностей`;
+		return;
+	}
+	selectedSystemTraits.add(value);
+	systemTraitNewInput.value = '';
+	buildSystemTraitsChips();
+}
+systemTraitAddBtn.addEventListener('click', addSystemTraitFromInput);
+systemTraitNewInput.addEventListener('keydown', function(e) {
+	if (e.key === 'Enter') { e.preventDefault(); addSystemTraitFromInput(); }
 });
 
 let activeMarkerId = null; // null = создаём новый
@@ -1407,6 +1963,9 @@ function showEditView() {
 function resetMarkerForm() {
 	markerForm.reset();
 	traitsIconsEl.querySelectorAll('.trait-icon-btn.selected').forEach(b => b.classList.remove('selected'));
+	characterIconsEl.querySelectorAll('.trait-icon-btn.selected').forEach(b => b.classList.remove('selected'));
+	selectedSystemTraits = new Set();
+	buildSystemTraitsChips(); // на случай новых системных особенностей от других маркеров
 	formErrorEl.textContent = '';
 	provinceIsAuto = true;
 	autoProvinceValue = '';
@@ -1423,7 +1982,6 @@ function populateAdminDatalists() {
 
 // ─── АДМИНКА: ВСТАВКА ССЫЛКИ НА ЛОКАЦИЮ/ПРОВИНЦИЮ/ФРАКЦИЮ В ОПИСАНИЕ ───────
 const descriptionInput   = document.getElementById('f-description');
-const insertLinkBtn      = document.getElementById('insert-link-btn');
 const linkPickerEl       = document.getElementById('link-picker');
 const linkPickerSearch   = document.getElementById('link-picker-search');
 const linkPickerResults  = document.getElementById('link-picker-results');
@@ -1431,81 +1989,142 @@ const linkPickerResults  = document.getElementById('link-picker-results');
 let linkInsertPos = null; // позиция курсора в textarea на момент открытия панели
 
 // ─── АДМИНКА: ПАНЕЛЬ ФОРМАТИРОВАНИЯ ОПИСАНИЯ ───────────────────────────────
-// Выделяем текст в textarea, жмём кнопку — теги оборачивают выделение (как в
-// Obsidian); без выделения теги вставляются пустыми и курсор встаёт между ними.
+// Выделяем текст в textarea, жмём кнопку — вставляется markdown-разметка
+// (как в Obsidian, только без превью); без выделения вставляется пустой
+// маркер и курсор встаёт между парой символов. См. renderDescription/
+// renderMarkdownBlock выше — там же расписан весь синтаксис.
+//
+// Тулбар продублирован в компактном поле и в диалоге-расширении (два разных
+// .desc-editor с разными id у textarea) — один и тот же набор функций
+// работает с любым из двух, т.к. принимает textarea явным параметром вместо
+// жёсткой ссылки на descriptionInput; какую textarea использовать, клик-
+// хендлер ниже определяет через closest('.desc-editor').
 const WRAP_TAGS = {
-	p: ['<p>', '</p>'],
-	b: ['<b>', '</b>'],
-	i: ['<i>', '</i>'],
-	blockquote: ['<blockquote>', '</blockquote>'],
+	b: ['**', '**'],
+	i: ['_', '_'],
 };
 
-function wrapSelection(open, close) {
-	const { selectionStart: start, selectionEnd: end, value } = descriptionInput;
+function wrapSelection(textarea, open, close) {
+	const { selectionStart: start, selectionEnd: end, value } = textarea;
 	const selected = value.slice(start, end);
-	descriptionInput.value = value.slice(0, start) + open + selected + close + value.slice(end);
-	descriptionInput.focus();
-	descriptionInput.setSelectionRange(start + open.length, start + open.length + selected.length);
+	textarea.value = value.slice(0, start) + open + selected + close + value.slice(end);
+	textarea.focus();
+	textarea.setSelectionRange(start + open.length, start + open.length + selected.length);
 }
 
-function wrapAlign(align) {
-	wrapSelection(`<div style="text-align:${align}">`, '</div>');
+// Цитата — не простое оборачивание начала/конца, а префикс "> " у КАЖДОЙ
+// строки выделения (можно цитировать сразу несколько строк/абзацев).
+function wrapAsQuote(textarea) {
+	const { selectionStart: start, selectionEnd: end, value } = textarea;
+	const selected = value.slice(start, end);
+	const quoted = selected
+		? selected.split('\n').map(line => line ? `> ${line}` : '>').join('\n')
+		: '> ';
+	textarea.value = value.slice(0, start) + quoted + value.slice(end);
+	textarea.focus();
+	const caret = start + quoted.length;
+	textarea.setSelectionRange(selected ? start : caret, caret);
 }
 
-function clearFormatting() {
-	const { selectionStart: start, selectionEnd: end, value } = descriptionInput;
+// Пустая строка — то, что renderMarkdownBlock распознаёт как границу абзаца.
+function insertParagraphBreak(textarea) {
+	const { selectionStart: start, selectionEnd: end, value } = textarea;
+	textarea.value = value.slice(0, start) + '\n\n' + value.slice(end);
+	textarea.focus();
+	const caret = start + 2;
+	textarea.setSelectionRange(caret, caret);
+}
+
+function wrapAlign(textarea, align) {
+	wrapSelection(textarea, `<div style="text-align:${align}">`, '</div>');
+}
+
+// Снимает и старую HTML-разметку (совместимость с записями до перехода на
+// markdown), и новую: **жирный**/_курсив_/"> " в начале строки.
+function stripFormatting(s) {
+	return s
+		.replace(/<[^>]+>/g, '')
+		.replace(/\*\*([^*]*)\*\*/g, '$1')
+		.replace(/_([^_]*)_/g, '$1')
+		.replace(/^\s*>\s?/gm, '');
+}
+
+function clearFormatting(textarea) {
+	const { selectionStart: start, selectionEnd: end, value } = textarea;
 	if (start === end) {
 		// ничего не выделено — снимаем разметку со всего текста
-		descriptionInput.value = value.replace(/<[^>]+>/g, '');
-		descriptionInput.focus();
-		descriptionInput.setSelectionRange(descriptionInput.value.length, descriptionInput.value.length);
+		textarea.value = stripFormatting(value);
+		textarea.focus();
+		textarea.setSelectionRange(textarea.value.length, textarea.value.length);
 		return;
 	}
 	const selected = value.slice(start, end);
-	const stripped = selected.replace(/<[^>]+>/g, '');
-	descriptionInput.value = value.slice(0, start) + stripped + value.slice(end);
-	descriptionInput.focus();
-	descriptionInput.setSelectionRange(start, start + stripped.length);
+	const stripped = stripFormatting(selected);
+	textarea.value = value.slice(0, start) + stripped + value.slice(end);
+	textarea.focus();
+	textarea.setSelectionRange(start, start + stripped.length);
+}
+
+// Диалог-расширение — просто дубль поля (см. ниже): у него нет собственного
+// состояния, любое изменение в нём тут же пишется обратно в настоящее
+// #f-description. Единственное место, где это нужно явно форсировать —
+// после программной правки .value из тулбара/шорткатов, т.к. это не вызывает
+// нативное событие 'input'.
+function syncExpandToReal(textarea) {
+	if (textarea === descExpandTextarea) descriptionInput.value = textarea.value;
 }
 
 document.querySelectorAll('.desc-toolbar .toolbar-btn').forEach(btn => {
-	if (btn.id === 'insert-link-btn') return; // обрабатывается отдельно ниже (открывает link-picker)
+	if (btn.classList.contains('js-insert-link')) return; // обрабатывается отдельно ниже (открывает link-picker)
 	btn.addEventListener('click', () => {
+		const textarea = btn.closest('.desc-editor').querySelector('textarea');
 		const wrap = btn.dataset.wrap;
 		const align = btn.dataset.align;
 		const action = btn.dataset.action;
-		if (align) wrapAlign(align);
-		else if (wrap && WRAP_TAGS[wrap]) wrapSelection(...WRAP_TAGS[wrap]);
-		else if (action === 'clear') clearFormatting();
+		if (align) wrapAlign(textarea, align);
+		else if (wrap === 'p') insertParagraphBreak(textarea);
+		else if (wrap === 'blockquote') wrapAsQuote(textarea);
+		else if (wrap && WRAP_TAGS[wrap]) wrapSelection(textarea, ...WRAP_TAGS[wrap]);
+		else if (action === 'clear') clearFormatting(textarea);
+		syncExpandToReal(textarea);
 	});
 });
 
-descriptionInput.addEventListener('keydown', function(e) {
+// Общий обработчик — навешан и на компактную textarea, и на textarea диалога
+// (см. ниже, после объявления descExpandTextarea).
+function handleFormatShortcut(e) {
 	if (!(e.ctrlKey || e.metaKey)) return;
-	if (e.key.toLowerCase() === 'b') { e.preventDefault(); wrapSelection(...WRAP_TAGS.b); }
-	if (e.key.toLowerCase() === 'i') { e.preventDefault(); wrapSelection(...WRAP_TAGS.i); }
-});
+	const textarea = e.currentTarget;
+	if (e.key.toLowerCase() === 'b') { e.preventDefault(); wrapSelection(textarea, ...WRAP_TAGS.b); syncExpandToReal(textarea); }
+	if (e.key.toLowerCase() === 'i') { e.preventDefault(); wrapSelection(textarea, ...WRAP_TAGS.i); syncExpandToReal(textarea); }
+}
+descriptionInput.addEventListener('keydown', handleFormatShortcut);
 
 // ─── АДМИНКА: РАСКРЫТИЕ ОПИСАНИЯ В БОЛЬШОЕ ОКНО ─────────────────────────────
 // Тот же стиль, что у диалога "Восстановить по умолчанию" (#revert-overlay).
-// Не дублируем тулбар/textarea в разметке — .desc-editor целиком переезжает
-// в диалог через appendChild (со всеми уже навешанными обработчиками) и
-// возвращается на своё место в форме при закрытии.
-const descExpandOverlay = document.getElementById('desc-expand-overlay');
-const descExpandDialog  = document.getElementById('desc-expand-dialog');
-const descExpandDoneBtn = document.getElementById('desc-expand-done-btn');
-const descEditorEl      = descriptionInput.closest('.desc-editor');
-const descEditorHome    = descEditorEl.parentElement; // .form-field — куда возвращать при закрытии
+// #f-description-expand — полноценный дубль поля (свой тулбар + textarea, см.
+// index.html и обработчик тулбара выше): ничего никуда не переезжает и не
+// клонируется, компактное поле в сайдбаре не трогается вообще. На каждый
+// ввод в диалоге значение пишется обратно в настоящее #f-description —
+// компактное поле просто "заполняется" по ходу печати, как обычное зеркало.
+const descExpandOverlay   = document.getElementById('desc-expand-overlay');
+const descExpandTextarea  = document.getElementById('f-description-expand');
+const descExpandDoneBtn   = document.getElementById('desc-expand-done-btn');
+const descEditorEl        = descriptionInput.closest('.desc-editor');
 
 function openDescExpand() {
-	descExpandDialog.insertBefore(descEditorEl, descExpandDialog.querySelector('.form-buttons'));
+	descExpandTextarea.value = descriptionInput.value;
 	descExpandOverlay.classList.remove('hidden');
-	descriptionInput.focus();
+	descExpandTextarea.focus();
 }
+
+descExpandTextarea.addEventListener('input', function() {
+	descriptionInput.value = this.value;
+});
+descExpandTextarea.addEventListener('keydown', handleFormatShortcut);
 
 function closeDescExpand() {
 	descExpandOverlay.classList.add('hidden');
-	descEditorHome.appendChild(descEditorEl);
 }
 
 descExpandDoneBtn.addEventListener('click', closeDescExpand);
@@ -1520,7 +2139,7 @@ document.addEventListener('keydown', function(e) {
 // "Описание" — она связана с textarea через for/id и форвардит клик) —
 // кроме кнопок тулбара, они и в компактном виде работают как обычно.
 descEditorEl.addEventListener('click', function(e) {
-	if (descExpandOverlay.contains(descEditorEl)) return; // уже открыто
+	if (!descExpandOverlay.classList.contains('hidden')) return; // уже открыто
 	if (e.target.closest('.toolbar-btn')) return;
 	openDescExpand();
 });
@@ -1558,9 +2177,15 @@ function renderLinkPickerResults(query) {
 	}).join('');
 }
 
-function openLinkPicker() {
-	linkInsertPos = descriptionInput.selectionStart ?? descriptionInput.value.length;
-	const btnRect = insertLinkBtn.getBoundingClientRect();
+// Как и остальной тулбар, продублирован в обеих .desc-editor (компактной и
+// диалоговой) — activeLinkTarget запоминает, из какой textarea/кнопки был
+// открыт пикер, чтобы вставить ссылку и закрыть поповер в нужном месте.
+let activeLinkTarget = null; // { textarea, btn }
+
+function openLinkPicker(textarea, btn) {
+	activeLinkTarget = { textarea, btn };
+	linkInsertPos = textarea.selectionStart ?? textarea.value.length;
+	const btnRect = btn.getBoundingClientRect();
 	linkPickerEl.style.top  = `${btnRect.bottom + 4}px`;
 	linkPickerEl.style.left = `${Math.max(8, btnRect.right - 280)}px`;
 	linkPickerEl.classList.remove('hidden');
@@ -1571,9 +2196,12 @@ function openLinkPicker() {
 
 function closeLinkPicker() {
 	linkPickerEl.classList.add('hidden');
+	activeLinkTarget = null;
 }
 
-insertLinkBtn.addEventListener('click', openLinkPicker);
+document.querySelectorAll('.js-insert-link').forEach(btn => {
+	btn.addEventListener('click', () => openLinkPicker(btn.closest('.desc-editor').querySelector('textarea'), btn));
+});
 
 linkPickerSearch.addEventListener('input', function() {
 	renderLinkPickerResults(this.value);
@@ -1581,22 +2209,24 @@ linkPickerSearch.addEventListener('input', function() {
 
 linkPickerResults.addEventListener('click', function(e) {
 	const item = e.target.closest('.link-picker-item');
-	if (!item) return;
+	if (!item || !activeLinkTarget) return;
+	const { textarea } = activeLinkTarget;
 	const { type, id, label } = item.dataset;
 	const token = `[${label}](${type}:${id})`;
-	const pos = linkInsertPos ?? descriptionInput.value.length;
-	const before = descriptionInput.value.slice(0, pos);
-	const after  = descriptionInput.value.slice(pos);
-	descriptionInput.value = before + token + after;
+	const pos = linkInsertPos ?? textarea.value.length;
+	const before = textarea.value.slice(0, pos);
+	const after  = textarea.value.slice(pos);
+	textarea.value = before + token + after;
 	closeLinkPicker();
-	descriptionInput.focus();
+	textarea.focus();
 	const caret = pos + token.length;
-	descriptionInput.setSelectionRange(caret, caret);
+	textarea.setSelectionRange(caret, caret);
+	syncExpandToReal(textarea);
 });
 
 document.addEventListener('click', function(e) {
 	if (linkPickerEl.classList.contains('hidden')) return;
-	if (linkPickerEl.contains(e.target) || e.target === insertLinkBtn) return;
+	if (linkPickerEl.contains(e.target) || e.target.closest('.js-insert-link')) return;
 	closeLinkPicker();
 });
 
@@ -1609,7 +2239,6 @@ function openMarkerForEdit(row) {
 	activeMarkerId = row.id;
 	editMarkerTitle.textContent = row.runame;
 	deleteMarkerBtn.classList.remove('hidden');
-	placeHint.classList.add('hidden');
 	document.getElementById('f-runame').value       = row.runame ?? '';
 	document.getElementById('f-engname').value      = row.engname ?? '';
 	document.getElementById('f-description').value  = row.description ?? '';
@@ -1619,9 +2248,12 @@ function openMarkerForEdit(row) {
 	document.getElementById('f-locationType').value = row.location_type ?? 'city';
 	document.getElementById('f-image').value        = row.image ?? '';
 	(row.traits ?? []).forEach(t => {
-		const btn = traitsIconsEl.querySelector(`.trait-icon-btn[data-key="${t}"]`);
+		const btn = traitsIconsEl.querySelector(`.trait-icon-btn[data-key="${t}"]`)
+			|| characterIconsEl.querySelector(`.trait-icon-btn[data-key="${t}"]`);
 		if (btn) btn.classList.add('selected');
+		else selectedSystemTraits.add(t); // не нашлась ни среди особенностей, ни персонажей -> системная
 	});
+	buildSystemTraitsChips();
 	revertDefaultBtn.classList.toggle('hidden', !row.is_default);
 	map.closePopup();
 	showEditView();
@@ -1636,7 +2268,6 @@ addMarkerBtn.addEventListener('click', function() {
 	editMarkerTitle.textContent = 'Новый маркер';
 	deleteMarkerBtn.classList.add('hidden');
 	revertDefaultBtn.classList.add('hidden');
-	placeHint.classList.remove('hidden');
 	clearDraftMarker();
 	showEditView();
 });
@@ -1796,7 +2427,10 @@ document.addEventListener('click', function(e) {
 			const marker = markersById[refId];
 			if (marker) {
 				focusLatLng(marker.getLatLng());
-				setTimeout(() => marker.openPopup(), FOCUS_FLY_DURATION * 1000);
+				setTimeout(() => {
+					marker.openPopup();
+					fitPopupWidth(marker.getPopup());
+				}, FOCUS_FLY_DURATION * 1000);
 			}
 		} else {
 			focusRegion(refId);
