@@ -8,7 +8,7 @@
 
 	<link rel="shortcut icon" type="image/png" href="images/favicon.png"/>
 	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-	<link rel="stylesheet" href="style.css"/>
+	<link rel="stylesheet" href="style.css?dev=37"/>
 
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -39,6 +39,7 @@
 		<feColorMatrix type="matrix" values="0 0 0 0 0.901961 0 0 0 0 0.376118 0 0 0 0 0.306667 0 0 0 0.66 0"/>
 		<feBlend in2="SourceGraphic"/>
 	</filter>
+
 </svg>
 
 <div id="sidebar-wrapper">
@@ -48,9 +49,9 @@
 			<div id="normal-view">
 
 				<div class="sidebar-header-row">
-					<h2 id="map-title">Карта Хейвена<span class="fx-icon fx-icon--title-caret"><img class="fx-icon__layer fx-icon__layer--default" src="images/ui/title-caret--default.svg" alt=""><img class="fx-icon__layer fx-icon__layer--hover" src="images/ui/title-caret--hover.svg" alt=""></span></h2>
+					<h2 id="map-title"><span class="map-title-text">Карта Хейвена</span><span class="map-title-slava">Слава</span></h2>
 					<button id="sidebar-toggle" class="icon-btn" title="Свернуть сайдбар">
-						<span class="fx-icon fx-icon--sidebar-toggle"><img class="fx-icon__layer fx-icon__layer--default" src="images/ui/sidebar-toggle--default.svg" alt=""><img class="fx-icon__layer fx-icon__layer--hover" src="images/ui/sidebar-toggle--hover.svg" alt=""><img class="fx-icon__layer fx-icon__layer--focus" src="images/ui/sidebar-toggle--focus.svg" alt=""></span>
+						<span class="fx-icon fx-icon--sidebar-toggle"><svg viewBox="1 1 12 10" aria-hidden="true" focusable="false"><path fill-rule="evenodd" d="M13 11H1V1H13V11ZM6.5 9.5H11.5V2.5H6.5V9.5ZM2.5 9.5H5V2.5H2.5V9.5Z" fill="currentColor"/></svg></span>
 					</button>
 				</div>
 				<hr class="sidebar-divider">
@@ -59,7 +60,7 @@
 					<div class="sidebar-section-label-row">
 						<p class="sidebar-section-label sidebar-section-label--toggle" id="locations-section-label">Локации</p>
 						<button type="button" id="add-marker-btn" class="icon-btn admin-only hidden" title="Добавить маркер">
-							<span class="fx-icon fx-icon--plus"><img class="fx-icon__layer fx-icon__layer--default" src="images/ui/plus--default.svg" alt=""><img class="fx-icon__layer fx-icon__layer--hover" src="images/ui/plus--hover.svg" alt=""><img class="fx-icon__layer fx-icon__layer--focus" src="images/ui/plus--focus.svg" alt=""></span>
+							<span class="fx-icon fx-icon--plus"><svg viewBox="1 1 10 10" aria-hidden="true" focusable="false"><path d="M6.99512 4.99512H11L10 6.99512H6.99512V10L4.99512 11V6.99512H1L2 4.99512H4.99512V2L6.99512 1V4.99512Z" fill="currentColor"/></svg></span>
 						</button>
 					</div>
 					<div id="individual-checkboxes" class="layer-icon-row">
@@ -68,24 +69,46 @@
 				</div>
 
 				<div id="maplayers-section" class="sb-section">
-					<p class="sidebar-section-label sidebar-section-label--toggle" id="maplayers-section-label">Слои карты</p>
+					<div class="sidebar-section-label-row">
+						<p class="sidebar-section-label sidebar-section-label--toggle" id="maplayers-section-label">Слои карты</p>
+					</div>
 					<div id="map-layer-checkboxes">
 						<!-- генерируется JS -->
 					</div>
 				</div>
 
-				<div id="provinces-section" class="sb-section">
-					<p class="sidebar-section-label" id="provinces-section-label">Провинции</p>
+				<div id="search-section" class="sb-section">
 					<div class="search-row">
-						<span class="fx-icon fx-icon--search"><img class="fx-icon__layer fx-icon__layer--default" src="images/ui/search--default.svg" alt=""><img class="fx-icon__layer fx-icon__layer--hover" src="images/ui/search--hover.svg" alt=""><img class="fx-icon__layer fx-icon__layer--focus" src="images/ui/search--focus.svg" alt=""></span>
+						<span class="fx-icon fx-icon--search"><svg viewBox="1 1 10 10" aria-hidden="true" focusable="false"><path fill-rule="evenodd" d="M4.98793 1C7.1904 1 8.97585 2.78546 8.97585 4.98793C8.97585 5.81885 8.72034 6.58948 8.28556 7.22822L11 9.94265L9.94265 11L7.22822 8.28556C6.58948 8.72034 5.81885 8.97585 4.98793 8.97585C2.78546 8.97585 1 7.1904 1 4.98793C1 2.78546 2.78546 1 4.98793 1ZM4.98793 2.49547C3.61138 2.49547 2.49547 3.61138 2.49547 4.98793C2.49547 6.36447 3.61138 7.48038 4.98793 7.48038C6.36447 7.48038 7.48038 6.36447 7.48038 4.98793C7.48038 3.61138 6.36447 2.49547 4.98793 2.49547Z" fill="currentColor"/></svg></span>
 						<div class="search-field">
-							<input type="text" id="sidebar-search" placeholder="Введите название провинции или места">
+							<input type="text" id="sidebar-search" placeholder="Введите название провинции, места или задания">
 							<button type="button" id="sidebar-search-clear" class="icon-btn hidden" title="Очистить">
 								<svg width="8" height="8" viewBox="0 0 8 8" fill="none" xmlns="http://www.w3.org/2000/svg" style="overflow:visible"><path d="M0.7 0L4 3.3L7.3 0L8 0.7L4.7 4L8 7.3L7.3 8L4 4.7L0.7 8L0 7.3L3.3 4L0 0.7L0.7 0Z" fill="currentColor"/></svg>
 							</button>
 						</div>
-						<button type="button" id="search-filter-toggle" class="icon-btn" title="Фильтры">
-							<span class="fx-icon fx-icon--filter"><img class="fx-icon__layer fx-icon__layer--default" src="images/ui/filter--default.svg" alt=""><img class="fx-icon__layer fx-icon__layer--hover" src="images/ui/filter--hover.svg" alt=""><img class="fx-icon__layer fx-icon__layer--focus" src="images/ui/filter--focus.svg" alt=""></span>
+					</div>
+				</div>
+
+				<div id="quests-section" class="sb-section">
+					<div class="sidebar-section-label-row">
+						<p class="sidebar-section-label" id="quests-section-label">Журнал заданий</p>
+						<button type="button" id="add-quest-btn" class="icon-btn admin-only hidden" title="Новое задание">
+							<span class="fx-icon fx-icon--plus"><svg viewBox="1 1 10 10" aria-hidden="true" focusable="false"><path d="M6.99512 4.99512H11L10 6.99512H6.99512V10L4.99512 11V6.99512H1L2 4.99512H4.99512V2L6.99512 1V4.99512Z" fill="currentColor"/></svg></span>
+						</button>
+						<button type="button" id="quest-filter-toggle" class="icon-btn filter-toggle-btn" title="Фильтры">
+							<span class="fx-icon fx-icon--filter"><svg viewBox="1 1 10 10" aria-hidden="true" focusable="false"><path d="M7 7V10L5 11V7L1 1H11L7 7Z" fill="currentColor"/></svg></span>
+						</button>
+					</div>
+					<div id="quest-status-chips" class="filter-pill-row hidden"><!-- генерируется JS --></div>
+					<div id="quest-journal-list"><!-- генерируется JS --></div>
+					<div id="journal-split-handle" title="Потянуть, чтобы изменить высоту журнала"></div>
+				</div>
+
+				<div id="provinces-section" class="sb-section">
+					<div class="sidebar-section-label-row">
+						<p class="sidebar-section-label" id="provinces-section-label">Провинции</p>
+						<button type="button" id="search-filter-toggle" class="icon-btn filter-toggle-btn" title="Фильтры">
+							<span class="fx-icon fx-icon--filter"><svg viewBox="1 1 10 10" aria-hidden="true" focusable="false"><path d="M7 7V10L5 11V7L1 1H11L7 7Z" fill="currentColor"/></svg></span>
 						</button>
 					</div>
 					<div id="search-filter-panel" class="hidden">
@@ -97,9 +120,9 @@
 							<div class="filter-section-label-row">
 								<p class="filter-section-label">Особенности</p>
 								<div id="filter-trait-mode" class="trait-mode-toggle">
-									<button type="button" data-mode="or" class="trait-mode-btn selected">любая</button>
-									<button type="button" data-mode="and" class="trait-mode-btn">все сразу</button>
-									<button type="button" data-mode="exclude" class="trait-mode-btn">искл</button>
+									<button type="button" data-mode="or" class="trait-mode-btn selected">Или</button>
+									<button type="button" data-mode="and" class="trait-mode-btn">И</button>
+									<button type="button" data-mode="exclude" class="trait-mode-btn">Искл</button>
 								</div>
 							</div>
 							<div id="filter-trait-row" class="filter-pill-row"><!-- генерируется JS --></div>
@@ -108,16 +131,15 @@
 							<div class="filter-section-label-row">
 								<p class="filter-section-label">Персонажи</p>
 								<div id="filter-character-mode" class="trait-mode-toggle">
-									<button type="button" data-mode="or" class="trait-mode-btn selected">любой</button>
-									<button type="button" data-mode="and" class="trait-mode-btn">все сразу</button>
-									<button type="button" data-mode="exclude" class="trait-mode-btn">искл</button>
+									<button type="button" data-mode="or" class="trait-mode-btn selected">Или</button>
+									<button type="button" data-mode="and" class="trait-mode-btn">И</button>
+									<button type="button" data-mode="exclude" class="trait-mode-btn">Искл</button>
 								</div>
 							</div>
 							<div id="filter-character-row" class="filter-pill-row"><!-- генерируется JS --></div>
 						</div>
 						<button type="button" id="filter-reset-btn" class="admin-back-btn hidden">Сбросить фильтры</button>
 					</div>
-
 					<div id="location-list"></div>
 				</div>
 
@@ -127,7 +149,7 @@
 				<div class="sidebar-header-row">
 					<h3 id="edit-marker-title">Новый маркер</h3>
 					<button id="edit-sidebar-toggle" class="icon-btn" title="Свернуть сайдбар">
-						<span class="fx-icon fx-icon--sidebar-toggle"><img class="fx-icon__layer fx-icon__layer--default" src="images/ui/sidebar-toggle--default.svg" alt=""><img class="fx-icon__layer fx-icon__layer--hover" src="images/ui/sidebar-toggle--hover.svg" alt=""><img class="fx-icon__layer fx-icon__layer--focus" src="images/ui/sidebar-toggle--focus.svg" alt=""></span>
+						<span class="fx-icon fx-icon--sidebar-toggle"><svg viewBox="1 1 12 10" aria-hidden="true" focusable="false"><path fill-rule="evenodd" d="M13 11H1V1H13V11ZM6.5 9.5H11.5V2.5H6.5V9.5ZM2.5 9.5H5V2.5H2.5V9.5Z" fill="currentColor"/></svg></span>
 					</button>
 				</div>
 				<hr class="sidebar-divider">
@@ -255,6 +277,84 @@
 				</div>
 			</div>
 
+			<div id="edit-quest-view" class="hidden">
+				<div class="sidebar-header-row">
+					<h3 id="edit-quest-title">Новое задание</h3>
+					<button id="quest-sidebar-toggle" class="icon-btn" title="Свернуть сайдбар">
+						<span class="fx-icon fx-icon--sidebar-toggle"><svg viewBox="1 1 12 10" aria-hidden="true" focusable="false"><path fill-rule="evenodd" d="M13 11H1V1H13V11ZM6.5 9.5H11.5V2.5H6.5V9.5ZM2.5 9.5H5V2.5H2.5V9.5Z" fill="currentColor"/></svg></span>
+					</button>
+				</div>
+				<hr class="sidebar-divider">
+
+				<form id="quest-form">
+					<label><span>Название (рус.) <span class="required-mark">*</span></span>
+						<input type="text" id="q-runame" autocomplete="off" required>
+					</label>
+					<label>Название (англ.)
+						<input type="text" id="q-engname" autocomplete="off">
+					</label>
+					<div class="form-field">
+						<label for="q-description">Описание</label>
+						<textarea id="q-description" rows="4"></textarea>
+					</div>
+					<label>Статус
+						<select id="q-status">
+							<option value="rumor">Слух</option>
+							<option value="known">Известно</option>
+							<option value="active">Активно</option>
+							<option value="done">Завершено</option>
+						</select>
+					</label>
+					<label>Особенность
+						<select id="q-trait"><option value="">— нет —</option></select>
+					</label>
+
+					<fieldset id="q-anchor">
+						<legend>Привязка</legend>
+						<div id="q-anchor-mode" class="trait-mode-toggle">
+							<button type="button" data-anchor="location">локация</button>
+							<button type="button" data-anchor="province">провинция</button>
+							<button type="button" data-anchor="point">точка</button>
+							<button type="button" data-anchor="unplaced" class="selected">без места</button>
+						</div>
+						<div class="q-anchor-field hidden" data-for="location">
+							<input type="text" id="q-anchor-loc" list="q-loc-options" placeholder="Название локации" autocomplete="off">
+							<datalist id="q-loc-options"></datalist>
+						</div>
+						<div class="q-anchor-field hidden" data-for="province">
+							<input type="text" id="q-anchor-prov" list="q-prov-options" placeholder="Название провинции" autocomplete="off">
+							<datalist id="q-prov-options"></datalist>
+						</div>
+						<div class="q-anchor-field hidden" data-for="point">
+							<p class="q-anchor-hint">Кликните по карте, чтобы поставить точку</p>
+							<div class="coord-row">
+								<input type="number" id="q-lng" step="any" placeholder="lng" autocomplete="off">
+								<input type="number" id="q-lat" step="any" placeholder="lat" autocomplete="off">
+							</div>
+						</div>
+					</fieldset>
+					<p id="quest-form-error"></p>
+				</form>
+
+				<div class="edit-footer-row">
+					<button type="button" id="quest-back-btn" class="admin-outline-btn">
+						<span class="btn__base"></span>
+						<span class="btn__line"></span>
+						<span class="btn__fill">Назад</span>
+					</button>
+					<div class="edit-footer-icons">
+						<button type="button" id="delete-quest-btn" class="icon-btn hidden" title="Удалить">
+							<svg width="8" height="10" viewBox="0 0 8 10" fill="none" xmlns="http://www.w3.org/2000/svg" style="overflow:visible"><path d="M3.11111 0L2.66667 0.5H0V1.5H8V0.5H5.33333L4.88889 0H3.11111ZM0.606771 2.5L1.28559 9.13184C1.34426 9.62684 1.72311 10 2.16667 10H5.83247C6.27602 10 6.6553 9.62743 6.71441 9.12793L7.39323 2.5H0.606771Z" fill="currentColor"/></svg>
+						</button>
+					</div>
+					<button type="submit" form="quest-form" class="admin-outline-btn">
+						<span class="btn__base"></span>
+						<span class="btn__line"></span>
+						<span class="btn__fill">Сохранить</span>
+					</button>
+				</div>
+			</div>
+
 		</div>
 		<div id="sidebar-resize-handle" title="Потянуть, чтобы изменить ширину"></div>
 	</div>
@@ -352,6 +452,14 @@
 </div>
 
 <div id="map"></div>
-<script src="script.js"></script>
+
+<!-- Карточка задания — плавающая панель поверх открытого попапа локации/провинции
+     (Leaflet держит на карте только один попап, поэтому это не попап, а свой
+     слой, позиционируется JS относительно области карты). -->
+<div id="quest-card" class="hidden">
+	<div id="quest-card-inner"><!-- генерируется JS --></div>
+</div>
+
+<script src="script.js?dev=37"></script>
 </body>
 </html>

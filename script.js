@@ -9,6 +9,10 @@ const imgHeight = 4480;
 // ReferenceError (TDZ у let/const).
 let allMarkerRows = [];  // сырые строки из Supabase (нужны админке для формы/подсказок и иконкам ссылок)
 let markerRowById = new Map();  // тот же набор, но для O(1)-поиска по id (см. iconForDescLink)
+// isAdmin читается из questVisible(), а он вызывается уже при сборке попапов
+// провинций/фракций ниже (см. блок «ЗАДАНИЯ»); полноценно выставляется в блоке
+// «АДМИНКА: ВХОД». До этого — false (аноним).
+let isAdmin = false;
 
 const LOCATION_ICONS = {
 	'town':		       	   { url: 'images/icons/town.png',			     size: [28, 28] },
@@ -22,6 +26,63 @@ const LOCATION_ICONS = {
 	'quest':               { url: 'images/icons/quest.png',              size: [24, 24] },
 	'default':             { url: 'images/icons/settlement.png',         size: [24, 24] },
 };
+
+
+// ─── ЗАДАНИЯ (КВЕСТЫ): базовые константы и индексы ──────────────────────────
+// Объявлено здесь, у самого верха: buildRegionPopupHTML() строит попап провинции
+// и вызывает questBlockInnerHTML() уже на этапе makeRegionLayer() ниже — к тому
+// моменту эти Map/const должны существовать (иначе TDZ у let/const).
+// Задание — отдельная сущность в таблице Supabase `quests`, а НЕ тип локации и
+// не значение в markers.traits. У задания есть «якорь»: локация / провинция /
+// точка на карте / без места (только в журнале). Роль берётся из isAdmin
+// (см. блок «АДМИНКА»): вошёл админ → «Мастер» (видит слухи, значки +),
+// аноним → «Игрок» (слухи не приходят даже из БД — политика RLS).
+// Палитра статусов — из design_handoff_quests_in_locations/README.md.
+const QUEST_STATUS = {
+	rumor:  { label: 'Слух',      ink: '#6A655D', fill: '#282726', line: '#3E3C3A' },
+	known:  { label: 'Известно',  ink: '#998C7C', fill: '#3E3C3A', line: '#6A655D' },
+	active: { label: 'Активно',   ink: '#EFE7D6', fill: '#C9A24D', line: '#96763E' },
+	done:   { label: 'Завершено', ink: '#787167', fill: '#4D3C1A', line: '#4D3C1A' },
+};
+const QUEST_STATUS_ORDER = ['rumor', 'known', 'active', 'done'];
+const QUEST_ICON = 'images/icons/quest.png';
+// насечка для перетаскивания задания (видна только админу) — ассет из макета
+// «Sidebar — Карта Хейвена (admin)» (node 254:1525, компонент quest-drag):
+// шесть плашек с градиентом #3E3C3A→#6A655D, внутренним светом и зерном.
+const QUEST_GRIP_SVG = '<img src="images/ui/quest-drag.svg" width="8.5" height="12" alt="">';
+
+let allQuestRows = [];               // сырые строки из Supabase
+let questsById   = new Map();        // id -> строка
+const questsByLocationId = new Map();// markers.id -> [строки заданий]  (anchor_kind='location')
+const questsByProvinceId = new Map();// id провинции -> [строки заданий] (anchor_kind='province')
+const questMarkers = new Map();      // id задания -> Leaflet-маркер (anchor_kind='point')
+const questPointLayer = L.layerGroup();
+
+// «Завершено» по умолчанию выключено, как в прототипе. Чип «Слух» рисуется
+// только админу; для анонима строк со статусом rumor всё равно нет в данных.
+const questStatusFilter = { rumor: true, known: true, active: true, done: false };
+// одноразовая метка «этот чип только что включили» — ровно как lastToggledTraitKey
+// у «Особенностей»: ряд чипов пересобирается целиком, и без метки анимация
+// подсветки сыграла бы у всех выбранных разом (см. .just-selected в style.css).
+let lastToggledStatusKey = null;
+
+function questVisible(q) {
+	if (!questStatusFilter[q.status]) return false;
+	if (!isAdmin && q.status === 'rumor') return false; // подстраховка поверх RLS
+	return true;
+}
+
+function questAnchorLabel(q) {
+	if (q.anchor_kind === 'location') {
+		const row = markerRowById.get(q.anchor_location_id);
+		return 'в локации: ' + (row ? row.runame : '—');
+	}
+	if (q.anchor_kind === 'province') {
+		return 'в провинции: ' + (provinceNameById[q.anchor_province_id] || '—');
+	}
+	if (q.anchor_kind === 'point') return 'своя точка на карте';
+	return 'без места';
+}
 
 const HavenCRS = L.Util.extend({}, L.CRS.Simple, {
 	transformation: new L.Transformation(1, 0, -1, imgHeight)
@@ -97,6 +158,43 @@ map.getPane('regionsPane').style.zIndex = 350; // выше базовых тай
 // вокруг нёе — при обычном перетаскивании пустых зон уже не будет видно. Плата —
 // на каждый moveend/zoomend отрисовывается больше геометрии.
 const regionsRenderer = L.svg({ padding: 2, pane: 'regionsPane' });
+
+
+// ─── ПОДПИСИ ЛОКАЦИЙ ПОД ИКОНКОЙ (только на приближённом зуме) ─────────────
+// На zoom 0 и 1 под каждой иконкой маркера появляется её название (runame) —
+// см. компонент zoom-location-name в Figma. На более далёком зуме (-5..-1)
+// подписей нет — иначе при большом числе маркеров карта была бы захламлена.
+// Реализовано постоянными (permanent) Leaflet-тултипами, а не перерисовкой
+// маркеров: видимость переключается одним классом на #map через CSS
+// (.show-location-names), без обхода каждого маркера на каждый zoomend.
+// В CSS подпись прячется visibility:hidden, а не display:none — иначе Leaflet
+// на переходе через порог зума меряет ширину скрытого (0px) тултипа и не
+// центрирует его; подробнее см. .location-name-label в style.css.
+const LOCATION_NAME_MIN_ZOOM = 0;
+// Мастер-выключатель из секции «Слои карты» (см. MAP_LAYERS). Пока включён —
+// подписи ведут себя как раньше (видны на zoom >= порога); когда выключен —
+// не показываются ни на каком зуме. Слой «Провинции» приглушать не нужно
+// отдельно: правило #map.show-location-names .leaflet-provinces-pane в style.css
+// завязано на тот же класс, поэтому при снятом классе opacity сам вернётся к 1.
+let locationNamesEnabled = true;
+function updateLocationNameVisibility() {
+	const show = locationNamesEnabled && map.getZoom() >= LOCATION_NAME_MIN_ZOOM;
+	document.getElementById('map').classList.toggle('show-location-names', show);
+}
+// Появление подписей оставляем на zoomend (в CSS у него ещё и небольшая
+// задержка — чтобы названия «оседали» уже после остановки карты). А вот
+// УБИРАТЬ их нужно сразу на старте зум-аута за порог: если ждать zoomend, всю
+// зум-анимацию (~0.25 с) названия висят поверх уже «уехавшей» карты — это и был
+// тот неприятный момент. zoomanim несёт целевой зум (e.zoom) и срабатывает в
+// самом начале анимации, поэтому класс снимаем досрочно по нему; финальный
+// zoomend ниже всё равно приведёт состояние в соответствие с фактическим зумом.
+map.on('zoomanim', (e) => {
+	if (e.zoom < LOCATION_NAME_MIN_ZOOM) {
+		document.getElementById('map').classList.remove('show-location-names');
+	}
+});
+map.on('zoomend', updateLocationNameVisibility);
+updateLocationNameVisibility();
 
 const REGION_FILL_OPACITY       = 0.32;
 const REGION_FILL_OPACITY_HOVER = 0.55;
@@ -196,6 +294,9 @@ function buildRegionPopupHTML(props) {
 				${showOwner ? buildIconRow(FACTION_ICON, props.owner) : ''}
 				${props.description
 					? `<div class="description">${renderDescription(props.description)}</div>`
+					: ''}
+				${props.tier === 'province' && props.id
+					? `<div class="popup-quests">${questBlockInnerHTML('province', props.id)}</div>`
 					: ''}
 			</div>
 		</div>
@@ -330,29 +431,28 @@ const PoliticalLayer = L.Layer.extend({
 
 var politicalMap = new PoliticalLayer();
 
-// Единая анимация перехода к точке (маркер/провинция/фракция). Зум пользователя
-// сохраняется, если он уже не меньше зума, на котором видны провинции —
-// иначе подтягиваем зум именно до этого уровня (не дальше).
-const FOCUS_FLY_DURATION = 0.6; // сек
+// Единый переход к точке (маркер/провинция/фракция). Зум пользователя
+// сохраняется, если он уже не меньше зума провинций — иначе подтягиваем до него.
+//
+// НЕ используем map.flyTo: его кривая (Ван Вейк–Нуутинен) меняет зум НА КАЖДОМ
+// кадре («отъезд назад и влёт внутрь»), а на любое изменение зума ~475
+// permanent-тултипов подписей локаций (тяжёлых: 3px -webkit-text-stroke +
+// тройная тень) и ~480 маркеров пересчитывают позицию в JS на главном потоке —
+// он захлёбывается, полёт идёт в 5–10 fps. panTo и animate-setView двигают
+// только _mapPane (CSS-переход на композиторе), покадровых zoom-событий нет —
+// так же гладко, как ручное перетаскивание карты.
+const FOCUS_FLY_DURATION = 0.5; // сек — длительность пан-анимации И задержка перед открытием попапа
 
 function focusLatLng(latlng) {
 	const targetZoom = Math.max(map.getZoom(), POLITICAL_TIER_ZOOM_BREAK);
-	const current = map.getCenter();
-	// Если карта и так уже стоит ровно в этой точке на нужном зуме (тот же
-	// маркер/регион кликнули второй раз подряд) — flyTo всё равно honestly
-	// проигрывает полную анимацию: кривая Ван Вейка-Нуутинена, на которой
-	// строится flyTo, вырождается при нулевой дистанции, и зум/пан за время
-	// анимации чуть уезжает в сторону и возвращается обратно — визуально
-	// маркеры на секунду "плывут" и встают на место. Без анимации, если уже
-	// на месте.
-	const alreadyThere = map.getZoom() === targetZoom &&
-		Math.abs(current.lat - latlng.lat) < 1e-9 &&
-		Math.abs(current.lng - latlng.lng) < 1e-9;
-	if (alreadyThere) {
-		map.setView(latlng, targetZoom, { animate: false });
-		return;
+	if (map.getZoom() === targetZoom) {
+		// зум не меняется — плавный пан (нулевой сдвиг Leaflet сам не-опит)
+		map.panTo(latlng, { animate: true, duration: FOCUS_FLY_DURATION, easeLinearity: 0.3 });
+	} else {
+		// нужно ещё и приблизиться — штатная зум-анимация Leaflet (CSS-transition
+		// на _mapPane; zoom-событие поднимается только на zoomend, не покадрово)
+		map.setView(latlng, targetZoom, { animate: true });
 	}
-	map.flyTo(latlng, targetZoom, { duration: FOCUS_FLY_DURATION });
 }
 
 // Показать регион на карте (используется поиском/списком в сайдбаре)
@@ -402,6 +502,9 @@ const MARKER_LAYERS = [
 const MAP_LAYERS = [
 	{ label: 'Политическая карта', layer: politicalMap, defaultOn: false, id: 'layer-toggle-political' },
 	{ label: 'Провинции',          layer: provinces,    defaultOn: true },
+	// Не Leaflet-слой, а мастер-выключатель подписей локаций: вместо layer у него
+	// onToggle (см. цикл построения чекбоксов и стартовый цикл ниже).
+	{ label: 'Названия локаций',   defaultOn: true, onToggle: on => { locationNamesEnabled = on; updateLocationNameVisibility(); } },
 ];
 
 
@@ -439,6 +542,7 @@ const CHARACTER_TRAITS = {
 	'vein':    { icon: 'images/icons/vein.png',    tooltip: 'Вейн'    },
 	'mitra':   { icon: 'images/icons/mitra.png',   tooltip: 'Митра'   },
 };
+
 
 function buildTraitsHTML(traits) {
 	if (!traits?.length) return '';
@@ -493,6 +597,7 @@ function buildPopupHTML(props, opts = {}) {
 				${props.description
 					? `<div class="description">${renderDescription(props.description)}</div>`
 					: ''}
+				<div class="popup-quests">${props.id ? questBlockInnerHTML('location', props.id) : ''}</div>
 				${(props.faction || props.province) ? `
 				<div class="info-row-group">
 					${buildIconRow(FACTION_ICON,  props.faction)}
@@ -552,6 +657,19 @@ async function loadMarkers() {
 			icon: getIcon(feature.properties.locationType)
 		});
 		marker.bindPopup(buildPopupHTML(feature.properties), { closeButton: false });
+		// Название локации под иконкой (см. LOCATION_NAME_MIN_ZOOM выше) — постоянный
+		// тултип без стрелки/фона (см. .location-name-label в style.css), сдвинутый
+		// вниз ровно на половину высоты ЭТОЙ конкретной иконки (у типов локаций разный
+		// размер — 24/28/30px), чтобы подпись вплотную примыкала к низу иконки без
+		// зазора, как в Figma (zoom-location-name).
+		const iconCfg = LOCATION_ICONS[feature.properties.locationType] ?? LOCATION_ICONS['default'];
+		marker.bindTooltip(feature.properties.runame ?? '', {
+			permanent: true,
+			direction: 'bottom',
+			offset: [0, iconCfg.size[1] / 2],
+			className: 'location-name-label',
+			interactive: false,
+		});
 		// Повторный клик прямо по иконке на карте, когда попап уже открыт —
 		// тот же сценарий, что и повторный клик по имени в сайдбаре (см.
 		// комментарий у fitPopupWidth): Leaflet сам popupopen второй раз не
@@ -583,9 +701,329 @@ loadMarkers();
 MARKER_LAYERS.forEach(({ group, defaultOn }) => {
 	if (defaultOn) map.addLayer(group);
 });
-MAP_LAYERS.forEach(({ layer, defaultOn }) => {
-	if (defaultOn) map.addLayer(layer);
+MAP_LAYERS.forEach(({ layer, defaultOn, onToggle }) => {
+	if (onToggle) onToggle(defaultOn);          // виртуальная запись (подписи локаций) — не Leaflet-слой
+	else if (defaultOn) map.addLayer(layer);
 });
+
+
+// ─── ЗАДАНИЯ: ЗАГРУЗКА И ОТРИСОВКА ──────────────────────────────────────────
+// loadQuests() перестраивает всё, что зависит от заданий: индексы «по локации»/
+// «по провинции», точечные маркеры на карте, «Журнал заданий» в сайдбаре и
+// блок «Задания» в уже открытом попапе. Вызывается при старте, после входа/
+// выхода админа (меняется набор строк из-за RLS) и после любой правки задания.
+questPointLayer.addTo(map);
+
+async function loadQuests() {
+	const { data, error } = await supabaseClient.from('quests').select('*').order('runame');
+	if (error) {
+		console.error('Не удалось загрузить задания из Supabase:', error);
+		return;
+	}
+	allQuestRows = data;
+	questsById = new Map(data.map(q => [q.id, q]));
+	rebuildQuestIndexes();
+	renderQuestPointMarkers();
+	renderQuestJournal();
+	// перепекаем контент попапов локаций/провинций под свежие задания —
+	// setPopupContent обновляет и уже открытый попап, и строку для следующего
+	// открытия (Leaflet при повторном openPopup подставляет именно её)
+	refreshQuestPopups();
+	// открытая карточка задания могла остаться на удалённое/изменённое задание
+	const qc = document.getElementById('quest-card');
+	if (!qc.classList.contains('hidden') && openQuestCardId && !questsById.has(openQuestCardId)) {
+		closeQuestCard();
+	} else if (!qc.classList.contains('hidden') && openQuestCardId) {
+		openQuestCard(openQuestCardId); // перерисовать по свежим данным
+	}
+}
+
+function pushIntoMap(map, key, val) {
+	let arr = map.get(key);
+	if (!arr) map.set(key, arr = []);
+	arr.push(val);
+}
+
+function rebuildQuestIndexes() {
+	questsByLocationId.clear();
+	questsByProvinceId.clear();
+	for (const q of allQuestRows) {
+		if (q.anchor_kind === 'location' && q.anchor_location_id) {
+			pushIntoMap(questsByLocationId, q.anchor_location_id, q);
+		} else if (q.anchor_kind === 'province' && q.anchor_province_id) {
+			pushIntoMap(questsByProvinceId, q.anchor_province_id, q);
+		}
+	}
+}
+
+function renderQuestPointMarkers() {
+	questPointLayer.clearLayers();
+	questMarkers.clear();
+	for (const q of allQuestRows) {
+		if (q.anchor_kind !== 'point' || q.lng == null || q.lat == null || !questVisible(q)) continue;
+		const s = QUEST_STATUS[q.status] ?? QUEST_STATUS.known;
+		const marker = L.marker([q.lat, q.lng], {
+			icon: L.divIcon({
+				className: 'quest-point-icon',
+				html: `<img src="${QUEST_ICON}" width="24" height="24" alt="">`
+					+ `<span class="quest-point-dot" style="background:${s.fill};box-shadow:inset 0 0 0 1px ${s.line}"></span>`,
+				iconSize: [24, 24],
+				iconAnchor: [12, 12],
+			}),
+		});
+		marker.bindTooltip(q.runame ?? '', {
+			permanent: true, direction: 'bottom', offset: [0, 12],
+			className: 'location-name-label', interactive: false,
+		});
+		marker.on('click', () => openQuestCard(q.id));
+		marker.addTo(questPointLayer);
+		questMarkers.set(q.id, marker);
+	}
+}
+
+// ─── Блок «Задания» внутри попапа локации / провинции ──────────────────────
+// Возвращает готовый HTML блока — он ВСТРАИВАЕТСЯ прямо в строку buildPopupHTML/
+// buildRegionPopupHTML (не отдельным слотом): Leaflet при повторном openPopup()
+// того же объекта заново подставляет innerHTML из строки bindPopup и НЕ поднимает
+// popupopen, так что «дорисовать» блок по событию нельзя — он должен уже быть в
+// строке. Поэтому после каждого loadQuests() строки попапов перепекаются
+// (refreshQuestPopups ниже) через setPopupContent.
+function questBlockInnerHTML(kind, anchorId) {
+	const src = kind === 'location' ? questsByLocationId : questsByProvinceId;
+	const list = (src.get(anchorId) || [])
+		.filter(questVisible)
+		.sort((a, b) => QUEST_STATUS_ORDER.indexOf(a.status) - QUEST_STATUS_ORDER.indexOf(b.status));
+	if (!list.length && !isAdmin) return '';
+	const rows = list.map(q => {
+		const s = QUEST_STATUS[q.status] ?? QUEST_STATUS.known;
+		const style = `color:${s.ink}`
+			+ (q.status === 'active' ? ';text-shadow:0 0 1.5px rgba(227,155,39,.66)' : '')
+			+ (q.status === 'done'   ? ';text-decoration:line-through' : '');
+		return `<div class="popup-quest-row">`
+			+ `<span class="quest-sq" style="background:${s.fill};box-shadow:inset 0 0 0 1px ${s.line}" title="${s.label}"></span>`
+			+ `<button type="button" class="popup-quest-title" data-open-quest="${q.id}" style="${style}">${q.runame ?? ''}</button>`
+			+ (isAdmin ? `<span class="quest-drag" data-drag-quest="${q.id}" title="Перетащить: на карту / в другую локацию / в журнал">${QUEST_GRIP_SVG}</span>` : '')
+			+ `</div>`;
+	}).join('');
+	const addBtn = isAdmin
+		? `<button type="button" class="popup-quest-add" data-add-quest="${kind}:${anchorId}" title="Добавить задание">+</button>`
+		: '';
+	return `<div class="popup-quests-head"><span class="popup-quests-label">Задания&#8194;${list.length}</span>${addBtn}</div>`
+		+ (rows || `<div class="popup-quests-empty">Заданий нет</div>`);
+}
+
+// Перепекает контент попапов локаций и провинций под текущее состояние заданий.
+// setPopupContent на слое: обновляет и уже открытый попап (через _updateContent),
+// и сохранённую строку — её же Leaflet возьмёт при следующем открытии. Зовём из
+// loadQuests и при смене фильтра статусов; на ~477 локаций это сборка строки в
+// цикле — приемлемо, событие редкое (правка задания, вход/выход, клик по чипу).
+function refreshQuestPopups() {
+	for (const id in markersById) {
+		const row = markerRowById.get(id);
+		if (row) markersById[id].setPopupContent(buildPopupHTML(rowToFeature(row).properties));
+	}
+	if (typeof provinceRegions !== 'undefined' && provinceRegions.eachLayer) {
+		provinceRegions.eachLayer(l => {
+			if (l.feature && l.feature.properties) {
+				l.setPopupContent(buildRegionPopupHTML(l.feature.properties));
+			}
+		});
+	}
+}
+
+
+// ─── ЗАДАНИЯ: «ЖУРНАЛ ЗАДАНИЙ» В САЙДБАРЕ ──────────────────────────────────
+const questJournalListEl = document.getElementById('quest-journal-list');
+const questStatusChipsEl  = document.getElementById('quest-status-chips');
+
+function renderQuestJournal() {
+	// Чипы статусов — 1:1 текстовые пилюли «Особенностей» (см. buildFilterTraitRow):
+	// та же разметка/классы, та же растущая от курсора подсветка, «включено» =
+	// .selected, одноразовый .just-selected на только что включённом. «Слух» —
+	// только админу (у анонима таких строк нет).
+	questStatusChipsEl.innerHTML = QUEST_STATUS_ORDER
+		.filter(k => isAdmin || k !== 'rumor')
+		.map(k => {
+			const on = questStatusFilter[k];
+			const justSelected = on && k === lastToggledStatusKey;
+			return `<button type="button" class="filter-pill icon-toggle icon-toggle--text`
+				+ `${on ? ' selected' : ''}${justSelected ? ' just-selected' : ''}" data-status-chip="${k}">`
+				+ `${iconToggleTextHTML(QUEST_STATUS[k].label)}</button>`;
+		})
+		.join('');
+	lastToggledStatusKey = null; // метка одноразовая — использована выше
+
+	const q = (document.getElementById('sidebar-search')?.value || '').trim().toLowerCase();
+	const rows = allQuestRows
+		.filter(questVisible)
+		.filter(x => !q
+			|| (x.runame || '').toLowerCase().includes(q)
+			|| (x.description || '').toLowerCase().includes(q))
+		.sort((a, b) =>
+			(a.anchor_kind === 'unplaced' ? 0 : 1) - (b.anchor_kind === 'unplaced' ? 0 : 1)     // без места — вперёд (входящая очередь мастера)
+			|| QUEST_STATUS_ORDER.indexOf(a.status) - QUEST_STATUS_ORDER.indexOf(b.status)
+			|| (a.runame || '').localeCompare(b.runame || '', 'ru'));
+
+	questJournalListEl.innerHTML = rows.length
+		? rows.map(questJournalRowHTML).join('')
+		: `<div class="quest-journal-empty">Заданий пока нет</div>`;
+}
+
+function questJournalRowHTML(q) {
+	const statusKey = QUEST_STATUS[q.status] ? q.status : 'known';
+	const s = QUEST_STATUS[statusKey];
+	// Ромб статуса в журнале — ассет из макета (node 254:1525, quest__status):
+	// градиент + внутренний свет + зерно, свой SVG на статус. Плоский
+	// inline-квадрат остаётся только в попапах локаций/провинций.
+	return `<div class="journal-row" data-quest-id="${q.id}">`
+		+ `<span class="quest-sq quest-sq--${statusKey}" title="${s.label}"></span>`
+		+ `<div class="journal-row-main">`
+		+ `<span class="journal-row-title" style="color:${s.ink}">${q.runame ?? ''}</span>`
+		+ `<span class="journal-row-anchor">${questAnchorLabel(q)}</span>`
+		+ `</div>`
+		+ (isAdmin ? `<span class="quest-drag" data-drag-quest="${q.id}" title="Перетащить: в локацию, на карту или в журнал">${QUEST_GRIP_SVG}</span>` : '')
+		+ `</div>`;
+}
+
+// Клик по чипу статуса — как toggleTraitFilter: включили → метим для анимации,
+// выключили → анимировать нечего.
+questStatusChipsEl.addEventListener('click', function(e) {
+	const chip = e.target.closest('[data-status-chip]');
+	if (!chip) return;
+	const k = chip.dataset.statusChip;
+	questStatusFilter[k] = !questStatusFilter[k];
+	lastToggledStatusKey = questStatusFilter[k] ? k : null;
+	renderQuestJournal();
+	renderQuestPointMarkers();
+	refreshQuestPopups();
+});
+
+// Воронка у «Журнала заданий» — как #search-filter-toggle у «Провинций»: клик
+// разворачивает/сворачивает ряд чипов статусов (по умолчанию свёрнут).
+const questFilterToggle = document.getElementById('quest-filter-toggle');
+questFilterToggle.addEventListener('click', function() {
+	questStatusChipsEl.classList.toggle('hidden');
+	questFilterToggle.classList.toggle('active', !questStatusChipsEl.classList.contains('hidden'));
+});
+
+// Клик по строке журнала → навигация по якорю (как в прототипе)
+questJournalListEl.addEventListener('click', function(e) {
+	if (e.target.closest('[data-drag-quest]')) return; // клик по насечке — не навигация
+	const row = e.target.closest('.journal-row');
+	if (!row) return;
+	const qrow = questsById.get(row.dataset.questId);
+	if (!qrow) return;
+	questJournalListEl.querySelectorAll('.journal-row.selected').forEach(r => r.classList.remove('selected'));
+	row.classList.add('selected');
+
+	if (qrow.anchor_kind === 'location') {
+		const marker = markersById[qrow.anchor_location_id];
+		if (marker) {
+			ensureLocationTypeVisible(markerRowById.get(qrow.anchor_location_id)?.location_type);
+			focusLatLng(marker.getLatLng());
+			setTimeout(() => { marker.openPopup(); fitPopupWidth(marker.getPopup()); }, FOCUS_FLY_DURATION * 1000);
+		} else {
+			openQuestCard(qrow.id);
+		}
+	} else if (qrow.anchor_kind === 'province') {
+		const meta = provinceRegionMeta[provinceNameById[qrow.anchor_province_id]];
+		if (meta?.id) focusRegion(meta.id);
+		else openQuestCard(qrow.id);
+	} else if (qrow.anchor_kind === 'point' && qrow.lng != null && qrow.lat != null) {
+		focusLatLng(L.latLng(qrow.lat, qrow.lng));
+		setTimeout(() => openQuestCard(qrow.id), FOCUS_FLY_DURATION * 1000);
+	} else {
+		openQuestCard(qrow.id); // без места — просто карточка, карту не двигаем
+	}
+});
+
+document.getElementById('sidebar-search')?.addEventListener('input', renderQuestJournal);
+
+
+// ─── ЗАДАНИЯ: КАРТОЧКА ЗАДАНИЯ (плавающая, поверх попапа) ──────────────────
+const questCardEl      = document.getElementById('quest-card');
+const questCardInnerEl = document.getElementById('quest-card-inner');
+let openQuestCardId = null;
+
+// Сайдбар — position:fixed поверх полноэкранной #map, поэтому отступ 24px
+// отсчитываем не от края карты, а от правого края сайдбара (учитывает и
+// свёрнутое состояние, и ручное изменение ширины).
+function positionQuestCard() {
+	const mapRect = document.getElementById('map').getBoundingClientRect();
+	const sb = document.getElementById('sidebar-wrapper');
+	const leftEdge = Math.max(mapRect.left, sb ? sb.getBoundingClientRect().right : 0);
+	questCardEl.style.left = (leftEdge + 24) + 'px';
+	questCardEl.style.top  = (mapRect.top + 24) + 'px';
+}
+
+// Свернули/растянули сайдбар при открытой карточке — сдвигаем следом.
+if (window.ResizeObserver) {
+	const sbEl = document.getElementById('sidebar-wrapper');
+	if (sbEl) new ResizeObserver(() => {
+		if (!questCardEl.classList.contains('hidden')) positionQuestCard();
+	}).observe(sbEl);
+}
+
+function openQuestCard(id) {
+	const q = questsById.get(id);
+	if (!q) return;
+	openQuestCardId = id;
+	const s = QUEST_STATUS[q.status] ?? QUEST_STATUS.known;
+	questCardInnerEl.innerHTML = `
+		<div class="quest-card-head">
+			<h3>${q.runame ?? ''}</h3>
+			<button type="button" class="quest-card-close" title="Закрыть">✕</button>
+		</div>
+		${q.engname ? `<p class="quest-card-eng">${q.engname}</p>` : ''}
+		<div class="quest-card-divider"></div>
+		${q.description ? `<div class="quest-card-desc description">${renderDescription(q.description)}</div>` : ''}
+		<div class="quest-card-anchor">
+			<span class="quest-card-anchor-label">Привязка</span>
+			<span class="quest-card-anchor-val">${questAnchorLabel(q)}</span>
+		</div>
+		<div class="quest-card-divider"></div>
+		<div class="quest-card-foot">
+			<span class="quest-card-status" style="color:${s.ink}">${s.label}</span>
+			${isAdmin ? `<button type="button" class="quest-card-edit" data-edit-quest="${id}">Редактировать</button>` : ''}
+		</div>
+	`;
+	positionQuestCard();
+	questCardEl.classList.remove('hidden');
+}
+
+function closeQuestCard() {
+	questCardEl.classList.add('hidden');
+	openQuestCardId = null;
+	questJournalListEl.querySelectorAll('.journal-row.selected').forEach(r => r.classList.remove('selected'));
+}
+
+// Открыть карточку по клику на название задания в попапе локации/провинции
+document.addEventListener('click', function(e) {
+	const t = e.target.closest('[data-open-quest]');
+	if (t) openQuestCard(t.dataset.openQuest);
+});
+
+questCardEl.addEventListener('click', function(e) {
+	if (e.target.closest('.quest-card-close')) closeQuestCard();
+});
+
+// Клик мимо карточки — закрыть (но не когда кликнули по тому, что её открывает)
+document.addEventListener('click', function(e) {
+	if (questCardEl.classList.contains('hidden')) return;
+	if (questCardEl.contains(e.target)) return;
+	if (e.target.closest('[data-open-quest]') || e.target.closest('.journal-row') || e.target.closest('.quest-point-icon')) return;
+	closeQuestCard();
+});
+
+document.addEventListener('keydown', function(e) {
+	if (e.key === 'Escape' && !questCardEl.classList.contains('hidden')) closeQuestCard();
+});
+
+window.addEventListener('resize', function() {
+	if (!questCardEl.classList.contains('hidden')) positionQuestCard();
+});
+
+loadQuests();
 
 
 // ─── SIDEBAR: ИКОНКИ ТИПОВ МАРКЕРОВ (та же логика, что «Особенности» в
@@ -714,7 +1152,7 @@ function ensureLocationTypeVisible(locationType) {
 // ─── SIDEBAR: ЧЕКБОКСЫ СЛОЁВ КАРТЫ ───────────────────────────────────────
 const mapLayerContainer = document.getElementById('map-layer-checkboxes');
 
-MAP_LAYERS.forEach(({ label, layer, defaultOn, id }) => {
+MAP_LAYERS.forEach(({ label, layer, defaultOn, id, onToggle }) => {
 	const lbl = document.createElement('label');
 	lbl.className = 'layer-checkbox';
 
@@ -732,6 +1170,7 @@ MAP_LAYERS.forEach(({ label, layer, defaultOn, id }) => {
 	if (id) cb.id = id;
 
 	cb.addEventListener('change', function() {
+		if (onToggle) { onToggle(this.checked); return; }
 		if (this.checked) map.addLayer(layer);
 		else              map.removeLayer(layer);
 	});
@@ -746,7 +1185,10 @@ MAP_LAYERS.forEach(({ label, layer, defaultOn, id }) => {
 	});
 
 	lbl.appendChild(fx);
-	lbl.appendChild(document.createTextNode(' ' + label));
+	const labelText = document.createElement('span');
+	labelText.className = 'layer-checkbox-label';
+	labelText.textContent = label;
+	lbl.appendChild(labelText);
 	mapLayerContainer.appendChild(lbl);
 });
 
@@ -764,14 +1206,29 @@ document.getElementById('maplayers-section-label').addEventListener('click', fun
 });
 
 
+// ─── SIDEBAR: СВОРАЧИВАНИЕ СЕКЦИЙ (только главный вид) ────────────────────
+// Клик строго по фону строки-заголовка (e.target === сама строка, а не <p>/
+// кнопка/их потомки) — т.е. по пустому месту справа от текста, левее «+» —
+// сворачивает секцию (CSS .sb-section.collapsed прячет всё, кроме строки).
+// По самому тексту у «Локаций»/«Слоёв карты» остаётся вкл/выкл всех пунктов.
+document.querySelectorAll('#normal-view .sb-section > .sidebar-section-label-row').forEach(row => {
+	row.addEventListener('click', function(e) {
+		if (e.target !== row) return;
+		row.closest('.sb-section').classList.toggle('collapsed');
+	});
+});
+
+
 // ─── SIDEBAR: СПИСОК ЛОКАЦИЙ ──────────────────────────────────────────────
 const provinceRegionMeta = {};   // название провинции (рус) -> { id, owner, engname }
+const provinceNameById   = {};   // id провинции -> название (рус) — для якоря задания
 regionsProvinces.features.forEach(f => {
 	provinceRegionMeta[f.properties.name] = {
 		id: f.properties.id,
 		owner: f.properties.owner ?? '',
 		engname: f.properties.engname ?? '',
 	};
+	provinceNameById[f.properties.id] = f.properties.name;
 });
 
 function buildLocationList(features) {
@@ -1262,6 +1719,51 @@ sidebarResizeHandle.addEventListener('pointerup', endSidebarResize);
 sidebarResizeHandle.addEventListener('pointercancel', endSidebarResize);
 
 
+// ─── SIDEBAR: ВЫСОТА «ЖУРНАЛА ЗАДАНИЙ» ⇄ «ПРОВИНЦИЙ» ────────────────────
+// Та же механика, что у ручки ширины сайдбара: невидимая полоса-хендл в
+// зазоре между секциями (#journal-split-handle в CSS), Pointer Events +
+// setPointerCapture. Тянем — растёт/падает потолок высоты списка заданий
+// (#quest-journal-list.max-height), «Провинции» (flex:1) сами занимают
+// остаток. Верхний предел считаем на момент старта: столько, чтобы списку
+// провинций осталось не меньше PROVINCES_MIN_H.
+const journalSplitHandle = document.getElementById('journal-split-handle');
+const journalListEl      = document.getElementById('quest-journal-list');
+const provinceListEl     = document.getElementById('location-list');
+const JOURNAL_MIN_H      = 48;
+const PROVINCES_MIN_H    = 120;
+
+let resizingJournal = false;
+let journalStartY   = 0;
+let journalStartH   = 0;
+let journalMaxH     = 0;
+
+journalSplitHandle.addEventListener('pointerdown', function(e) {
+	resizingJournal = true;
+	journalStartY = e.clientY;
+	journalStartH = journalListEl.getBoundingClientRect().height;
+	journalMaxH = journalStartH +
+		Math.max(0, provinceListEl.getBoundingClientRect().height - PROVINCES_MIN_H);
+	document.body.style.userSelect = 'none';
+	journalSplitHandle.setPointerCapture(e.pointerId);
+	e.preventDefault();
+});
+
+journalSplitHandle.addEventListener('pointermove', function(e) {
+	if (!resizingJournal) return;
+	let h = journalStartH + (e.clientY - journalStartY);
+	h = Math.max(JOURNAL_MIN_H, Math.min(journalMaxH, h));
+	journalListEl.style.maxHeight = h + 'px';
+});
+
+function endJournalResize() {
+	if (!resizingJournal) return;
+	resizingJournal = false;
+	document.body.style.userSelect = '';
+}
+journalSplitHandle.addEventListener('pointerup', endJournalResize);
+journalSplitHandle.addEventListener('pointercancel', endJournalResize);
+
+
 // ─── ZOOM CONTROL (bottomright) ───────────────────────────────────────────
 L.control.zoom({ position: 'bottomright' }).addTo(map);
 
@@ -1608,7 +2110,7 @@ document.addEventListener('click', function(e) {
 // защита на запись обеспечивается RLS-политиками в базе (см. регистрацию
 // markers-table), а не сокрытием ключа. Вошедший администратор получает
 // возможность добавлять/редактировать/удалять маркеры прямо на этой странице.
-let isAdmin = false;
+// (объявление isAdmin поднято к началу файла — см. комментарий там)
 
 // Для update/delete Supabase/PostgREST не считает отказ RLS ошибкой — если
 // политика не пропускает ни одной строки, запрос просто "успешно" затрагивает
@@ -1657,9 +2159,13 @@ const loginForm     = document.getElementById('login-form');
 const loginErrorEl  = document.getElementById('login-error');
 
 function setAdminState(admin) {
+	const changed = isAdmin !== admin;
 	isAdmin = admin;
 	document.body.classList.toggle('is-admin', admin);
 	if (adminControlLink) adminControlLink.title = admin ? 'Выйти' : 'Вход для администратора';
+	// Набор строк заданий зависит от роли (RLS не отдаёт слухи анониму), а
+	// значки-«плюсы»/кнопки правки — от isAdmin. Перечитываем и перерисовываем.
+	if (changed && typeof loadQuests === 'function') loadQuests();
 }
 
 loginForm.addEventListener('submit', async function(e) {
@@ -1686,6 +2192,7 @@ loginForm.addEventListener('submit', async function(e) {
 // ─── АДМИНКА: ФОРМА МАРКЕРА (добавление / редактирование / удаление) ───────
 const normalView      = document.getElementById('normal-view');
 const editMarkerView  = document.getElementById('edit-marker-view');
+const editQuestView   = document.getElementById('edit-quest-view');
 const editMarkerTitle = document.getElementById('edit-marker-title');
 const addMarkerBtn    = document.getElementById('add-marker-btn');
 const editBackBtn     = document.getElementById('edit-back-btn');
@@ -1941,8 +2448,10 @@ function forceHoverRecalc(el) {
 function showNormalView() {
 	normalView.classList.remove('hidden');
 	editMarkerView.classList.add('hidden');
+	editQuestView.classList.add('hidden');
 	clearDraftMarker();
 	restoreRealMarker();
+	if (typeof clearQuestDraftMarker === 'function') clearQuestDraftMarker();
 	activeMarkerId = null;
 	// возвращаем обычную интерактивность регионов
 	setRegionsInteractive(provinceRegions, true);
@@ -1951,6 +2460,7 @@ function showNormalView() {
 
 function showEditView() {
 	normalView.classList.add('hidden');
+	editQuestView.classList.add('hidden');
 	editMarkerView.classList.remove('hidden');
 	// см. forceHoverRecalc — тут это переключение видимости display:none -> flex
 	forceHoverRecalc(editMarkerView);
@@ -1958,6 +2468,13 @@ function showEditView() {
 	// перехватывать клики — иначе по ним невозможно попасть кликом на карту
 	setRegionsInteractive(factionRegions, false);
 	setRegionsInteractive(provinceRegions, false);
+}
+
+function showQuestEditView() {
+	normalView.classList.add('hidden');
+	editMarkerView.classList.add('hidden');
+	editQuestView.classList.remove('hidden');
+	forceHoverRecalc(editQuestView);
 }
 
 function resetMarkerForm() {
@@ -2281,6 +2798,399 @@ map.on('click', function(e) {
 	if (measuringActive) return;
 	setDraftPosition(e.latlng);
 });
+
+
+// ─── АДМИНКА: ФОРМА ЗАДАНИЯ (добавление / редактирование / удаление) ───────
+const questForm        = document.getElementById('quest-form');
+const editQuestTitle   = document.getElementById('edit-quest-title');
+const questFormErrorEl = document.getElementById('quest-form-error');
+const addQuestBtn      = document.getElementById('add-quest-btn');
+const deleteQuestBtn   = document.getElementById('delete-quest-btn');
+const questAnchorModeEl = document.getElementById('q-anchor-mode');
+
+let activeQuestId    = null;   // null = создаём новое
+let questAnchorKind  = 'unplaced';
+let questDraftMarker = null;
+
+function clearQuestDraftMarker() {
+	if (questDraftMarker) { map.removeLayer(questDraftMarker); questDraftMarker = null; }
+}
+
+function questDivIcon(status) {
+	const s = QUEST_STATUS[status] ?? QUEST_STATUS.known;
+	return L.divIcon({
+		className: 'quest-point-icon',
+		html: `<img src="${QUEST_ICON}" width="24" height="24" alt="">`
+			+ `<span class="quest-point-dot" style="background:${s.fill};box-shadow:inset 0 0 0 1px ${s.line}"></span>`,
+		iconSize: [24, 24], iconAnchor: [12, 12],
+	});
+}
+
+function setQuestPoint(latlng) {
+	document.getElementById('q-lng').value = latlng.lng.toFixed(1);
+	document.getElementById('q-lat').value = latlng.lat.toFixed(1);
+	if (questDraftMarker) {
+		questDraftMarker.setLatLng(latlng);
+	} else {
+		questDraftMarker = L.marker(latlng, {
+			icon: questDivIcon(document.getElementById('q-status').value),
+			zIndexOffset: 1000, draggable: true,
+		}).addTo(map);
+		questDraftMarker.on('drag',    () => setQuestPoint(questDraftMarker.getLatLng()));
+		questDraftMarker.on('dragend', () => setQuestPoint(questDraftMarker.getLatLng()));
+	}
+}
+
+// Переключение режима привязки: показываем нужное поле, а для «точки» ещё и
+// освобождаем клики карты от полигонов регионов (как в форме маркера).
+function setQuestAnchorMode(kind) {
+	questAnchorKind = kind;
+	questAnchorModeEl.querySelectorAll('button').forEach(b =>
+		b.classList.toggle('selected', b.dataset.anchor === kind));
+	editQuestView.querySelectorAll('.q-anchor-field').forEach(f =>
+		f.classList.toggle('hidden', f.dataset.for !== kind));
+
+	if (kind === 'point') {
+		setRegionsInteractive(factionRegions, false);
+		setRegionsInteractive(provinceRegions, false);
+		const lng = parseFloat(document.getElementById('q-lng').value);
+		const lat = parseFloat(document.getElementById('q-lat').value);
+		if (!Number.isNaN(lng) && !Number.isNaN(lat) && !questDraftMarker) {
+			setQuestPoint(L.latLng(lat, lng));
+		}
+	} else {
+		clearQuestDraftMarker();
+		setRegionsInteractive(factionRegions, true);
+		setRegionsInteractive(provinceRegions, true);
+	}
+}
+
+questAnchorModeEl.addEventListener('click', function(e) {
+	const btn = e.target.closest('button[data-anchor]');
+	if (btn) setQuestAnchorMode(btn.dataset.anchor);
+});
+
+// смена статуса — обновляем иконку чернового маркера точки
+document.getElementById('q-status').addEventListener('change', function() {
+	if (questDraftMarker) questDraftMarker.setIcon(questDivIcon(this.value));
+});
+
+function populateQuestFormLists() {
+	document.getElementById('q-loc-options').innerHTML =
+		[...new Set(allMarkerRows.map(r => r.runame).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ru'))
+			.map(n => `<option value="${n}">`).join('');
+	document.getElementById('q-prov-options').innerHTML =
+		regionsProvinces.features.map(f => f.properties.name).sort((a, b) => a.localeCompare(b, 'ru'))
+			.map(n => `<option value="${n}">`).join('');
+	document.getElementById('q-trait').innerHTML = '<option value="">— нет —</option>'
+		+ Object.entries(TRAITS).map(([k, t]) => `<option value="${k}">${t.tooltip}</option>`).join('');
+}
+
+function resetQuestForm() {
+	questForm.reset();
+	questFormErrorEl.textContent = '';
+	clearQuestDraftMarker();
+	populateQuestFormLists();
+}
+
+// opts: { questId?, anchorKind?, anchorLocationId?, anchorProvinceId?, statusDefault? }
+function openQuestForm(opts = {}) {
+	resetQuestForm();
+	map.closePopup();
+	closeQuestCard();
+
+	if (opts.questId) {
+		const q = questsById.get(opts.questId);
+		if (!q) return;
+		activeQuestId = q.id;
+		editQuestTitle.textContent = q.runame || 'Задание';
+		deleteQuestBtn.classList.remove('hidden');
+		document.getElementById('q-runame').value      = q.runame ?? '';
+		document.getElementById('q-engname').value     = q.engname ?? '';
+		document.getElementById('q-description').value = q.description ?? '';
+		document.getElementById('q-status').value      = q.status ?? 'rumor';
+		document.getElementById('q-trait').value       = q.trait ?? '';
+		if (q.anchor_kind === 'location') {
+			document.getElementById('q-anchor-loc').value = markerRowById.get(q.anchor_location_id)?.runame ?? '';
+		} else if (q.anchor_kind === 'province') {
+			document.getElementById('q-anchor-prov').value = provinceNameById[q.anchor_province_id] ?? '';
+		} else if (q.anchor_kind === 'point') {
+			document.getElementById('q-lng').value = q.lng ?? '';
+			document.getElementById('q-lat').value = q.lat ?? '';
+		}
+		setQuestAnchorMode(q.anchor_kind || 'unplaced');
+	} else {
+		activeQuestId = null;
+		editQuestTitle.textContent = 'Новое задание';
+		deleteQuestBtn.classList.add('hidden');
+		document.getElementById('q-status').value = opts.statusDefault || 'rumor';
+		if (opts.anchorLocationId) {
+			document.getElementById('q-anchor-loc').value = markerRowById.get(opts.anchorLocationId)?.runame ?? '';
+		}
+		if (opts.anchorProvinceId) {
+			document.getElementById('q-anchor-prov').value = provinceNameById[opts.anchorProvinceId] ?? '';
+		}
+		setQuestAnchorMode(opts.anchorKind || 'unplaced');
+	}
+	showQuestEditView();
+}
+
+addQuestBtn.addEventListener('click', () => openQuestForm({}));
+document.getElementById('quest-back-btn').addEventListener('click', showNormalView);
+
+// «+» в попапе локации/провинции  (data-add-quest="location:<id>" / "province:<id>")
+document.addEventListener('click', function(e) {
+	const t = e.target.closest('[data-add-quest]');
+	if (!t) return;
+	const [kind, id] = t.dataset.addQuest.split(':');
+	openQuestForm({
+		anchorKind: kind, statusDefault: 'rumor',
+		anchorLocationId: kind === 'location' ? id : undefined,
+		anchorProvinceId: kind === 'province' ? id : undefined,
+	});
+});
+
+// «Редактировать» в карточке задания
+document.addEventListener('click', function(e) {
+	const t = e.target.closest('[data-edit-quest]');
+	if (t && t.dataset.editQuest) openQuestForm({ questId: t.dataset.editQuest });
+});
+
+// Клик по карте в режиме «точка»
+map.on('click', function(e) {
+	if (editQuestView.classList.contains('hidden')) return;
+	if (questAnchorKind !== 'point') return;
+	if (measuringActive) return;
+	setQuestPoint(e.latlng);
+});
+
+questForm.addEventListener('submit', async function(e) {
+	e.preventDefault();
+	questFormErrorEl.textContent = '';
+
+	const runame = document.getElementById('q-runame').value.trim();
+	if (!runame) { questFormErrorEl.textContent = 'Укажите название задания'; return; }
+
+	let anchor_location_id = null, anchor_province_id = null, lng = null, lat = null;
+	if (questAnchorKind === 'location') {
+		const name = document.getElementById('q-anchor-loc').value.trim();
+		const row = allMarkerRows.find(r => r.runame === name);
+		if (!row) { questFormErrorEl.textContent = 'Локация с таким названием не найдена'; return; }
+		anchor_location_id = row.id;
+	} else if (questAnchorKind === 'province') {
+		const name = document.getElementById('q-anchor-prov').value.trim();
+		const meta = provinceRegionMeta[name];
+		if (!meta || !meta.id) { questFormErrorEl.textContent = 'Провинция с таким названием не найдена'; return; }
+		anchor_province_id = meta.id;
+	} else if (questAnchorKind === 'point') {
+		lng = parseFloat(document.getElementById('q-lng').value);
+		lat = parseFloat(document.getElementById('q-lat').value);
+		if (Number.isNaN(lng) || Number.isNaN(lat)) { questFormErrorEl.textContent = 'Кликните по карте, чтобы поставить точку'; return; }
+	}
+
+	const payload = {
+		runame,
+		engname:     document.getElementById('q-engname').value.trim() || null,
+		description: document.getElementById('q-description').value.trim() || null,
+		status:      document.getElementById('q-status').value,
+		trait:       document.getElementById('q-trait').value || null,
+		anchor_kind: questAnchorKind,
+		anchor_location_id, anchor_province_id, lng, lat,
+		updated_at:  new Date().toISOString(),
+	};
+
+	const query = activeQuestId
+		? supabaseClient.from('quests').update(payload).eq('id', activeQuestId)
+		: supabaseClient.from('quests').insert(payload);
+
+	const result = await runWrite(query);
+	if (!result.ok) { questFormErrorEl.textContent = 'Не удалось сохранить: ' + result.message; return; }
+
+	await loadQuests();
+	showNormalView();
+});
+
+deleteQuestBtn.addEventListener('click', async function() {
+	if (!activeQuestId) return;
+	if (!confirm('Удалить это задание?')) return;
+	const result = await runWrite(supabaseClient.from('quests').delete().eq('id', activeQuestId));
+	if (!result.ok) { questFormErrorEl.textContent = 'Не удалось удалить: ' + result.message; return; }
+	await loadQuests();
+	showNormalView();
+});
+
+document.getElementById('quest-sidebar-toggle').addEventListener('click', toggleSidebarCollapsed);
+
+
+// ─── АДМИНКА: DRAG-AND-DROP ПРИВЯЗКА ЗАДАНИЯ ──────────────────────────────
+// Задание тащат за насечку (не за всю строку — иначе конфликт с кликом-
+// навигацией). Зоны сброса:
+//   • сайдбар            → anchor_kind='unplaced' (снять с карты)
+//   • маркер локации     → 'location'
+//   • открытый попап пров.→ 'province'
+//   • прочее на карте    → 'point' в точке курсора
+// Слушатели pointermove/up вешаются на window, чтобы драг не терялся за
+// пределами исходного элемента (как в прототипе).
+let questDrag = null;
+
+// Курсор двигаем только через transform — это композитинг, без реляйаута
+// (в отличие от left/top). Иначе document.elementFromPoint ниже на каждый
+// pointermove форсировал бы полный пересчёт раскладки всей карты (~475
+// тултипов + маркеры) — отсюда и были «5 fps».
+function questDragGhostMove(x, y) {
+	if (questDrag?.ghost) questDrag.ghost.style.transform = `translate3d(${x + 12}px, ${y + 10}px, 0)`;
+}
+
+function markerIdFromIconEl(iconEl) {
+	for (const id in markersById) if (markersById[id]._icon === iconEl) return id;
+	return null;
+}
+
+function openRegionPopupTier() {
+	const src = map._popup && map._popup._source;
+	const props = src && src.feature && src.feature.properties;
+	return props && props.tier === 'province' ? props.id : null;
+}
+
+// Возвращает { kind, id?, lng?, lat?, el? } — цель под курсором.
+// Ghost имеет pointer-events:none, поэтому elementFromPoint его не «видит» —
+// прятать/показывать его не нужно. needCoords=false (на каждом кадре драга)
+// пропускает вычисление lng/lat для точки — они нужны только при сбросе.
+function resolveQuestDrop(x, y, needCoords) {
+	if (questDrag && x < questDrag.sidebarRight) return { kind: 'unplaced' };
+
+	const mapEl = document.getElementById('map');
+	const el = document.elementFromPoint(x, y);
+
+	const popupEl = el && el.closest && el.closest('.leaflet-popup');
+	if (popupEl && popupEl.querySelector('.region-popup')) {
+		const pid = openRegionPopupTier();
+		if (pid) return { kind: 'province', id: pid, el: popupEl };
+	}
+	const iconEl = el && el.closest && el.closest('.leaflet-marker-icon');
+	if (iconEl && !iconEl.classList.contains('quest-point-icon')) {
+		const mid = markerIdFromIconEl(iconEl);
+		if (mid) return { kind: 'location', id: mid, el: iconEl };
+	}
+	if (el && mapEl.contains(el)) {
+		if (!needCoords) return { kind: 'point' };
+		const latlng = map.mouseEventToLatLng({ clientX: x, clientY: y });
+		return { kind: 'point', lng: +latlng.lng.toFixed(1), lat: +latlng.lat.toFixed(1) };
+	}
+	return { kind: 'unplaced' };
+}
+
+function clearQuestDropHighlight() {
+	document.querySelectorAll('.quest-drop-target').forEach(el => el.classList.remove('quest-drop-target'));
+}
+
+// Хит-тест (elementFromPoint + правки классов) — не чаще одного раза за кадр:
+// pointermove может лететь по 120+ раз в секунду, а нам хватает 60.
+function questDragHitTest() {
+	if (!questDrag) return;
+	questDrag.raf = 0;
+	const { px, py } = questDrag;
+	const drop = resolveQuestDrop(px, py, false);
+	questDrag.drop = drop;
+
+	if (drop.el !== questDrag.hlEl) {
+		clearQuestDropHighlight();
+		if ((drop.kind === 'location' || drop.kind === 'province') && drop.el) drop.el.classList.add('quest-drop-target');
+		questDrag.hlEl = drop.el || null;
+	}
+	const valid = drop.kind !== 'point';
+	questDrag.ghost.classList.toggle('over-target', valid);
+	const hint = drop.kind === 'location' ? 'вложить в эту локацию'
+		: drop.kind === 'province' ? 'привязать к этой провинции'
+		: drop.kind === 'unplaced' ? 'снять с карты (в журнал)'
+		: 'поставить своей точкой на карте';
+	if (hint !== questDrag.hint) { questDragHintEl.textContent = hint; questDrag.hint = hint; }
+}
+
+function questDragMove(e) {
+	if (!questDrag) return;
+	if (!questDrag.moved && Math.hypot(e.clientX - questDrag.startX, e.clientY - questDrag.startY) < 4) return;
+	questDrag.moved = true;
+	questDrag.px = e.clientX;
+	questDrag.py = e.clientY;
+	questDragGhostMove(e.clientX, e.clientY);
+	if (!questDrag.raf) questDrag.raf = requestAnimationFrame(questDragHitTest);
+}
+
+async function questDragEnd(e) {
+	window.removeEventListener('pointermove', questDragMove);
+	window.removeEventListener('pointerup', questDragEnd);
+	const d = questDrag;
+	if (d?.raf) cancelAnimationFrame(d.raf);
+	// резолвим цель ДО обнуления questDrag (resolveQuestDrop использует sidebarRight из него)
+	const drop = (d && d.moved) ? resolveQuestDrop(e.clientX, e.clientY, true) : null;
+	questDrag = null;
+	document.body.classList.remove('quest-dragging');
+	clearQuestDropHighlight();
+	questDragHintEl.classList.add('hidden');
+	if (d?.ghost) d.ghost.remove();
+	if (!drop) return;
+
+	const payload = {
+		anchor_kind: drop.kind,
+		anchor_location_id: drop.kind === 'location' ? drop.id : null,
+		anchor_province_id: drop.kind === 'province' ? drop.id : null,
+		lng: drop.kind === 'point' ? drop.lng : null,
+		lat: drop.kind === 'point' ? drop.lat : null,
+		updated_at: new Date().toISOString(),
+	};
+	const result = await runWrite(supabaseClient.from('quests').update(payload).eq('id', d.id));
+	if (!result.ok) { alert('Не удалось привязать задание: ' + result.message); return; }
+	await loadQuests();
+
+	// лёгкая обратная связь: показать результат в новом контексте
+	if (drop.kind === 'location') {
+		markersById[drop.id]?.openPopup();
+	} else if (drop.kind === 'point') {
+		openQuestCard(d.id);
+	} else if (drop.kind === 'unplaced') {
+		openQuestCard(d.id);
+	}
+}
+
+function questDragStart(id, e) {
+	if (!isAdmin) return;
+	e.preventDefault();
+	e.stopPropagation();
+	const q = questsById.get(id);
+	const ghost = document.createElement('div');
+	ghost.className = 'quest-drag-ghost';
+	ghost.innerHTML = `<img src="${QUEST_ICON}" width="16" height="16" alt=""><span>${q?.runame ?? ''}</span>`;
+	document.body.appendChild(ghost);
+	const sb = document.getElementById('sidebar-wrapper');
+	questDrag = {
+		id, startX: e.clientX, startY: e.clientY, moved: false, ghost, drop: null,
+		px: e.clientX, py: e.clientY, raf: 0, hlEl: null, hint: null,
+		sidebarRight: sb ? sb.getBoundingClientRect().right : 0,
+	};
+	questDragGhostMove(e.clientX, e.clientY);
+	questDragHintEl.textContent = 'тащите: в локацию · на карту · в журнал';
+	questDragHintEl.classList.remove('hidden');
+	document.body.classList.add('quest-dragging');
+	window.addEventListener('pointermove', questDragMove);
+	window.addEventListener('pointerup', questDragEnd);
+}
+
+const questDragHintEl = document.createElement('div');
+questDragHintEl.id = 'quest-drag-hint';
+questDragHintEl.className = 'hidden';
+document.body.appendChild(questDragHintEl);
+
+document.addEventListener('pointerdown', function(e) {
+	const h = e.target.closest('[data-drag-quest]');
+	if (h) questDragStart(h.dataset.dragQuest, e);
+});
+// клик по насечке в попапе не должен всплывать (Leaflet/попап), а в журнале
+// уже отсекается в его click-обработчике
+document.addEventListener('click', function(e) {
+	if (e.target.closest('[data-drag-quest]')) { e.preventDefault(); e.stopPropagation(); }
+}, true);
+
 
 markerForm.addEventListener('submit', async function(e) {
 	e.preventDefault();

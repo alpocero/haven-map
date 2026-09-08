@@ -1,11 +1,11 @@
-<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="13" height="13" viewBox="0 0 13 13" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g id="search-icon">
-<g id="search-icon_2" filter="url(#filter0_diin_0_14)">
-<path d="M11.1444 12L7.29444 8.15C6.98889 8.39444 6.6375 8.58796 6.24028 8.73056C5.84306 8.87315 5.42037 8.94444 4.97222 8.94444C3.86204 8.94444 2.92245 8.55995 2.15347 7.79097C1.38449 7.02199 1 6.08241 1 4.97222C1 3.86204 1.38449 2.92245 2.15347 2.15347C2.92245 1.38449 3.86204 1 4.97222 1C6.08241 1 7.02199 1.38449 7.79097 2.15347C8.55995 2.92245 8.94444 3.86204 8.94444 4.97222C8.94444 5.42037 8.87315 5.84306 8.73056 6.24028C8.58796 6.6375 8.39444 6.98889 8.15 7.29444L12 11.1444L11.1444 12ZM4.97222 7.72222C5.73611 7.72222 6.38542 7.45486 6.92014 6.92014C7.45486 6.38542 7.72222 5.73611 7.72222 4.97222C7.72222 4.20833 7.45486 3.55903 6.92014 3.02431C6.38542 2.48958 5.73611 2.22222 4.97222 2.22222C4.20833 2.22222 3.55903 2.48958 3.02431 3.02431C2.48958 3.55903 2.22222 4.20833 2.22222 4.97222C2.22222 5.73611 2.48958 6.38542 3.02431 6.92014C3.55903 7.45486 4.20833 7.72222 4.97222 7.72222Z" fill="url(#paint0_linear_0_14)"/>
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="icon/search">
+<g id="icon/search/default" filter="url(#filter0_diin_0_14)">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M4.98793 1C7.1904 1 8.97585 2.78546 8.97585 4.98793C8.97585 5.81885 8.72034 6.58948 8.28556 7.22822L11 9.94265L9.94265 11L7.22822 8.28556C6.58948 8.72034 5.81885 8.97585 4.98793 8.97585C2.78546 8.97585 1 7.1904 1 4.98793C1 2.78546 2.78546 1 4.98793 1ZM4.98793 2.49547C3.61138 2.49547 2.49547 3.61138 2.49547 4.98793C2.49547 6.36447 3.61138 7.48038 4.98793 7.48038C6.36447 7.48038 7.48038 6.36447 7.48038 4.98793C7.48038 3.61138 6.36447 2.49547 4.98793 2.49547Z" fill="url(#paint0_linear_0_14)"/>
 </g>
 </g>
 <defs>
-<filter id="filter0_diin_0_14" x="0" y="0" width="13" height="13" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<filter id="filter0_diin_0_14" x="0" y="0" width="12" height="12" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
 <feFlood flood-opacity="0" result="BackgroundImageFix"/>
 <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
 <feOffset/>
@@ -40,7 +40,7 @@
 </feMerge>
 <feBlend mode="normal" in="effect4_noise_0_14" in2="effect1_dropShadow_0_14" result="effect4_noise_0_14"/>
 </filter>
-<linearGradient id="paint0_linear_0_14" x1="6.5" y1="1" x2="6.5" y2="12" gradientUnits="userSpaceOnUse">
+<linearGradient id="paint0_linear_0_14" x1="6" y1="1" x2="6" y2="11" gradientUnits="userSpaceOnUse">
 <stop stop-color="#3E3C3A"/>
 <stop offset="1" stop-color="#6A655D"/>
 </linearGradient>
