@@ -38,18 +38,34 @@ const LOCATION_ICONS = {
 // (см. блок «АДМИНКА»): вошёл админ → «Мастер» (видит слухи, значки +),
 // аноним → «Игрок» (слухи не приходят даже из БД — политика RLS).
 // Палитра статусов — из design_handoff_quests_in_locations/README.md.
+// «Провалено» — отдельный статус в БД и в форме админа, но НЕ отдельный чип
+// фильтра: пользователь переключает только «Завершено», и под ним видны и
+// done, и failed — они отличаются только иконкой (см. quest-status-failed.svg),
+// цвет/зачёркивание/сортировка/счётчики everywhere те же, что у done.
+// normalizedQuestStatus() — единственное место, где failed «прикидывается»
+// done для фильтра/сортировки/счётчиков; сам q.status остаётся 'failed'.
 const QUEST_STATUS = {
 	rumor:  { label: 'Слух',      ink: '#6A655D', fill: '#282726', line: '#3E3C3A' },
 	known:  { label: 'Известно',  ink: '#998C7C', fill: '#3E3C3A', line: '#6A655D' },
 	active: { label: 'Активно',   ink: '#EFE7D6', fill: '#C9A24D', line: '#96763E' },
 	done:   { label: 'Завершено', ink: '#787167', fill: '#4D3C1A', line: '#4D3C1A' },
+	failed: { label: 'Провалено', ink: '#787167', fill: '#4D3C1A', line: '#4D3C1A' },
 };
 const QUEST_STATUS_ORDER = ['rumor', 'known', 'active', 'done'];
+function normalizedQuestStatus(status) {
+	return status === 'failed' ? 'done' : status;
+}
+// Порядок вывода в «Журнале заданий»: активные → известные → завершённые.
+// Админу перед активными идут слухи; у обычного пользователя строк-слухов
+// нет вовсе (questVisible + RLS), поэтому массив общий.
+const QUEST_JOURNAL_ORDER = ['rumor', 'active', 'known', 'done'];
 const QUEST_ICON = 'images/icons/quest.png';
 // насечка для перетаскивания задания (видна только админу) — ассет из макета
 // «Sidebar — Карта Хейвена (admin)» (node 254:1525, компонент quest-drag):
 // шесть плашек с градиентом #3E3C3A→#6A655D, внутренним светом и зерном.
 const QUEST_GRIP_SVG = '<img src="images/ui/quest-drag.svg" width="8.5" height="12" alt="">';
+// «＋» в шапке блока заданий попапа — тот же глиф, что у .fx-icon--plus в сайдбаре.
+const PLUS_ICON_SVG = '<svg viewBox="1 1 10 10" width="10" height="10" aria-hidden="true" focusable="false"><path d="M6.99512 4.99512H11L10 6.99512H6.99512V10L4.99512 11V6.99512H1L2 4.99512H4.99512V2L6.99512 1V4.99512Z" fill="currentColor"/></svg>';
 
 let allQuestRows = [];               // сырые строки из Supabase
 let questsById   = new Map();        // id -> строка
@@ -58,16 +74,27 @@ const questsByProvinceId = new Map();// id провинции -> [строки �
 const questMarkers = new Map();      // id задания -> Leaflet-маркер (anchor_kind='point')
 const questPointLayer = L.layerGroup();
 
+// Ветки заданий (quest_branches) — условный хаб для группы заданий, никогда не
+// отображается на карте. Задание попадает в ветку через quests.branch_id;
+// quests.branch_step задаёт порядок внутри ветки: у всех NULL — без порядка,
+// разные числа — последовательность шагов. Внутри одного шага решает
+// quests.branch_or_group (см. branchGroupKey ниже): одна и та же группа у
+// 2+ заданий — все они обязательны вместе («и», единая альтернатива), разные
+// группы (или группа не указана — тогда у каждого задания она своя,
+// единственная) — взаимоисключающие альтернативы шага («или», нужна любая
+// одна). Это и покрывает случай «группа из N заданий ИЛИ одно задание».
+let allBranchRows = [];              // сырые строки из Supabase (quest_branches)
+let branchesById  = new Map();       // id -> строка ветки
+const questsByBranchId = new Map();  // branch id -> [строки заданий]
+const collapsedBranchIds = new Set();// свёрнутые (по умолчанию все ветки развёрнуты)
+const CHEVRON_SVG = '<svg width="8" height="5" viewBox="0 0 8 5" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0 0L4 5L8 0H0Z" fill="currentColor"/></svg>';
+
 // «Завершено» по умолчанию выключено, как в прототипе. Чип «Слух» рисуется
 // только админу; для анонима строк со статусом rumor всё равно нет в данных.
 const questStatusFilter = { rumor: true, known: true, active: true, done: false };
-// одноразовая метка «этот чип только что включили» — ровно как lastToggledTraitKey
-// у «Особенностей»: ряд чипов пересобирается целиком, и без метки анимация
-// подсветки сыграла бы у всех выбранных разом (см. .just-selected в style.css).
-let lastToggledStatusKey = null;
 
 function questVisible(q) {
-	if (!questStatusFilter[q.status]) return false;
+	if (!questStatusFilter[normalizedQuestStatus(q.status)]) return false;
 	if (!isAdmin && q.status === 'rumor') return false; // подстраховка поверх RLS
 	return true;
 }
@@ -82,6 +109,47 @@ function questAnchorLabel(q) {
 	}
 	if (q.anchor_kind === 'point') return 'своя точка на карте';
 	return 'без места';
+}
+
+// Строка «локации» под названием задания в Журнале: «Тип места Название», где
+// тип — цветом .journal-row-anchor, а название — ссылкой (.desc-link, как в
+// описаниях попапов). Сам переход делает общий обработчик клика по .journal-row
+// (по anchor_kind), ссылка здесь — только вид.
+//   location  → «Локация <ссылка>»
+//   province  → «Провинция <ссылка>»
+//   point     → как «Новый маркер»: по координатам сами находим провинцию —
+//               «В провинции <ссылка>»; ни в одну не попал — «В неизведанных землях»
+//   иначе (unplaced / нет якоря / битая привязка) → «Где-то в мире»
+// Название привязки задания для поиска — то же, что видно в строке журнала:
+// локация → её имя (рус + англ), провинция → её имя, точка → провинция под ней.
+function questAnchorSearchText(q) {
+	if (q.anchor_kind === 'location') {
+		const row = markerRowById.get(q.anchor_location_id);
+		return row ? `${row.runame || ''} ${row.engname || ''}` : '';
+	}
+	if (q.anchor_kind === 'province') {
+		return provinceNameById[q.anchor_province_id] || '';
+	}
+	if (q.anchor_kind === 'point' && q.lng != null && q.lat != null) {
+		return detectProvinceAt({ lat: q.lat, lng: q.lng }) || '';
+	}
+	return '';
+}
+
+function questJournalAnchorHTML(q) {
+	if (q.anchor_kind === 'location') {
+		const row = markerRowById.get(q.anchor_location_id);
+		return row ? `Локация <a class="desc-link">${row.runame}</a>` : 'Где-то в мире';
+	}
+	if (q.anchor_kind === 'province') {
+		const name = provinceNameById[q.anchor_province_id];
+		return name ? `Провинция <a class="desc-link">${name}</a>` : 'Где-то в мире';
+	}
+	if (q.anchor_kind === 'point' && q.lng != null && q.lat != null) {
+		const name = detectProvinceAt({ lat: q.lat, lng: q.lng });
+		return name ? `В провинции <a class="desc-link">${name}</a>` : 'В неизведанных землях';
+	}
+	return 'Где-то в мире';
 }
 
 const HavenCRS = L.Util.extend({}, L.CRS.Simple, {
@@ -577,32 +645,49 @@ function getAllSystemTraitKeys() {
 const SHOW_LOCATION_IMAGES = false;
 
 function buildPopupHTML(props, opts = {}) {
+	// Переход к правке локации — на самом заголовке (только у админа, не в
+	// черновике). Клик ловит общий делегат по [data-edit-marker].
+	const editable = isAdmin && !opts.hideAdminActions && props.id;
+	const questsHTML = props.id ? questBlockInnerHTML('location', props.id) : '';
+
+	// «Фракция» / «Провинция»: слово — капсом (CSS), название — как в данных, но
+	// с заглавной первой буквы; если у названия есть регион на политической карте,
+	// это ссылка (клик — переход к региону, как у desc-link province/faction).
+	const cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+	const footerItem = (label, val, refType, refId) => {
+		if (!val) return `<span class="popup-footer-item"></span>`;
+		const value = refId
+			? `<a class="desc-link popup-footer-val" data-ref-type="${refType}" data-ref-id="${refId}">${cap(val)}</a>`
+			: `<span class="popup-footer-val">${cap(val)}</span>`;
+		return `<span class="popup-footer-item"><span class="popup-footer-label">${label}</span> ${value}</span>`;
+	};
+	const footerHTML = (props.faction || props.province)
+		? `<div class="popup-footer">`
+			+ footerItem('Фракция:',  props.faction,  'faction',  props.faction  ? factionIdByName[props.faction]              : null)
+			+ footerItem('Провинция:', props.province, 'province', props.province ? provinceRegionMeta[props.province]?.id     : null)
+			+ `</div>`
+		: '';
+
+	// Секции идут через .popup-divider — собираем только непустые, чтобы не
+	// плодить двойные разделители.
+	const sections = [
+		`<div class="title-row">`
+			+ `<h1${editable ? ` class="popup-title--editable" data-edit-marker="${props.id}" title="Редактировать локацию"` : ''}>${props.runame ?? ''}</h1>`
+			+ `<div class="traits">${buildTraitsHTML(props.traits)}</div>`
+		+ `</div>`,
+		props.description ? `<div class="description">${renderDescription(props.description)}</div>` : '',
+		questsHTML ? `<div class="popup-quests">${questsHTML}</div>` : '',
+		footerHTML,
+	].filter(Boolean);
+
 	return `
 		<div class="popup-content">
 			${SHOW_LOCATION_IMAGES && props.image
 				? `<img class="location-img" src="${props.image}" alt="">`
 				: ''}
 			<div class="popup-text">
-				${props.engname
-					? `<p class="name-eng">${props.engname}</p>`
-					: ''}
-				<div class="title-row">
-					${opts.hideAdminActions ? '' : `
-					<button type="button" class="popup-edit-icon admin-only" data-edit-marker="${props.id ?? ''}" title="Редактировать маркер">
-						<svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg" style="overflow:visible"><path d="M2.40402 9.76955L0 10L0.230298 7.59556L5.81011 2.00636L7.99436 4.19058L2.40402 9.76955Z" fill="currentColor"/><path d="M9.68337 1.24619C9.7779 1.33841 9.84815 1.43382 9.89413 1.53234C9.94002 1.63099 9.97102 1.7271 9.98723 1.82048C10.0045 1.9201 10.0042 2.01256 9.98647 2.09778C9.96868 2.18285 9.92973 2.25675 9.86956 2.31937L8.93311 3.25398L6.74688 1.06778L7.68364 0.129508C7.74733 0.0754453 7.82145 0.0378807 7.906 0.0170314C7.99066 -0.00379003 8.08243 -0.00546 8.18117 0.0116899C8.2799 0.028844 8.37831 0.0609362 8.47633 0.108142C8.57423 0.155335 8.66937 0.22629 8.76172 0.320887L9.68337 1.24619Z" fill="currentColor"/></svg>
-					</button>`}
-					<h1>${props.runame ?? ''}</h1>
-					<div class="traits">${buildTraitsHTML(props.traits)}</div>
-				</div>
-				${props.description
-					? `<div class="description">${renderDescription(props.description)}</div>`
-					: ''}
-				<div class="popup-quests">${props.id ? questBlockInnerHTML('location', props.id) : ''}</div>
-				${(props.faction || props.province) ? `
-				<div class="info-row-group">
-					${buildIconRow(FACTION_ICON,  props.faction)}
-					${buildIconRow(PROVINCE_ICON, props.province)}
-				</div>` : ''}
+				${props.engname ? `<p class="name-eng">${props.engname}</p>` : ''}
+				${sections.join('<div class="popup-divider"></div>')}
 			</div>
 		</div>
 	`;
@@ -642,6 +727,14 @@ async function loadMarkers() {
 		return;
 	}
 	allMarkerRows = data;
+	// Персонажи больше не свойство локаций — они переехали в задания. Снимаем
+	// ключи персонажей из traits прямо на загрузке: в БД они пока остаются
+	// (безопасно для ручной миграции локаций-«заданий»), но приложение их не
+	// видит и не фильтрует; при следующем «Сохранить» локации массив уже
+	// запишется чистым. Разовый перманентный вариант — см. SQL в чате.
+	allMarkerRows.forEach(row => {
+		if (Array.isArray(row.traits)) row.traits = row.traits.filter(t => !CHARACTER_TRAITS[t]);
+	});
 	markerRowById = new Map(data.map(row => [row.id, row]));
 
 	[cities, towns, forts, camps, shrines, pointsOfInterest, polarGates, quests].forEach(g => g.clearLayers());
@@ -693,6 +786,11 @@ async function loadMarkers() {
 
 	buildLocationList(features);
 	if (typeof populateAdminDatalists === 'function') populateAdminDatalists();
+
+	// loadMarkers() и loadQuests() стартуют параллельно. Если задания успели
+	// прийти раньше маркеров, «Локация …» в журнале отрисовалась прочерком
+	// (markerRowById была пуста) — перерисовываем, когда маркеры готовы.
+	if (allQuestRows.length) renderQuestJournal();
 }
 loadMarkers();
 
@@ -715,15 +813,25 @@ MAP_LAYERS.forEach(({ layer, defaultOn, onToggle }) => {
 questPointLayer.addTo(map);
 
 async function loadQuests() {
-	const { data, error } = await supabaseClient.from('quests').select('*').order('runame');
+	const [{ data, error }, { data: branchData, error: branchError }] = await Promise.all([
+		supabaseClient.from('quests').select('*').order('runame'),
+		supabaseClient.from('quest_branches').select('*').order('runame'),
+	]);
 	if (error) {
 		console.error('Не удалось загрузить задания из Supabase:', error);
 		return;
+	}
+	if (branchError) {
+		console.error('Не удалось загрузить ветки заданий из Supabase:', branchError);
+	} else {
+		allBranchRows = branchData;
+		branchesById = new Map(branchData.map(b => [b.id, b]));
 	}
 	allQuestRows = data;
 	questsById = new Map(data.map(q => [q.id, q]));
 	rebuildQuestIndexes();
 	renderQuestPointMarkers();
+	buildQuestStatusChips();   // isAdmin мог смениться → появился/исчез чип «Слух»
 	renderQuestJournal();
 	// перепекаем контент попапов локаций/провинций под свежие задания —
 	// setPopupContent обновляет и уже открытый попап, и строку для следующего
@@ -747,12 +855,14 @@ function pushIntoMap(map, key, val) {
 function rebuildQuestIndexes() {
 	questsByLocationId.clear();
 	questsByProvinceId.clear();
+	questsByBranchId.clear();
 	for (const q of allQuestRows) {
 		if (q.anchor_kind === 'location' && q.anchor_location_id) {
 			pushIntoMap(questsByLocationId, q.anchor_location_id, q);
 		} else if (q.anchor_kind === 'province' && q.anchor_province_id) {
 			pushIntoMap(questsByProvinceId, q.anchor_province_id, q);
 		}
+		if (q.branch_id) pushIntoMap(questsByBranchId, q.branch_id, q);
 	}
 }
 
@@ -761,16 +871,7 @@ function renderQuestPointMarkers() {
 	questMarkers.clear();
 	for (const q of allQuestRows) {
 		if (q.anchor_kind !== 'point' || q.lng == null || q.lat == null || !questVisible(q)) continue;
-		const s = QUEST_STATUS[q.status] ?? QUEST_STATUS.known;
-		const marker = L.marker([q.lat, q.lng], {
-			icon: L.divIcon({
-				className: 'quest-point-icon',
-				html: `<img src="${QUEST_ICON}" width="24" height="24" alt="">`
-					+ `<span class="quest-point-dot" style="background:${s.fill};box-shadow:inset 0 0 0 1px ${s.line}"></span>`,
-				iconSize: [24, 24],
-				iconAnchor: [12, 12],
-			}),
-		});
+		const marker = L.marker([q.lat, q.lng], { icon: questPointIcon() });
 		marker.bindTooltip(q.runame ?? '', {
 			permanent: true, direction: 'bottom', offset: [0, 12],
 			className: 'location-name-label', interactive: false,
@@ -779,6 +880,9 @@ function renderQuestPointMarkers() {
 		marker.addTo(questPointLayer);
 		questMarkers.set(q.id, marker);
 	}
+	// если прямо сейчас правится точечное задание (loadQuests мог перестроить
+	// маркеры по другой причине — тогл чипа статуса и т.п.) — снова прячем его
+	if (hiddenQuestId !== null) toggleRealQuestHidden(hiddenQuestId, true);
 }
 
 // ─── Блок «Задания» внутри попапа локации / провинции ──────────────────────
@@ -788,28 +892,69 @@ function renderQuestPointMarkers() {
 // popupopen, так что «дорисовать» блок по событию нельзя — он должен уже быть в
 // строке. Поэтому после каждого loadQuests() строки попапов перепекаются
 // (refreshQuestPopups ниже) через setPopupContent.
+// Голый текст короткой цели задания для попапа: снимаем разметку ссылок/
+// выделений/цитат, склеиваем переносы. Полное описание с версткой — в карточке.
+function questGoalText(md) {
+	return (md || '')
+		.replace(DESC_LINK_RE, '$1')       // [Текст](loc:id) → Текст
+		.replace(/<[^>]+>/g, ' ')          // выравнивающие <div style="text-align:…"> и прочий HTML
+		.replace(/^\s*>\s?/gm, '')
+		.replace(/\*\*([^*]+)\*\*/g, '$1')
+		.replace(/\*([^*]+)\*/g, '$1')
+		.replace(/_([^_]+)_/g, '$1')
+		.replace(/\s*\n\s*/g, ' ')
+		.trim();
+}
+
+// «В ветке заданий: …» — ссылка на настоящую ветку задания (quests.branch_id),
+// открывает #branch-card. Пусто, если задание не в ветке.
+function questBranchInfoHTML(q) {
+	if (!q.branch_id) return '';
+	const b = branchesById.get(q.branch_id);
+	if (!b) return '';
+	return `<div class="popup-quest-branch"><span class="popup-quest-branch-label">В ветке заданий:</span> `
+		+ `<a class="desc-link" data-open-branch="${b.id}">${b.runame ?? ''}</a></div>`;
+}
+
 function questBlockInnerHTML(kind, anchorId) {
 	const src = kind === 'location' ? questsByLocationId : questsByProvinceId;
 	const list = (src.get(anchorId) || [])
 		.filter(questVisible)
-		.sort((a, b) => QUEST_STATUS_ORDER.indexOf(a.status) - QUEST_STATUS_ORDER.indexOf(b.status));
+		.sort((a, b) => QUEST_JOURNAL_ORDER.indexOf(normalizedQuestStatus(a.status)) - QUEST_JOURNAL_ORDER.indexOf(normalizedQuestStatus(b.status)));
 	if (!list.length && !isAdmin) return '';
-	const rows = list.map(q => {
-		const s = QUEST_STATUS[q.status] ?? QUEST_STATUS.known;
-		const style = `color:${s.ink}`
-			+ (q.status === 'active' ? ';text-shadow:0 0 1.5px rgba(227,155,39,.66)' : '')
-			+ (q.status === 'done'   ? ';text-decoration:line-through' : '');
-		return `<div class="popup-quest-row">`
-			+ `<span class="quest-sq" style="background:${s.fill};box-shadow:inset 0 0 0 1px ${s.line}" title="${s.label}"></span>`
-			+ `<button type="button" class="popup-quest-title" data-open-quest="${q.id}" style="${style}">${q.runame ?? ''}</button>`
-			+ (isAdmin ? `<span class="quest-drag" data-drag-quest="${q.id}" title="Перетащить: на карту / в другую локацию / в журнал">${QUEST_GRIP_SVG}</span>` : '')
-			+ `</div>`;
-	}).join('');
+
 	const addBtn = isAdmin
-		? `<button type="button" class="popup-quest-add" data-add-quest="${kind}:${anchorId}" title="Добавить задание">+</button>`
+		? `<button type="button" class="popup-quest-add" data-add-quest="${kind}:${anchorId}" title="Добавить задание">${PLUS_ICON_SVG}</button>`
 		: '';
-	return `<div class="popup-quests-head"><span class="popup-quests-label">Задания&#8194;${list.length}</span>${addBtn}</div>`
-		+ (rows || `<div class="popup-quests-empty">Заданий нет</div>`);
+	const head = `<div class="popup-quests-head">`
+		+ `<span class="popup-quests-label">Задания <span class="popup-quests-count">${list.length}</span></span>`
+		+ addBtn + `</div>`;
+
+	if (!list.length) return head + `<div class="popup-quests-empty">Заданий нет</div>`;
+
+	// Активное задание — развёрнуто (заголовок + цель + ветка), остальные —
+	// только строка заголовка потусклее (см. макет 282:540).
+	const rows = list.map(q => {
+		const statusKey = QUEST_STATUS[q.status] ? q.status : 'known';
+		const active = q.status === 'active';
+		const drag = isAdmin
+			? `<span class="quest-drag" data-drag-quest="${q.id}" title="Перетащить: на карту / в другую локацию / в журнал">${QUEST_GRIP_SVG}</span>`
+			: '';
+		const header = `<div class="popup-quest-header">`
+			+ `<button type="button" class="popup-quest-title${active ? ' popup-quest-title--active' : ''}${normalizedQuestStatus(q.status) === 'done' ? ' popup-quest-title--done' : ''}" data-open-quest="${q.id}">`
+			+ `<span class="quest-sq quest-sq--${statusKey}"></span>`
+			+ `<span class="popup-quest-name">${q.runame ?? ''}</span>`
+			+ `</button>`
+			+ drag
+			+ `</div>`;
+		if (!active) return `<div class="popup-quest-row">${header}</div>`;
+		// В попапе — только «Краткое описание» задания (отдельное поле формы);
+		// нет краткого — строки цели нет вовсе (полное описание в попап не идёт).
+		const goal = q.short_description ? `<div class="popup-quest-goal">${q.short_description}</div>` : '';
+		return `<div class="popup-quest-row popup-quest-row--active">${header}${goal}${questBranchInfoHTML(q)}</div>`;
+	}).join('');
+
+	return head + `<div class="popup-quests-list">${rows}</div>`;
 }
 
 // Перепекает контент попапов локаций и провинций под текущее состояние заданий.
@@ -836,78 +981,217 @@ function refreshQuestPopups() {
 const questJournalListEl = document.getElementById('quest-journal-list');
 const questStatusChipsEl  = document.getElementById('quest-status-chips');
 
-function renderQuestJournal() {
-	// Чипы статусов — 1:1 текстовые пилюли «Особенностей» (см. buildFilterTraitRow):
-	// та же разметка/классы, та же растущая от курсора подсветка, «включено» =
-	// .selected, одноразовый .just-selected на только что включённом. «Слух» —
-	// только админу (у анонима таких строк нет).
+// Класс .has-scrollbar — единственный признак «полоса прокрутки отрисована»,
+// который доступен CSS. От него зависит 12px-зазор у насечки quest-drag
+// (см. style.css). Дёргаем после каждого рендера журнала, а на изменение
+// высоты контейнера (ручка-разделитель, ресайз окна, сворачивание секции)
+// подписан ResizeObserver ниже.
+//
+// SCROLLBAR_TOLERANCE_PX: у этого списка (flex-column + gap + дробные
+// line-height из Figma-вёрстки) scrollHeight и clientHeight/собственная
+// высота бокса округляются браузером по-разному — даже при полностью
+// раскрытом (перетянутом до упора) журнале и заведомо избыточном max-height
+// scrollHeight стабильно на 1px больше clientHeight. Реального переполнения
+// нет, но нативный overflow-y:auto всё равно рисует скроллбар на этот
+// фантомный 1px и никогда не убирает его. Поэтому overflow-y переключаем сами
+// (auto/hidden) по допуску, а не отдаём браузеру — лишний 1px внизу списка
+// молча обрезается (незаметно), зато скроллбар не «залипает» без реального
+// переполнения.
+const SCROLLBAR_TOLERANCE_PX = 1;
+function syncJournalScrollbarState() {
+	const overflowing = questJournalListEl.scrollHeight > questJournalListEl.clientHeight + SCROLLBAR_TOLERANCE_PX;
+	questJournalListEl.classList.toggle('has-scrollbar', overflowing);
+	questJournalListEl.style.overflowY = overflowing ? 'auto' : 'hidden';
+}
+if (window.ResizeObserver) {
+	new ResizeObserver(syncJournalScrollbarState).observe(questJournalListEl);
+}
+
+// Чипы статусов — 1:1 текстовые пилюли «Особенностей» (см. buildFilterTraitRow):
+// та же разметка/классы, та же анимируемая подсветка (заложена в .icon-toggle),
+// «включено» = .selected. «Слух» — только админу (у анонима таких строк нет).
+// Слева от текста — ромб статуса, обычным in-flow flex-элементом, поэтому
+// подсветка .icon-toggle__fx сама охватывает «ромб + текст».
+//
+// Строятся один раз (и заново при смене isAdmin — см. loadQuests); клик по чипу
+// переключает .selected у самого чипа и перерисовывает только список журнала.
+// Иначе на каждый тогл пересоздавался бы весь ряд и подсветка моргала бы у всех
+// активных чипов разом.
+function buildQuestStatusChips() {
 	questStatusChipsEl.innerHTML = QUEST_STATUS_ORDER
 		.filter(k => isAdmin || k !== 'rumor')
-		.map(k => {
-			const on = questStatusFilter[k];
-			const justSelected = on && k === lastToggledStatusKey;
-			return `<button type="button" class="filter-pill icon-toggle icon-toggle--text`
-				+ `${on ? ' selected' : ''}${justSelected ? ' just-selected' : ''}" data-status-chip="${k}">`
-				+ `${iconToggleTextHTML(QUEST_STATUS[k].label)}</button>`;
-		})
+		.map(k => `<button type="button" class="filter-pill icon-toggle icon-toggle--text`
+			+ `${questStatusFilter[k] ? ' selected' : ''}" data-status-chip="${k}">`
+			+ ICON_TOGGLE_FX_HTML
+			+ `<span class="quest-status-chip__sq quest-status-chip__sq--${k}"></span>`
+			+ `<span class="icon-toggle__label">${QUEST_STATUS[k].label}</span>`
+			+ `</button>`)
 		.join('');
-	lastToggledStatusKey = null; // метка одноразовая — использована выше
+}
 
+function renderQuestJournal() {
 	const q = (document.getElementById('sidebar-search')?.value || '').trim().toLowerCase();
-	const rows = allQuestRows
-		.filter(questVisible)
-		.filter(x => !q
+	// По описанию ищем в снятом с разметки виде (questGoalText): запрос «loc» не
+	// цепляет синтаксис ссылки [..](loc:id), «**» — жирный текст и т.п.
+	const passesFilters = x => questVisible(x)
+		&& matchesTraitSet(x.characters ?? [], activeCharacterFilter, characterFilterMode)
+		&& (!q
 			|| (x.runame || '').toLowerCase().includes(q)
-			|| (x.description || '').toLowerCase().includes(q))
-		.sort((a, b) =>
-			(a.anchor_kind === 'unplaced' ? 0 : 1) - (b.anchor_kind === 'unplaced' ? 0 : 1)     // без места — вперёд (входящая очередь мастера)
-			|| QUEST_STATUS_ORDER.indexOf(a.status) - QUEST_STATUS_ORDER.indexOf(b.status)
-			|| (a.runame || '').localeCompare(b.runame || '', 'ru'));
+			|| questGoalText(x.description).toLowerCase().includes(q)
+			|| questAnchorSearchText(x).toLowerCase().includes(q));
 
-	questJournalListEl.innerHTML = rows.length
-		? rows.map(questJournalRowHTML).join('')
-		: `<div class="quest-journal-empty">Заданий пока нет</div>`;
+	const visibleRows = allQuestRows.filter(passesFilters);
+
+	const totalEl = document.getElementById('quests-total-count');
+	if (totalEl) totalEl.textContent = visibleRows.length;
+
+	const emptyMsg = (q || activeCharacterFilter.size)
+		? 'Ничего не найдено'
+		: (allQuestRows.length ? 'Нет заданий с выбранным статусом' : 'Заданий пока нет');
+
+	if (!visibleRows.length) {
+		questJournalListEl.innerHTML = `<div class="quest-journal-empty">${emptyMsg}</div>`;
+		syncJournalScrollbarState();
+		return;
+	}
+
+	// Задание с веткой (branch_id) не выводится своей строкой в общем списке —
+	// его «забирает» строка ветки. Ветки идут отдельным блоком НАД обычным
+	// списком (макет 367:257: «Quest Lines» → разделитель → «Quests List»),
+	// а не вперемешку по статусу.
+	const soloRows = visibleRows.filter(x => !x.branch_id);
+	const branchIds = [...new Set(visibleRows.filter(x => x.branch_id).map(x => x.branch_id))]
+		.sort((a, b) => {
+			const rank = id => Math.min(...(questsByBranchId.get(id) || []).map(x => QUEST_JOURNAL_ORDER.indexOf(normalizedQuestStatus(x.status))));
+			return rank(a) - rank(b)
+				|| (branchesById.get(a)?.runame || '').localeCompare(branchesById.get(b)?.runame || '', 'ru');
+		});
+
+	soloRows.sort((a, b) =>
+		QUEST_JOURNAL_ORDER.indexOf(normalizedQuestStatus(a.status)) - QUEST_JOURNAL_ORDER.indexOf(normalizedQuestStatus(b.status))   // активные → известные → завершённые (+ слухи для админа)
+		|| (a.anchor_kind === 'unplaced' ? 0 : 1) - (b.anchor_kind === 'unplaced' ? 0 : 1)   // внутри статуса: без места — вперёд (входящая очередь мастера)
+		|| (a.runame || '').localeCompare(b.runame || '', 'ru'));
+
+	const branchesHTML = branchIds
+		.map(id => questBranchGroupHTML(branchesById.get(id), (questsByBranchId.get(id) || []).filter(passesFilters)))
+		.join('');
+	questJournalListEl.innerHTML = branchesHTML + soloRows.map(questJournalRowHTML).join('');
+
+	syncJournalScrollbarState();
+}
+
+// branch_or_group различает внутри одного «Шага» два случая: несколько
+// заданий БЕЗ группы (или с разными группами) — это взаимоисключающие
+// альтернативы («или», выполнить любую одну), а несколько заданий с ОДНОЙ
+// и той же группой — обязательный набор внутри одной альтернативы («и»,
+// нужны все). Без branch_or_group задание считается собственной единственной
+// группой — отсюда прежнее плоское поведение «или между отдельными
+// заданиями», когда группу никто не выставлял.
+function branchGroupKey(q) {
+	return q.branch_or_group || `__solo_${q.id}`;
+}
+
+// Строки участников ветки в порядке branch_step; между заданиями одного шага
+// из РАЗНЫХ групп — метка «или» (альтернативы друг другу). Между заданиями
+// одной и той же группы метку не ставим — они и так идут подряд одним
+// блоком, это и есть «нужны все». Общая для строки-ветки в журнале и для
+// #branch-card.
+function branchMembersRowsHTML(members) {
+	const sorted = [...members].sort((a, b) =>
+		(a.branch_step ?? Infinity) - (b.branch_step ?? Infinity)
+		|| branchGroupKey(a).localeCompare(branchGroupKey(b))
+		|| (a.runame || '').localeCompare(b.runame || '', 'ru'));
+
+	let html = '';
+	let prevStep, prevGroupKey;
+	for (const m of sorted) {
+		const step = m.branch_step ?? null;
+		const groupKey = branchGroupKey(m);
+		if (step !== null && step === prevStep && groupKey !== prevGroupKey) {
+			html += `<div class="journal-branch-connector">или</div>`;
+		}
+		html += questJournalRowHTML(m);
+		prevStep = step;
+		prevGroupKey = groupKey;
+	}
+	return html;
+}
+
+// Строка ветки — шеврон (сворачивает/разворачивает список ниже, без перехода),
+// название (клик открывает #branch-card) и счётчик «выполнено/всего» — не
+// статус ветки (его нет), а посчитанные на лету статусы участников. Список
+// участников — те же .journal-row, что и в обычном журнале, просто с отступом.
+function questBranchGroupHTML(branch, members) {
+	if (!branch) return '';
+	const all = questsByBranchId.get(branch.id) || [];
+	const done = all.filter(x => normalizedQuestStatus(x.status) === 'done').length;
+	const collapsed = collapsedBranchIds.has(branch.id);
+	const rowsHTML = branchMembersRowsHTML(members);
+
+	return `<div class="journal-branch${collapsed ? ' collapsed' : ''}" data-branch-id="${branch.id}">`
+		+ `<div class="journal-branch-header">`
+		+ `<button type="button" class="journal-branch-chevron" data-branch-toggle="${branch.id}" title="${collapsed ? 'Развернуть' : 'Свернуть'}">${CHEVRON_SVG}</button>`
+		+ `<span class="journal-branch-title" data-open-branch="${branch.id}">${branch.runame ?? ''}</span>`
+		+ `<span class="journal-branch-count">${done}/${all.length}</span>`
+		+ `</div>`
+		+ `<div class="journal-branch-quests">${rowsHTML}</div>`
+		+ `</div>`;
 }
 
 function questJournalRowHTML(q) {
 	const statusKey = QUEST_STATUS[q.status] ? q.status : 'known';
 	const s = QUEST_STATUS[statusKey];
+	const normalized = normalizedQuestStatus(statusKey);
+	// Цвет заголовка — по группе статуса (см. .journal-row-title--dim/--bright
+	// в style.css): слух/завершено — тусклая пара, известно/активно — светлее.
+	const titleColorClass = (normalized === 'rumor' || normalized === 'done') ? 'journal-row-title--dim' : 'journal-row-title--bright';
+	const titleStyle = normalized === 'done' ? 'text-decoration:line-through' : '';
 	// Ромб статуса в журнале — ассет из макета (node 254:1525, quest__status):
 	// градиент + внутренний свет + зерно, свой SVG на статус. Плоский
 	// inline-квадрат остаётся только в попапах локаций/провинций.
 	return `<div class="journal-row" data-quest-id="${q.id}">`
 		+ `<span class="quest-sq quest-sq--${statusKey}" title="${s.label}"></span>`
 		+ `<div class="journal-row-main">`
-		+ `<span class="journal-row-title" style="color:${s.ink}">${q.runame ?? ''}</span>`
-		+ `<span class="journal-row-anchor">${questAnchorLabel(q)}</span>`
+		+ `<span class="journal-row-title ${titleColorClass}" style="${titleStyle}">${q.runame ?? ''}</span>`
+		+ `<span class="journal-row-anchor">${questJournalAnchorHTML(q)}</span>`
 		+ `</div>`
 		+ (isAdmin ? `<span class="quest-drag" data-drag-quest="${q.id}" title="Перетащить: в локацию, на карту или в журнал">${QUEST_GRIP_SVG}</span>` : '')
 		+ `</div>`;
 }
 
-// Клик по чипу статуса — как toggleTraitFilter: включили → метим для анимации,
-// выключили → анимировать нечего.
 questStatusChipsEl.addEventListener('click', function(e) {
 	const chip = e.target.closest('[data-status-chip]');
 	if (!chip) return;
 	const k = chip.dataset.statusChip;
 	questStatusFilter[k] = !questStatusFilter[k];
-	lastToggledStatusKey = questStatusFilter[k] ? k : null;
+	chip.classList.toggle('selected', questStatusFilter[k]);   // только сам чип, ряд не пересобираем
 	renderQuestJournal();
 	renderQuestPointMarkers();
 	refreshQuestPopups();
 });
 
 // Воронка у «Журнала заданий» — как #search-filter-toggle у «Провинций»: клик
-// разворачивает/сворачивает ряд чипов статусов (по умолчанию свёрнут).
+// разворачивает/сворачивает панель фильтров (статус + персонажи, по умолчанию
+// свёрнута). Вёрстка панели — 1:1 с #search-filter-panel «Провинций».
 const questFilterToggle = document.getElementById('quest-filter-toggle');
+const questFilterPanel  = document.getElementById('quest-filter-panel');
 questFilterToggle.addEventListener('click', function() {
-	questStatusChipsEl.classList.toggle('hidden');
-	questFilterToggle.classList.toggle('active', !questStatusChipsEl.classList.contains('hidden'));
+	questFilterPanel.classList.toggle('hidden');
+	updateQuestFilterActive();
+	syncJournalScrollbarState();   // область списка изменила высоту
 });
 
-// Клик по строке журнала → навигация по якорю (как в прототипе)
+// Клик по строке журнала:
+//   • по ссылке-названию якоря → попап локации/провинции, в котором лежит задание;
+//   • по всему остальному (заголовок, ромб, фон строки) → попап самого задания.
 questJournalListEl.addEventListener('click', function(e) {
+	const toggleBtn = e.target.closest('[data-branch-toggle]');
+	if (toggleBtn) {
+		const id = toggleBtn.dataset.branchToggle;
+		if (collapsedBranchIds.has(id)) collapsedBranchIds.delete(id); else collapsedBranchIds.add(id);
+		renderQuestJournal();
+		return;
+	}
 	if (e.target.closest('[data-drag-quest]')) return; // клик по насечке — не навигация
 	const row = e.target.closest('.journal-row');
 	if (!row) return;
@@ -916,6 +1200,13 @@ questJournalListEl.addEventListener('click', function(e) {
 	questJournalListEl.querySelectorAll('.journal-row.selected').forEach(r => r.classList.remove('selected'));
 	row.classList.add('selected');
 
+	// не по ссылке якоря → карточка задания
+	if (!e.target.closest('.journal-row-anchor a')) {
+		openQuestCard(qrow.id);
+		return;
+	}
+
+	// клик по ссылке якоря → навигация к месту (локация / провинция)
 	if (qrow.anchor_kind === 'location') {
 		const marker = markersById[qrow.anchor_location_id];
 		if (marker) {
@@ -930,8 +1221,15 @@ questJournalListEl.addEventListener('click', function(e) {
 		if (meta?.id) focusRegion(meta.id);
 		else openQuestCard(qrow.id);
 	} else if (qrow.anchor_kind === 'point' && qrow.lng != null && qrow.lat != null) {
-		focusLatLng(L.latLng(qrow.lat, qrow.lng));
-		setTimeout(() => openQuestCard(qrow.id), FOCUS_FLY_DURATION * 1000);
+		// как «Новый маркер»: если точка попадает в провинцию — ведём на её попап
+		// (в журнале эта строка и подписана «В провинции …»); иначе — к самой точке.
+		const meta = provinceRegionMeta[detectProvinceAt({ lat: qrow.lat, lng: qrow.lng })];
+		if (meta?.id) {
+			focusRegion(meta.id);
+		} else {
+			focusLatLng(L.latLng(qrow.lat, qrow.lng));
+			setTimeout(() => openQuestCard(qrow.id), FOCUS_FLY_DURATION * 1000);
+		}
 	} else {
 		openQuestCard(qrow.id); // без места — просто карточка, карту не двигаем
 	}
@@ -940,33 +1238,42 @@ questJournalListEl.addEventListener('click', function(e) {
 document.getElementById('sidebar-search')?.addEventListener('input', renderQuestJournal);
 
 
-// ─── ЗАДАНИЯ: КАРТОЧКА ЗАДАНИЯ (плавающая, поверх попапа) ──────────────────
+// ─── ЗАДАНИЯ: КАРТОЧКА ЗАДАНИЯ / КАРТОЧКА ВЕТКИ (плавающие, поверх попапа) ──
 const questCardEl      = document.getElementById('quest-card');
 const questCardInnerEl = document.getElementById('quest-card-inner');
 let openQuestCardId = null;
 
+const branchCardEl      = document.getElementById('branch-card');
+const branchCardInnerEl = document.getElementById('branch-card-inner');
+let openBranchCardId = null;
+
 // Сайдбар — position:fixed поверх полноэкранной #map, поэтому отступ 24px
 // отсчитываем не от края карты, а от правого края сайдбара (учитывает и
-// свёрнутое состояние, и ручное изменение ширины).
-function positionQuestCard() {
+// свёрнутое состояние, и ручное изменение ширины). Общая геометрия для обеих
+// плавающих карточек — задания и ветки.
+function positionFloatingCard(el) {
 	const mapRect = document.getElementById('map').getBoundingClientRect();
 	const sb = document.getElementById('sidebar-wrapper');
 	const leftEdge = Math.max(mapRect.left, sb ? sb.getBoundingClientRect().right : 0);
-	questCardEl.style.left = (leftEdge + 24) + 'px';
-	questCardEl.style.top  = (mapRect.top + 24) + 'px';
+	el.style.left = (leftEdge + 24) + 'px';
+	el.style.top  = (mapRect.top + 24) + 'px';
 }
+function positionQuestCard()  { positionFloatingCard(questCardEl); }
+function positionBranchCard() { positionFloatingCard(branchCardEl); }
 
 // Свернули/растянули сайдбар при открытой карточке — сдвигаем следом.
 if (window.ResizeObserver) {
 	const sbEl = document.getElementById('sidebar-wrapper');
 	if (sbEl) new ResizeObserver(() => {
 		if (!questCardEl.classList.contains('hidden')) positionQuestCard();
+		if (!branchCardEl.classList.contains('hidden')) positionBranchCard();
 	}).observe(sbEl);
 }
 
 function openQuestCard(id) {
 	const q = questsById.get(id);
 	if (!q) return;
+	closeBranchCard();   // одна плавающая карточка за раз
 	openQuestCardId = id;
 	const s = QUEST_STATUS[q.status] ?? QUEST_STATUS.known;
 	questCardInnerEl.innerHTML = `
@@ -981,6 +1288,7 @@ function openQuestCard(id) {
 			<span class="quest-card-anchor-label">Привязка</span>
 			<span class="quest-card-anchor-val">${questAnchorLabel(q)}</span>
 		</div>
+		${questBranchInfoHTML(q)}
 		<div class="quest-card-divider"></div>
 		<div class="quest-card-foot">
 			<span class="quest-card-status" style="color:${s.ink}">${s.label}</span>
@@ -997,30 +1305,79 @@ function closeQuestCard() {
 	questJournalListEl.querySelectorAll('.journal-row.selected').forEach(r => r.classList.remove('selected'));
 }
 
-// Открыть карточку по клику на название задания в попапе локации/провинции
+// Карточка ветки — состав ровно как «Задания внутри ветки» из плана: заголовок
+// ветки (без статуса — его у ветки нет) + список участников теми же строками,
+// что в журнале (branchMembersRowsHTML — «и»/«или» между заданиями одного
+// шага). Клик по строке участника открывает обычную карточку задания.
+function openBranchCard(id) {
+	const b = branchesById.get(id);
+	if (!b) return;
+	closeQuestCard();   // одна плавающая карточка за раз
+	openBranchCardId = id;
+
+	const rowsHTML = branchMembersRowsHTML(questsByBranchId.get(id) || []);
+
+	branchCardInnerEl.innerHTML = `
+		<div class="quest-card-head">
+			<h3>${b.runame ?? ''}</h3>
+			<button type="button" class="quest-card-close" title="Закрыть">✕</button>
+		</div>
+		${b.description ? `<div class="quest-card-desc description">${renderDescription(b.description)}</div>` : ''}
+		<div class="quest-card-divider"></div>
+		<div class="branch-card-list">${rowsHTML || '<div class="quest-journal-empty">Заданий пока нет</div>'}</div>
+	`;
+	positionBranchCard();
+	branchCardEl.classList.remove('hidden');
+}
+
+function closeBranchCard() {
+	branchCardEl.classList.add('hidden');
+	openBranchCardId = null;
+}
+
+// Открыть карточку по клику на название задания в попапе локации/провинции,
+// или карточку ветки — по ссылке «В ветке заданий» / заголовку строки ветки.
 document.addEventListener('click', function(e) {
 	const t = e.target.closest('[data-open-quest]');
 	if (t) openQuestCard(t.dataset.openQuest);
+	const br = e.target.closest('[data-open-branch]');
+	if (br) openBranchCard(br.dataset.openBranch);
 });
 
 questCardEl.addEventListener('click', function(e) {
 	if (e.target.closest('.quest-card-close')) closeQuestCard();
 });
+branchCardEl.addEventListener('click', function(e) {
+	if (e.target.closest('.quest-card-close')) { closeBranchCard(); return; }
+	if (e.target.closest('[data-drag-quest]')) return;
+	const row = e.target.closest('.journal-row');
+	if (row) openQuestCard(row.dataset.questId);
+});
 
 // Клик мимо карточки — закрыть (но не когда кликнули по тому, что её открывает)
 document.addEventListener('click', function(e) {
-	if (questCardEl.classList.contains('hidden')) return;
-	if (questCardEl.contains(e.target)) return;
-	if (e.target.closest('[data-open-quest]') || e.target.closest('.journal-row') || e.target.closest('.quest-point-icon')) return;
-	closeQuestCard();
+	if (!questCardEl.classList.contains('hidden')
+		&& !questCardEl.contains(e.target)
+		&& !e.target.closest('[data-open-quest]') && !e.target.closest('.journal-row') && !e.target.closest('.quest-point-icon')) {
+		closeQuestCard();
+	}
+	if (!branchCardEl.classList.contains('hidden')
+		&& !branchCardEl.contains(e.target)
+		&& !e.target.closest('[data-open-branch]') && !e.target.closest('[data-branch-toggle]')) {
+		closeBranchCard();
+	}
 });
 
 document.addEventListener('keydown', function(e) {
-	if (e.key === 'Escape' && !questCardEl.classList.contains('hidden')) closeQuestCard();
+	if (e.key !== 'Escape') return;
+	if (!questCardEl.classList.contains('hidden')) closeQuestCard();
+	if (!branchCardEl.classList.contains('hidden')) closeBranchCard();
 });
 
 window.addEventListener('resize', function() {
 	if (!questCardEl.classList.contains('hidden')) positionQuestCard();
+	if (!branchCardEl.classList.contains('hidden')) positionBranchCard();
+	syncJournalScrollbarState();   // высота #quest-journal-list завязана на vh
 });
 
 loadQuests();
@@ -1056,7 +1413,9 @@ const ICON_TOGGLE_FX_HTML =
 	'</span>';
 
 function iconToggleIconHTML(src, alt) {
-	return ICON_TOGGLE_FX_HTML + `<img class="icon-toggle__icon" src="${src}" alt="${alt ?? ''}">`;
+	// alt экранируем: у некоторых подписей внутри есть кавычки/HTML (лор «Меча
+	// Кхейна») — без экранирования они рвут атрибут и ломают вёрстку кнопки.
+	return ICON_TOGGLE_FX_HTML + `<img class="icon-toggle__icon" src="${src}" alt="${String(alt ?? '').replace(/"/g, '&quot;')}">`;
 }
 function iconToggleTextHTML(label) {
 	return ICON_TOGGLE_FX_HTML + `<span class="icon-toggle__label">${label}</span>`;
@@ -1083,8 +1442,25 @@ document.addEventListener('mouseout', function(e) {
 
 function setLayerButtonState(btn, group, on) {
 	btn.classList.toggle('selected', on);
-	if (on) map.addLayer(group);
-	else    map.removeLayer(group);
+	if (on) {
+		map.addLayer(group);
+	} else {
+		// DivOverlay.onRemove (leaflet.js) при map._fadeAnimated сам не удаляет
+		// контейнер тултипа сразу, а гасит ему opacity и откладывает удаление на
+		// 200мс — рассчитывая на собственный CSS-фейд. Но у .location-name-label
+		// opacity управляется через !important (нужно, чтобы наш show/hide по
+		// зуму перебивал стартовый инлайновый opacity Leaflet) — эта же
+		// !important-подпорка перебивает и попытку Leaflet погасить тултип,
+		// поэтому подпись все 200мс висит полностью видимой поверх уже
+		// пропавшей иконки и потом резко исчезает. На время этого removeLayer
+		// временно выключаем fade-режим карты — тултипы отвязываются
+		// синхронно, без задержки; на попапы/остальную карту не влияет, флаг
+		// возвращается сразу же.
+		const wasFadeAnimated = map._fadeAnimated;
+		map._fadeAnimated = false;
+		map.removeLayer(group);
+		map._fadeAnimated = wasFadeAnimated;
+	}
 }
 
 // Два визуальных подряда — 18px (город/поселение/форт) и 16px (остальные) —
@@ -1215,6 +1591,7 @@ document.querySelectorAll('#normal-view .sb-section > .sidebar-section-label-row
 	row.addEventListener('click', function(e) {
 		if (e.target !== row) return;
 		row.closest('.sb-section').classList.toggle('collapsed');
+		syncJournalScrollbarState();   // журнал мог свернуться/развернуться → полоса появилась/пропала
 	});
 });
 
@@ -1229,6 +1606,13 @@ regionsProvinces.features.forEach(f => {
 		engname: f.properties.engname ?? '',
 	};
 	provinceNameById[f.properties.id] = f.properties.name;
+});
+
+// Название фракции (рус) -> id её региона — чтобы «Фракция: …» в подвале попапа
+// стала ссылкой (переход к региону фракции, как у провинции).
+const factionIdByName = {};
+regionsFactions.features.forEach(f => {
+	if (f.properties.name) factionIdByName[f.properties.name] = f.properties.id;
 });
 
 function buildLocationList(features) {
@@ -1340,19 +1724,12 @@ let activeTypeFilter      = new Set(); // locationType — пусто = без �
 let activeTraitFilter     = new Set(); // ключи особенностей (иконки + системные)
 let traitFilterMode       = 'or';      // 'or' — любая из выбранных, 'and' — все сразу, 'exclude' — ни одной
 
-// buildFilter*Row() пересоздаёт ВСЕ пилюли на каждый клик (в т.ч. уже
-// выбранные) — без этой метки CSS-анимация подсветки играла бы у всех
-// выбранных разом, а не только у той, что только что включили. Ставится в
-// toggle*Filter, используется/сбрасывается один раз в соответствующем build.
-let lastToggledTypeKey      = null;
-let lastToggledTraitKey     = null;
-let lastToggledCharacterKey = null;
 let activeCharacterFilter = new Set(); // ключи персонажей (CHARACTER_TRAITS) — своя группа/режим
 let characterFilterMode   = 'or';
 
-// И особенности, и персонажи в итоге лежат в одном item.dataset.traits — это
-// общая проверка "выбранный набор ключей совпадает с набором у локации" для
-// обеих групп, каждая со своим режимом ИЛИ/И/ИСКЛ.
+// Общая проверка «выбранный набор ключей против набора у сущности» с режимом
+// ИЛИ/И/ИСКЛ. Локации фильтруются так по особенностям (item.dataset.traits),
+// задания — по персонажам (q.characters).
 function matchesTraitSet(itemTraits, filterSet, mode) {
 	if (!filterSet.size) return true;
 	if (mode === 'exclude') return ![...filterSet].some(t => itemTraits.includes(t));
@@ -1365,7 +1742,7 @@ function applySidebarFilters() {
 	const query = sidebarSearchInput.value.toLowerCase().trim();
 	sidebarSearchClearBtn.classList.toggle('hidden', !query);
 
-	const hasStructuralFilter = activeTypeFilter.size > 0 || activeTraitFilter.size > 0 || activeCharacterFilter.size > 0;
+	const hasStructuralFilter = activeTypeFilter.size > 0 || activeTraitFilter.size > 0;
 
 	document.querySelectorAll('.province-group').forEach(provDiv => {
 		const header = provDiv.querySelector('.province-header');
@@ -1381,10 +1758,9 @@ function applySidebarFilters() {
 			const typeOk = !activeTypeFilter.size || activeTypeFilter.has(item.dataset.type);
 
 			const itemTraits = item.dataset.traits ? item.dataset.traits.split(',') : [];
-			const traitOk     = matchesTraitSet(itemTraits, activeTraitFilter, traitFilterMode);
-			const characterOk = matchesTraitSet(itemTraits, activeCharacterFilter, characterFilterMode);
+			const traitOk    = matchesTraitSet(itemTraits, activeTraitFilter, traitFilterMode);
 
-			const match = textOk && typeOk && traitOk && characterOk;
+			const match = textOk && typeOk && traitOk;
 			item.style.display = match ? '' : 'none';
 			if (match) anyVisible = true;
 		});
@@ -1406,7 +1782,9 @@ sidebarSearchInput.addEventListener('input', applySidebarFilters);
 sidebarSearchClearBtn.addEventListener('click', function() {
 	sidebarSearchInput.value = '';
 	sidebarSearchInput.focus();
-	applySidebarFilters();
+	// один input-эвент → отработают все слушатели поиска (и список локаций, и
+	// журнал заданий), а не только applySidebarFilters
+	sidebarSearchInput.dispatchEvent(new Event('input', { bubbles: true }));
 });
 
 // ─── SIDEBAR: ПАНЕЛЬ ФИЛЬТРОВ (тип локации + особенности) ───────────────────
@@ -1433,22 +1811,29 @@ searchFilterToggle.addEventListener('click', function() {
 });
 
 function updateFilterResetVisibility() {
-	const active = activeTypeFilter.size > 0 || activeTraitFilter.size > 0 || activeCharacterFilter.size > 0;
+	const active = activeTypeFilter.size > 0 || activeTraitFilter.size > 0;
 	filterResetBtn.classList.toggle('hidden', !active);
 	searchFilterToggle.classList.toggle('active', active || !searchFilterPanel.classList.contains('hidden'));
 }
 
+// Воронка у «Журнала заданий» подсвечена, пока открыта её панель фильтров или
+// выбран хоть один персонаж.
+function updateQuestFilterActive() {
+	const panelOpen = !questFilterPanel.classList.contains('hidden');
+	questFilterToggle.classList.toggle('active', panelOpen || activeCharacterFilter.size > 0);
+}
+
 // Тип локации — множественный выбор (как особенности): пустой набор значит
 // «без фильтра», без отдельной пилюли «Все» под это.
-function toggleTypeFilter(type) {
-	if (activeTypeFilter.has(type)) {
-		activeTypeFilter.delete(type);
-		lastToggledTypeKey = null;
-	} else {
-		activeTypeFilter.add(type);
-		lastToggledTypeKey = type;
-	}
-	buildFilterTypeRow();
+//
+// Ряд строится ОДИН раз (buildFilterTypeRow); клик только переключает .selected
+// у самой кнопки — не пересобирает ряд. Иначе анимация подсветки .icon-toggle
+// (она заложена в самой кнопке-компоненте, см. .icon-toggle в style.css)
+// переигрывалась бы у ВСЕХ активных кнопок на каждый тогл — «мигание».
+function toggleTypeFilter(type, btn) {
+	const on = !activeTypeFilter.has(type);
+	if (on) activeTypeFilter.add(type); else activeTypeFilter.delete(type);
+	btn.classList.toggle('selected', on);
 	applySidebarFilters();
 	updateFilterResetVisibility();
 }
@@ -1469,34 +1854,26 @@ function buildFilterTypeRow() {
 		const layer = MARKER_LAYERS[i];
 		const icon = layer && layer.icons && layer.icons[0];
 		const size = layer?.size ?? 16;
-		const isSelected = activeTypeFilter.has(type);
-		const isJustSelected = isSelected && type === lastToggledTypeKey;
 		const btn = document.createElement('button');
 		btn.type = 'button';
-		btn.className = `filter-pill icon-only icon-toggle icon-toggle--${size}` +
-			(isSelected ? ' selected' : '') + (isJustSelected ? ' just-selected' : '');
+		btn.className = `trait filter-pill icon-only icon-toggle icon-toggle--${size}` +
+			(activeTypeFilter.has(type) ? ' selected' : '');
 		btn.innerHTML = iconToggleIconHTML(icon, '');
-		btn.title = label;
-		btn.addEventListener('click', () => toggleTypeFilter(type));
+		btn.dataset.tooltip = label; // наш мгновенный .trait-tooltip вместо нативного title
+		btn.addEventListener('click', () => toggleTypeFilter(type, btn));
 		(size === 18 ? group18 : group16).appendChild(btn);
 	});
-	lastToggledTypeKey = null; // метка одноразовая — использована выше, дальше сбрасываем
 }
 
-function toggleTraitFilter(key) {
+function toggleTraitFilter(key, btn) {
 	// item.dataset.traits (см. buildLocationList) собран в нижнем регистре —
 	// activeTraitFilter должен сравниваться с ним в том же регистре, иначе
 	// системная особенность с заглавной буквой («Забытое место») никогда бы
 	// не совпадала с результатами, даже будучи выбранной в фильтре.
 	const k = key.toLowerCase();
-	if (activeTraitFilter.has(k)) {
-		activeTraitFilter.delete(k);
-		lastToggledTraitKey = null; // сняли выбор — анимировать нечего
-	} else {
-		activeTraitFilter.add(k);
-		lastToggledTraitKey = k; // только что включили — именно эту анимируем
-	}
-	buildFilterTraitRow();
+	const on = !activeTraitFilter.has(k);
+	if (on) activeTraitFilter.add(k); else activeTraitFilter.delete(k);
+	btn.classList.toggle('selected', on);   // только сама кнопка, без пересборки ряда — см. toggleTypeFilter
 	applySidebarFilters();
 	updateFilterResetVisibility();
 }
@@ -1515,9 +1892,13 @@ function traitFilterLabel(tooltip) {
 	return text.split(' ').slice(0, 2).join(' ');
 }
 
+// Ряд строится один раз при инициализации и заново — только когда меняется
+// НАБОР системных особенностей (их можно добавлять в форме маркера), не на
+// каждый тогл. Клик по пилюле переключает .selected у самой кнопки. Так
+// анимация подсветки (заложена в .icon-toggle) играет только у нажатой
+// кнопки, а не у всех активных разом.
+let filterTraitRowSig = null;
 function buildFilterTraitRow() {
-	filterTraitRow.innerHTML = '';
-
 	// Пилюли разной ширины, в исходном порядке, при переносе строки почти
 	// всегда оставляют куски пустого места (короткая "Лес" одна на новой
 	// строке рядом с местом, куда бы влезла). Порядок между особенностями
@@ -1536,62 +1917,59 @@ function buildFilterTraitRow() {
 		return a.label.length - b.label.length;
 	});
 
+	// Набор/порядок кнопок не изменился (обычное сохранение маркера) — DOM не
+	// трогаем, иначе все активные пилюли моргнут анимацией пересоздания.
+	const sig = entries.map(e => e.key).join(' ');
+	if (sig === filterTraitRowSig && filterTraitRow.children.length) return;
+	filterTraitRowSig = sig;
+	filterTraitRow.innerHTML = '';
+
 	entries.forEach(({ key, label, icon }) => {
 		const btn = document.createElement('button');
 		btn.type = 'button';
 		const isSelected = activeTraitFilter.has(key.toLowerCase());
-		// just-selected — одноразовая метка именно той пилюли, которую только
-		// что включили (см. toggleTraitFilter/lastToggledTraitKey), чтобы
-		// анимация подсветки играла у неё одной, а не у всех уже выбранных
-		// разом (весь ряд здесь пересоздаётся заново на каждый клик).
-		const isJustSelected = isSelected && key.toLowerCase() === lastToggledTraitKey;
-		// С иконкой — только иконка (плюс title вместо подписи), без иконки
-		// (системные особенности) — текстовая пилюля с той же подсветкой.
-		btn.className = 'filter-pill' + (icon ? ' icon-only icon-toggle icon-toggle--16' : ' icon-toggle icon-toggle--text') +
-			(isSelected ? ' selected' : '') + (isJustSelected ? ' just-selected' : '');
+		// С иконкой — только иконка + наш мгновенный .trait-tooltip (класс .trait
+		// + data-tooltip, перебивает нативный title и словарь TRAITS: для «Меча
+		// Кхейна» — два слова, а не абзац). Без иконки (системные особенности) —
+		// текстовая пилюля, имя и так на виду, подсказка не нужна.
+		btn.className = 'filter-pill' + (icon ? ' trait icon-only icon-toggle icon-toggle--16' : ' icon-toggle icon-toggle--text') +
+			(isSelected ? ' selected' : '');
 		if (icon) {
 			btn.innerHTML = iconToggleIconHTML(icon, '');
-			btn.title = label;
+			btn.dataset.tooltip = label;
 		}
 		else btn.innerHTML = iconToggleTextHTML(label);
-		btn.addEventListener('click', () => toggleTraitFilter(key));
+		btn.addEventListener('click', () => toggleTraitFilter(key, btn));
 		filterTraitRow.appendChild(btn);
 	});
-	lastToggledTraitKey = null; // метка одноразовая — использована выше, дальше сбрасываем
 }
 
-function toggleCharacterFilter(key) {
+function toggleCharacterFilter(key, btn) {
 	const k = key.toLowerCase();
-	if (activeCharacterFilter.has(k)) {
-		activeCharacterFilter.delete(k);
-		lastToggledCharacterKey = null;
-	} else {
-		activeCharacterFilter.add(k);
-		lastToggledCharacterKey = k;
-	}
-	buildFilterCharacterRow();
-	applySidebarFilters();
-	updateFilterResetVisibility();
+	const on = !activeCharacterFilter.has(k);
+	if (on) activeCharacterFilter.add(k); else activeCharacterFilter.delete(k);
+	btn.classList.toggle('selected', on);   // только сама кнопка — см. toggleTypeFilter
+	renderQuestJournal();                    // фильтр персонажей — только для «Журнала заданий»
+	updateQuestFilterActive();
 }
 
+// Персонажи полностью статичны — ряд строится один раз; клик переключает
+// .selected у кнопки, без пересборки ряда.
 function buildFilterCharacterRow() {
 	filterCharacterRow.innerHTML = '';
 	const entries = Object.entries(CHARACTER_TRAITS).map(([key, c]) => ({ key, label: c.tooltip, icon: c.icon }));
-	entries.sort((a, b) => a.label.length - b.label.length); // см. комментарий у buildFilterTraitRow
+	entries.sort((a, b) => a.label.localeCompare(b.label, 'ru')); // слева направо — по алфавиту (рус.)
 
 	entries.forEach(({ key, label, icon }) => {
 		const btn = document.createElement('button');
 		btn.type = 'button';
-		const isSelected = activeCharacterFilter.has(key.toLowerCase());
-		const isJustSelected = isSelected && key.toLowerCase() === lastToggledCharacterKey;
-		btn.className = 'filter-pill icon-only icon-toggle icon-toggle--16' +
-			(isSelected ? ' selected' : '') + (isJustSelected ? ' just-selected' : '');
+		btn.className = 'trait filter-pill icon-only icon-toggle icon-toggle--16' +
+			(activeCharacterFilter.has(key.toLowerCase()) ? ' selected' : '');
 		btn.innerHTML = iconToggleIconHTML(icon, '');
-		btn.title = label;
-		btn.addEventListener('click', () => toggleCharacterFilter(key));
+		btn.dataset.tooltip = label;
+		btn.addEventListener('click', () => toggleCharacterFilter(key, btn));
 		filterCharacterRow.appendChild(btn);
 	});
-	lastToggledCharacterKey = null; // метка одноразовая — использована выше, дальше сбрасываем
 }
 
 filterTraitModeEl.querySelectorAll('.trait-mode-btn').forEach(btn => {
@@ -1606,17 +1984,16 @@ filterCharacterModeEl.querySelectorAll('.trait-mode-btn').forEach(btn => {
 	btn.addEventListener('click', () => {
 		characterFilterMode = btn.dataset.mode;
 		filterCharacterModeEl.querySelectorAll('.trait-mode-btn').forEach(b => b.classList.toggle('selected', b === btn));
-		applySidebarFilters();
+		renderQuestJournal();   // фильтр персонажей — только для «Журнала заданий»
 	});
 });
 
 filterResetBtn.addEventListener('click', () => {
 	activeTypeFilter.clear();
 	activeTraitFilter.clear();
-	activeCharacterFilter.clear();
-	buildFilterTypeRow();
-	buildFilterTraitRow();
-	buildFilterCharacterRow();
+	// снимаем .selected с самих кнопок, ряды не пересобираем
+	filterTypeRow.querySelectorAll('.selected').forEach(b => b.classList.remove('selected'));
+	filterTraitRow.querySelectorAll('.selected').forEach(b => b.classList.remove('selected'));
 	applySidebarFilters();
 	updateFilterResetVisibility();
 });
@@ -1753,6 +2130,7 @@ journalSplitHandle.addEventListener('pointermove', function(e) {
 	let h = journalStartH + (e.clientY - journalStartY);
 	h = Math.max(JOURNAL_MIN_H, Math.min(journalMaxH, h));
 	journalListEl.style.maxHeight = h + 'px';
+	syncJournalScrollbarState();
 });
 
 function endJournalResize() {
@@ -1983,7 +2361,7 @@ document.addEventListener('keydown', function(e) {
 // ─── ПОПАП: ДИНАМИЧЕСКАЯ ШИРИНА ───────────────────────────────────────────
 // Значение должно совпадать с .popup-content{width} в style.css — это её
 // база, от которой считаем, нужно ли раздвигать попап шире.
-const POPUP_DEFAULT_WIDTH = 300;
+const POPUP_DEFAULT_WIDTH = 342;
 
 // Вынесена в отдельную функцию (не только колбэк popupopen), потому что
 // событие popupopen срабатывает лишь на первое открытие конкретного попапа.
@@ -2166,6 +2544,10 @@ function setAdminState(admin) {
 	// Набор строк заданий зависит от роли (RLS не отдаёт слухи анониму), а
 	// значки-«плюсы»/кнопки правки — от isAdmin. Перечитываем и перерисовываем.
 	if (changed && typeof loadQuests === 'function') loadQuests();
+	// Фракции все видят одинаково (RLS не режет), но заголовок карточки
+	// кликабелен только у админа — перерисовать, чтобы курсор/data-атрибут
+	// сразу появились/исчезли при входе/выходе.
+	if (changed && typeof renderFactionsList === 'function') renderFactionsList();
 }
 
 loginForm.addEventListener('submit', async function(e) {
@@ -2193,6 +2575,126 @@ loginForm.addEventListener('submit', async function(e) {
 const normalView      = document.getElementById('normal-view');
 const editMarkerView  = document.getElementById('edit-marker-view');
 const editQuestView   = document.getElementById('edit-quest-view');
+const gloryView       = document.getElementById('glory-view');
+const editFactionView = document.getElementById('edit-faction-view');
+// Общий переключатель между всеми видами сайдбара — раньше каждая show*View()
+// вручную прятала все остальные по отдельности; при добавлении вида (glory/
+// edit-faction) это легко забыть обновить хотя бы в одном месте. Теперь
+// список видов один, а show*View() ниже вызывает switchToView() и добавляет
+// только свою собственную специфику (map-интерактивность и т.п.).
+const ALL_SIDEBAR_VIEWS = [normalView, editMarkerView, editQuestView, gloryView, editFactionView];
+
+// ─── ПЕРЕКЛЮЧЕНИЕ normal-view ⇄ glory-view — анимация «снос в сторону» ─────
+// (вариант 2a из Claude Design, handoff «Анимация ротации сайдбара»). Только
+// эта пара видов анимируется; формы маркера/задания/фракции переключаются
+// мгновенно через setViewImmediate — ровно как switchToView работал раньше.
+const VIEW_SWAP_IN_MS   = 620;  // приезд нового вида (см. --vs-dur в CSS)
+const VIEW_SWAP_OUT_MS  = 250;  // уход старого
+const VIEW_SWAP_STEP_MS = 40;   // каскад между секциями (см. --vs-delay)
+const VIEW_SWAP_DX      = 16;   // базовый снос секций по горизонтали
+// Насколько «доезжает» маленькая ссылка заголовка до своего нового места:
+// 1 — ровно на измеренное расстояние, 0 — как обычная секция. 0.55 читается
+// как переезд, но не как отдельный полёт через весь сайдбар.
+const VIEW_SWAP_TITLE_K = 0.55;
+
+// Пара видов, между которыми переход анимируется. Остальные виды сайдбара —
+// формы; их переключение осталось мгновенным (switchToView ниже).
+const ANIMATED_VIEW_PAIR = [normalView, gloryView];
+
+function prefersReducedMotion() {
+	return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+// Жёсткая установка вида без анимации — то, чем switchToView был раньше.
+function setViewImmediate(view) {
+	// Инвалидируем любой ещё не отработавший animateViewSwap — иначе его
+	// отложенные колбэки (setTimeout на 250/900мс) увидят «свой» токен всё ещё
+	// текущим и позже откатят класс .hidden уже на другом, только что
+	// показанном виде (воспроизводится быстрыми повторными кликами туда-сюда
+	// по ссылке «Слава»/«Карта Хейвена»).
+	viewSwapToken++;
+	ALL_SIDEBAR_VIEWS.forEach(v => {
+		v.classList.toggle('hidden', v !== view);
+		v.classList.remove('sb-view-out', 'sb-view-in', 'sb-view-busy');
+		v.style.removeProperty('--view-shift');
+		[...v.children].forEach(c => c.style.removeProperty('--view-shift'));
+	});
+}
+
+let viewSwapToken = 0;
+
+function switchToView(view) {
+	const current = ALL_SIDEBAR_VIEWS.find(v => !v.classList.contains('hidden'));
+	const animatable = current && current !== view
+		&& ANIMATED_VIEW_PAIR.includes(current) && ANIMATED_VIEW_PAIR.includes(view)
+		&& !prefersReducedMotion();
+	if (!animatable) { setViewImmediate(view); return; }
+	animateViewSwap(current, view);
+}
+
+function animateViewSwap(from, to) {
+	const token = ++viewSwapToken;
+	// «Слава» лежит правее карты: вперёд — влево, назад — вправо. Уходящее
+	// уезжает в ту же сторону, откуда приезжает новое, — это и даёт рифму
+	// между заголовком и содержимым.
+	const forward = to === gloryView;
+	const dx = forward ? -VIEW_SWAP_DX : VIEW_SWAP_DX;
+
+	// Маленькая ссылка заголовка меняет место (после «Карты Хейвена» ↔ после
+	// «Славы»). Считаем фактическую разницу, пока оба вида в потоке и без
+	// трансформов, — иначе пришлось бы хардкодить ширины слов, а они зависят
+	// от шрифта и от языка.
+	const fromLink = from.querySelector('.map-title-slava');
+	const linkFromX = fromLink ? fromLink.getBoundingClientRect().left : null;
+
+	to.classList.remove('hidden');
+	to.classList.add('sb-view-in', 'sb-view-busy');
+
+	const toLink = to.querySelector('.map-title-slava');
+	let titleDx = null;
+	if (linkFromX !== null && toLink) {
+		const delta = toLink.getBoundingClientRect().left - linkFromX;
+		if (Math.abs(delta) > 1) titleDx = delta * VIEW_SWAP_TITLE_K;
+	}
+
+	// Уходящий вид — из потока, поверх нового.
+	from.classList.add('sb-view-out');
+	from.style.setProperty('--view-shift', dx + 'px');
+	to.style.setProperty('--view-shift', -dx + 'px');
+
+	// Шапка (первая секция) уезжает/приезжает не на базовые 16px, а на
+	// расстояние переезда ссылки.
+	if (titleDx !== null) {
+		const fromHeader = from.querySelector('.sidebar-header-row');
+		const toHeader   = to.querySelector('.sidebar-header-row');
+		if (fromHeader) fromHeader.style.setProperty('--view-shift', titleDx + 'px');
+		if (toHeader)   toHeader.style.setProperty('--view-shift', -titleDx + 'px');
+	}
+
+	void to.offsetWidth;                 // reflow: фиксируем стартовое состояние
+	to.classList.remove('sb-view-in');   // и отпускаем — секции едут каскадом
+
+	const sections = to.children.length;
+	const total = Math.max(VIEW_SWAP_OUT_MS, VIEW_SWAP_IN_MS + sections * VIEW_SWAP_STEP_MS);
+
+	setTimeout(() => {
+		if (token !== viewSwapToken) return;   // за это время переключили ещё раз
+		from.classList.add('hidden');
+		from.classList.remove('sb-view-out');
+		from.style.removeProperty('--view-shift');
+		[...from.children].forEach(c => c.style.removeProperty('--view-shift'));
+	}, VIEW_SWAP_OUT_MS);
+
+	setTimeout(() => {
+		if (token !== viewSwapToken) return;
+		to.classList.remove('sb-view-busy');
+		to.style.removeProperty('--view-shift');
+		[...to.children].forEach(c => c.style.removeProperty('--view-shift'));
+		// Тот же трюк, что и в show*View() для форм: под неподвижным курсором
+		// :hover иначе может залипнуть на элементе, которого уже нет.
+		forceHoverRecalc(to);
+	}, total);
+}
 const editMarkerTitle = document.getElementById('edit-marker-title');
 const addMarkerBtn    = document.getElementById('add-marker-btn');
 const editBackBtn     = document.getElementById('edit-back-btn');
@@ -2201,16 +2703,13 @@ const revertDefaultBtn = document.getElementById('revert-default-btn');
 const markerForm       = document.getElementById('marker-form');
 const formErrorEl      = document.getElementById('form-error');
 const traitsIconsEl    = document.getElementById('traits-icons');
-const characterIconsEl = document.getElementById('character-icons');
 
-// Особенности-иконки (TRAIT_LABELS/TRAITS) + персонажи (CHARACTER_TRAITS) +
-// системные (свободный текст, без иконки — см. getAllSystemTraitKeys) вместе
-// идут в одно поле traits при сохранении, различать их по данным потом не
-// нужно: buildTraitsHTML сам отсеивает всё, чего нет в TRAITS.
+// Особенности-иконки (TRAIT_LABELS/TRAITS) + системные (свободный текст, без
+// иконки — см. getAllSystemTraitKeys) идут в одно поле traits при сохранении.
+// Персонажи здесь больше НЕ участвуют — они свойство заданий, не локаций.
 function getSelectedTraits() {
-	const iconTraits      = [...traitsIconsEl.querySelectorAll('.trait-icon-btn.selected')].map(b => b.dataset.key);
-	const characterTraits = [...characterIconsEl.querySelectorAll('.trait-icon-btn.selected')].map(b => b.dataset.key);
-	return [...iconTraits, ...characterTraits, ...selectedSystemTraits];
+	const iconTraits = [...traitsIconsEl.querySelectorAll('.icon-toggle.selected')].map(b => b.dataset.key);
+	return [...iconTraits, ...selectedSystemTraits];
 }
 
 const TRAIT_LABELS = {
@@ -2220,23 +2719,23 @@ const TRAIT_LABELS = {
 	'forest':          'Лес',
 	'sword_of_khaine': 'Меч Кхейна',
 };
-// Ряд иконок вместо чекбоксов с текстом — клик переключает выбор; тултип с
-// названием переиспользует существующий .trait/.trait-tooltip механизм
-// (см. блок «ТУЛТИП» ниже), поэтому у кнопки те же class/data-key.
+// Пилюля-переключатель особенности/персонажа — .filter-pill.icon-toggle, как в
+// фильтре провинций. Подсказка — наш мгновенный .trait-tooltip (класс .trait +
+// data-tooltip перебивает нативный title и словарь TRAITS): короткое имя, для
+// «Меча Кхейна» — только первые два слова, а не абзац лора. alt пустой — иначе
+// кавычки внутри лора ломают разметку кнопки.
+function makeTraitTogglePill(key, icon, tip) {
+	const btn = document.createElement('button');
+	btn.type = 'button';
+	btn.className = 'trait filter-pill icon-only icon-toggle icon-toggle--16';
+	btn.dataset.key = key;
+	btn.dataset.tooltip = tip;
+	btn.innerHTML = iconToggleIconHTML(icon ?? '', '');
+	btn.addEventListener('click', () => btn.classList.toggle('selected'));
+	return btn;
+}
 Object.entries(TRAIT_LABELS).forEach(([key, label]) => {
-	// без title: название уже показывает кастомный .trait-tooltip по ховеру —
-	// нативный title давал задержанный "системный" тултип вдобавок к нему
-	const btn = createTraitButton('trait-icon-btn', { key }, `<img src="${TRAITS[key]?.icon ?? ''}" alt="${label}">`);
-	btn.addEventListener('click', () => btn.classList.toggle('selected'));
-	traitsIconsEl.appendChild(btn);
-});
-
-// Тот же ряд-переключатель, что и особенности выше, но свой контейнер и свой
-// источник (CHARACTER_TRAITS) — персонажи в попапе не показываются.
-Object.entries(CHARACTER_TRAITS).forEach(([key, c]) => {
-	const btn = createTraitButton('trait-icon-btn', { key }, `<img src="${c.icon}" alt="${c.tooltip}">`);
-	btn.addEventListener('click', () => btn.classList.toggle('selected'));
-	characterIconsEl.appendChild(btn);
+	traitsIconsEl.appendChild(makeTraitTogglePill(key, TRAITS[key]?.icon, label));
 });
 
 // ─── АДМИНКА: СИСТЕМНЫЕ ОСОБЕННОСТИ (без иконки) ────────────────────────────
@@ -2257,8 +2756,8 @@ function buildSystemTraitsChips() {
 	[...keys].sort((a, b) => a.localeCompare(b, 'ru')).forEach(key => {
 		const chip = document.createElement('button');
 		chip.type = 'button';
-		chip.className = 'system-trait-chip' + (selectedSystemTraits.has(key) ? ' selected' : '');
-		chip.textContent = key;
+		chip.className = 'filter-pill icon-toggle icon-toggle--text' + (selectedSystemTraits.has(key) ? ' selected' : '');
+		chip.innerHTML = iconToggleTextHTML(key);
 		chip.addEventListener('click', () => {
 			if (selectedSystemTraits.has(key)) selectedSystemTraits.delete(key);
 			else selectedSystemTraits.add(key);
@@ -2297,18 +2796,27 @@ function clearDraftMarker() {
 // Пока идёт редактирование существующей локации, черновой маркер (draftMarker)
 // подменяет собой настоящий — иначе на карте видно два маркера в одной точке:
 // неподвижный настоящий и перетаскиваемый черновик, что и создавало впечатление
-// «дубля». Прячем настоящий на время редактирования и возвращаем при выходе.
+// «дубля». Прячем настоящий (И иконку, И постоянный тултип-подпись — тултип
+// живёт отдельным DOM-узлом в tooltipPane, поэтому его нужно гасить явно, иначе
+// подпись остаётся висеть на старом месте) на время редактирования и возвращаем
+// при выходе.
 let hiddenMarkerId = null;
+
+function toggleRealMarkerHidden(id, hidden) {
+	const m = markersById[id];
+	m?.getElement()?.classList.toggle('admin-editing-hidden', hidden);
+	m?.getTooltip()?.getElement()?.classList.toggle('admin-editing-hidden', hidden);
+}
 
 function hideRealMarker(id) {
 	restoreRealMarker();
-	markersById[id]?.getElement()?.classList.add('admin-editing-hidden');
+	toggleRealMarkerHidden(id, true);
 	hiddenMarkerId = id;
 }
 
 function restoreRealMarker() {
 	if (hiddenMarkerId !== null) {
-		markersById[hiddenMarkerId]?.getElement()?.classList.remove('admin-editing-hidden');
+		toggleRealMarkerHidden(hiddenMarkerId, false);
 		hiddenMarkerId = null;
 	}
 }
@@ -2387,6 +2895,9 @@ document.getElementById('f-locationType').addEventListener('change', function() 
 	}
 });
 
+// Печатаем название — подпись под черновым маркером обновляется на лету
+document.getElementById('f-runame').addEventListener('input', syncDraftTooltip);
+
 // Превью попапа черновика — правый клик по маркеру показывает, как локация
 // будет выглядеть у обычного пользователя, ещё до сохранения.
 function collectDraftProps() {
@@ -2408,6 +2919,15 @@ function showDraftPreview() {
 	draftMarker.openPopup();
 }
 
+// Подпись под черновым маркером — та же .location-name-label, что у настоящих
+// локаций, чтобы при перемещении иконки название ехало вместе с ней (настоящий
+// маркер на это время спрятан целиком — см. hideRealMarker).
+function syncDraftTooltip() {
+	if (draftMarker?.getTooltip()) {
+		draftMarker.setTooltipContent(document.getElementById('f-runame').value.trim() || 'Новый маркер');
+	}
+}
+
 function setDraftPosition(latlng) {
 	setFormCoords(latlng);
 	if (draftMarker) {
@@ -2421,6 +2941,11 @@ function setDraftPosition(latlng) {
 			draggable: true,
 		}).addTo(map);
 		draftMarker.getElement()?.classList.add('admin-draft-icon');
+		draftMarker.bindTooltip('', {
+			permanent: true, direction: 'bottom',
+			offset: [0, (LOCATION_ICONS[document.getElementById('f-locationType').value] ?? LOCATION_ICONS['default']).size[1] / 2],
+			className: 'location-name-label', interactive: false,
+		});
 		// зажать и перетащить маркер — альтернатива повторному клику по карте
 		draftMarker.on('drag',    () => setFormCoords(draftMarker.getLatLng()));
 		draftMarker.on('dragend', () => setFormCoords(draftMarker.getLatLng()));
@@ -2430,6 +2955,7 @@ function setDraftPosition(latlng) {
 			showDraftPreview();
 		});
 	}
+	syncDraftTooltip();
 }
 
 // Браузер не пересчитывает :hover сам по себе на любую перекладку — только
@@ -2446,12 +2972,11 @@ function forceHoverRecalc(el) {
 }
 
 function showNormalView() {
-	normalView.classList.remove('hidden');
-	editMarkerView.classList.add('hidden');
-	editQuestView.classList.add('hidden');
+	switchToView(normalView);
 	clearDraftMarker();
 	restoreRealMarker();
 	if (typeof clearQuestDraftMarker === 'function') clearQuestDraftMarker();
+	if (typeof restoreRealQuestMarker === 'function') restoreRealQuestMarker();
 	activeMarkerId = null;
 	// возвращаем обычную интерактивность регионов
 	setRegionsInteractive(provinceRegions, true);
@@ -2459,9 +2984,7 @@ function showNormalView() {
 }
 
 function showEditView() {
-	normalView.classList.add('hidden');
-	editQuestView.classList.add('hidden');
-	editMarkerView.classList.remove('hidden');
+	switchToView(editMarkerView);
 	// см. forceHoverRecalc — тут это переключение видимости display:none -> flex
 	forceHoverRecalc(editMarkerView);
 	// пока ставим/переносим маркер, полигоны фракций/провинций не должны
@@ -2471,22 +2994,37 @@ function showEditView() {
 }
 
 function showQuestEditView() {
-	normalView.classList.add('hidden');
-	editMarkerView.classList.add('hidden');
-	editQuestView.classList.remove('hidden');
+	switchToView(editQuestView);
 	forceHoverRecalc(editQuestView);
+	// Пока открыта форма задания, полигоны регионов не перехватывают клики —
+	// любой клик по карте ставит точку задания (см. map.on('click') ниже).
+	setRegionsInteractive(factionRegions, false);
+	setRegionsInteractive(provinceRegions, false);
+}
+
+// «Слава» — обычный список, карту не трогает (в отличие от форм маркера/
+// задания, ей не нужны клики по карте), поэтому интерактивность регионов не
+// переключаем. Видна всем; «+ Добавить фракцию» и клик по фракции — только
+// админу (см. admin-only и isAdmin-проверку в делегатах ниже).
+function showGloryView() {
+	switchToView(gloryView);
+}
+
+function showFactionEditView() {
+	switchToView(editFactionView);
+	forceHoverRecalc(editFactionView);
 }
 
 function resetMarkerForm() {
 	markerForm.reset();
-	traitsIconsEl.querySelectorAll('.trait-icon-btn.selected').forEach(b => b.classList.remove('selected'));
-	characterIconsEl.querySelectorAll('.trait-icon-btn.selected').forEach(b => b.classList.remove('selected'));
+	traitsIconsEl.querySelectorAll('.icon-toggle.selected').forEach(b => b.classList.remove('selected'));
 	selectedSystemTraits = new Set();
 	buildSystemTraitsChips(); // на случай новых системных особенностей от других маркеров
 	formErrorEl.textContent = '';
 	provinceIsAuto = true;
 	autoProvinceValue = '';
 	provinceInput.classList.remove('auto-filled');
+	locationTypeField.sync(); // form.reset() не обновляет подпись кастомного триггера
 }
 
 function populateAdminDatalists() {
@@ -2495,6 +3033,184 @@ function populateAdminDatalists() {
 	document.getElementById('faction-options').innerHTML  = factions.map(f => `<option value="${f}">`).join('');
 	document.getElementById('province-options').innerHTML = provinces.map(p => `<option value="${p}">`).join('');
 }
+
+
+// ─── ЕДИНЫЙ КОМПОНЕНТ ПОЛЕЙ ФОРМЫ: select / инпут-автокомплит ──────────────
+// (макет field/input, field/select — node 365:254, 377:251, 377:253, 377:262)
+// Открытый список — своя вёрстка (hover-подсветка строки, свой фон под
+// панелью), нативные <select>/<datalist> так не стилизуются — их выпадающий
+// список рисует ОС. Поэтому на клик/фокус сами рендерим .field-options.
+//
+// select-режим (upgradeFieldSelect): исходный <select> остаётся в DOM как
+// источник значения — просто прячем (.field-select-native), и весь код,
+// читающий/пишущий его .value (submit, populate-on-edit, form.reset()) не
+// меняется. Только подпись кастомного триггера саму по себе браузер не
+// обновляет при программной записи .value (в отличие от live-клика) — синк
+// дёргаем явно в нужных местах (тот же приём, что и с .selected у пилюль
+// персонажей после questForm.reset()).
+//
+// автокомплит-режим (upgradeFieldAutocomplete): реальный <input> остаётся
+// видимым и рабочим для набора текста; варианты читаем прямо из его исходного
+// <datalist> (данные туда по-прежнему кладут populateAdminDatalists/
+// populateQuestFormLists — их трогать не пришлось), просто без атрибута list,
+// иначе браузер нарисует поверх ещё и свой нативный попап.
+//
+// Панель .field-options — position:fixed и лежит в <body>, а не внутри
+// .field-wrap: #quest-form/#marker-form сами скроллятся (overflow-y:auto),
+// внутри выреза панель резалась бы по границе скролла.
+const FIELD_CHEVRON_SVG = '<svg class="field-select-chevron" width="8" height="8" viewBox="0 0 8 8" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0 2L4 6L8 2H0Z" fill="currentColor"/></svg>';
+
+let activeFieldPanel  = null;
+let activeFieldAnchor = null;
+function closeFieldOptions() {
+	if (!activeFieldPanel) return;
+	activeFieldPanel.remove();
+	activeFieldPanel = null;
+	activeFieldAnchor = null;
+	document.querySelectorAll('.field-select-trigger.open').forEach(t => t.classList.remove('open'));
+}
+document.addEventListener('mousedown', function(e) {
+	if (activeFieldPanel && !activeFieldPanel.contains(e.target) && !e.target.closest('.field-wrap')) closeFieldOptions();
+});
+document.addEventListener('keydown', function(e) {
+	if (e.key === 'Escape') closeFieldOptions();
+});
+function positionFieldPanel() {
+	const r = activeFieldAnchor.getBoundingClientRect();
+	activeFieldPanel.style.left  = r.left + 'px';
+	activeFieldPanel.style.top   = r.bottom + 'px';
+	activeFieldPanel.style.width = r.width + 'px';
+}
+// Скролл где угодно на странице (в т.ч. внутри самой .field-options —
+// scrollIntoView у подсветки клавишами тоже шлёт 'scroll') раньше просто
+// закрывал панель — из-за capture:true это ловило и колесо мыши над формой
+// #quest-form/#marker-form (она сама скроллится), и стрелочную навигацию
+// по списку. Вместо закрытия панель едет вслед за полем; свой собственный
+// скролл списка опций положение самой панели не меняет — пропускаем.
+window.addEventListener('scroll', function(e) {
+	if (!activeFieldPanel) return;
+	if (activeFieldPanel.contains(e.target)) return;
+	positionFieldPanel();
+}, true);
+window.addEventListener('resize', function() {
+	if (activeFieldPanel) positionFieldPanel();
+});
+
+function moveFieldHighlight(dir) {
+	if (!activeFieldPanel) return;
+	const opts = [...activeFieldPanel.querySelectorAll('.field-option')];
+	if (!opts.length) return;
+	let idx = opts.findIndex(o => o.classList.contains('active'));
+	idx = idx === -1 ? (dir > 0 ? 0 : opts.length - 1) : (idx + dir + opts.length) % opts.length;
+	opts.forEach(o => o.classList.remove('active'));
+	opts[idx].classList.add('active');
+	opts[idx].scrollIntoView({ block: 'nearest' });
+}
+function pickFieldHighlight() {
+	const active = activeFieldPanel?.querySelector('.field-option.active');
+	if (!active) return false;
+	active.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+	return true;
+}
+
+function openFieldOptions(anchorEl, items, { onPick, highlightValue } = {}) {
+	closeFieldOptions();
+	const panel = document.createElement('div');
+	panel.className = 'field-options';
+	panel.innerHTML = items.length
+		? items.map(it => `<div class="field-option${it.value === highlightValue ? ' active' : ''}" data-value="${it.value}">${it.label}</div>`).join('')
+		: `<div class="field-options-empty">Ничего не найдено</div>`;
+	panel.addEventListener('mousedown', function(e) {
+		// mousedown, не click — опережает blur инпута: без preventDefault клик
+		// по варианту сперва увёл бы фокус с инпута и закрыл панель раньше,
+		// чем успел бы сработать выбор.
+		e.preventDefault();
+		const opt = e.target.closest('.field-option');
+		if (opt) { onPick(opt.dataset.value); closeFieldOptions(); }
+	});
+	document.body.appendChild(panel);
+	activeFieldPanel  = panel;
+	activeFieldAnchor = anchorEl;
+	positionFieldPanel();
+	anchorEl.classList.add('open');
+	return panel;
+}
+
+function upgradeFieldSelect(selectEl) {
+	const wrap = document.createElement('div');
+	wrap.className = 'field-wrap';
+	selectEl.parentNode.insertBefore(wrap, selectEl);
+	wrap.appendChild(selectEl);
+	selectEl.classList.add('field-select-native');
+
+	const trigger = document.createElement('div');
+	trigger.className = 'field-select-trigger';
+	trigger.tabIndex = 0;
+	trigger.innerHTML = `<span class="field-select-label"></span>${FIELD_CHEVRON_SVG}`;
+	wrap.appendChild(trigger);
+	const labelEl = trigger.querySelector('.field-select-label');
+
+	function sync() {
+		const opt = selectEl.options[selectEl.selectedIndex];
+		labelEl.textContent = opt ? opt.textContent : '';
+	}
+	sync();
+
+	function toggle() {
+		if (trigger.classList.contains('open')) { closeFieldOptions(); return; }
+		const items = [...selectEl.options].map(o => ({ value: o.value, label: o.textContent }));
+		openFieldOptions(trigger, items, {
+			highlightValue: selectEl.value,
+			onPick(value) {
+				selectEl.value = value;
+				selectEl.dispatchEvent(new Event('change', { bubbles: true }));
+				sync();
+			},
+		});
+	}
+	trigger.addEventListener('click', toggle);
+	trigger.addEventListener('keydown', function(e) {
+		if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+		else if (e.key === 'ArrowDown') { e.preventDefault(); if (!activeFieldPanel) toggle(); else moveFieldHighlight(1); }
+		else if (e.key === 'ArrowUp')   { e.preventDefault(); moveFieldHighlight(-1); }
+	});
+	return { sync };
+}
+
+function upgradeFieldAutocomplete(inputEl, datalistId) {
+	const wrap = document.createElement('div');
+	wrap.className = 'field-wrap';
+	inputEl.parentNode.insertBefore(wrap, inputEl);
+	wrap.appendChild(inputEl);
+	inputEl.classList.add('field-input');
+	inputEl.removeAttribute('list');
+
+	function allItems() {
+		return [...document.getElementById(datalistId).options].map(o => ({ value: o.value, label: o.value }));
+	}
+	function pick(value) {
+		inputEl.value = value;
+		inputEl.dispatchEvent(new Event('input', { bubbles: true }));
+		inputEl.focus();
+	}
+	function openFiltered() {
+		const q = inputEl.value.trim().toLowerCase();
+		const items = q ? allItems().filter(it => it.label.toLowerCase().includes(q)) : allItems();
+		openFieldOptions(inputEl, items, { onPick: pick });
+	}
+	inputEl.addEventListener('focus', openFiltered);
+	inputEl.addEventListener('input', openFiltered);
+	inputEl.addEventListener('keydown', function(e) {
+		if (e.key === 'ArrowDown') { e.preventDefault(); if (!activeFieldPanel) openFiltered(); else moveFieldHighlight(1); }
+		else if (e.key === 'ArrowUp') { e.preventDefault(); moveFieldHighlight(-1); }
+		else if (e.key === 'Enter' && activeFieldPanel) { if (pickFieldHighlight()) e.preventDefault(); }
+	});
+}
+
+// Поля формы маркера, переведённые на новый компонент:
+const locationTypeField = upgradeFieldSelect(document.getElementById('f-locationType'));
+upgradeFieldAutocomplete(document.getElementById('f-faction'), 'faction-options');
+upgradeFieldAutocomplete(provinceInput, 'province-options');
 
 
 // ─── АДМИНКА: ВСТАВКА ССЫЛКИ НА ЛОКАЦИЮ/ПРОВИНЦИЮ/ФРАКЦИЮ В ОПИСАНИЕ ───────
@@ -2763,12 +3479,13 @@ function openMarkerForEdit(row) {
 	document.getElementById('f-province').value     = row.province ?? '';
 	provinceIsAuto = false; // у существующей локации провинция уже осознанно задана, не подсказка
 	document.getElementById('f-locationType').value = row.location_type ?? 'city';
+	locationTypeField.sync();
 	document.getElementById('f-image').value        = row.image ?? '';
 	(row.traits ?? []).forEach(t => {
-		const btn = traitsIconsEl.querySelector(`.trait-icon-btn[data-key="${t}"]`)
-			|| characterIconsEl.querySelector(`.trait-icon-btn[data-key="${t}"]`);
+		if (CHARACTER_TRAITS[t]) return; // персонажи больше не свойство локаций — игнорируем
+		const btn = traitsIconsEl.querySelector(`.icon-toggle[data-key="${t}"]`);
 		if (btn) btn.classList.add('selected');
-		else selectedSystemTraits.add(t); // не нашлась ни среди особенностей, ни персонажей -> системная
+		else selectedSystemTraits.add(t); // не нашлась среди особенностей -> системная
 	});
 	buildSystemTraitsChips();
 	revertDefaultBtn.classList.toggle('hidden', !row.is_default);
@@ -2808,6 +3525,27 @@ const addQuestBtn      = document.getElementById('add-quest-btn');
 const deleteQuestBtn   = document.getElementById('delete-quest-btn');
 const questAnchorModeEl = document.getElementById('q-anchor-mode');
 
+// Кнопки режима привязки — те же градиентные текстовые пилюли .icon-toggle, что
+// и чипы статусов / особенности. Выбор одиночный: setQuestAnchorMode снимает
+// .selected со всех и ставит на нужную (анимация подсветки заложена в .icon-toggle).
+[['location', 'Локация'], ['province', 'Провинция'], ['point', 'Точка'], ['unplaced', 'Без места']]
+	.forEach(([kind, label]) => {
+		const btn = document.createElement('button');
+		btn.type = 'button';
+		btn.className = 'filter-pill icon-toggle icon-toggle--text' + (kind === 'unplaced' ? ' selected' : '');
+		btn.dataset.anchor = kind;
+		btn.innerHTML = ICON_TOGGLE_FX_HTML + `<span class="icon-toggle__label">${label}</span>`;
+		questAnchorModeEl.appendChild(btn);
+	});
+
+// «Описание» задания — тот же тулбар форматирования, что у маркера: кнопки
+// .desc-toolbar .toolbar-btn и .js-insert-link уже разошлись по делегатам при
+// инициализации (см. секцию «ПАНЕЛЬ ФОРМАТИРОВАНИЯ ОПИСАНИЯ»), т.к. находят
+// textarea через closest('.desc-editor'); осталось повесить Ctrl+B/I.
+document.getElementById('q-description').addEventListener('keydown', handleFormatShortcut);
+// печатаем название задания — подпись под черновым маркером-точкой обновляется на лету
+document.getElementById('q-runame').addEventListener('input', () => syncQuestDraftTooltip());
+
 let activeQuestId    = null;   // null = создаём новое
 let questAnchorKind  = 'unplaced';
 let questDraftMarker = null;
@@ -2816,14 +3554,45 @@ function clearQuestDraftMarker() {
 	if (questDraftMarker) { map.removeLayer(questDraftMarker); questDraftMarker = null; }
 }
 
-function questDivIcon(status) {
-	const s = QUEST_STATUS[status] ?? QUEST_STATUS.known;
-	return L.divIcon({
+// Правим существующее точечное задание — прячем его настоящий маркер целиком
+// (иконку И подпись), пока идёт редактирование; черновик его подменяет. Иначе
+// на карте два значка в одной точке и «залипшая» подпись (то же, что у локаций,
+// см. hideRealMarker).
+let hiddenQuestId = null;
+function toggleRealQuestHidden(id, hidden) {
+	const m = questMarkers.get(id);
+	m?.getElement()?.classList.toggle('admin-editing-hidden', hidden);
+	m?.getTooltip()?.getElement()?.classList.toggle('admin-editing-hidden', hidden);
+}
+function hideRealQuestMarker(id) {
+	restoreRealQuestMarker();
+	toggleRealQuestHidden(id, true);
+	hiddenQuestId = id;
+}
+function restoreRealQuestMarker() {
+	if (hiddenQuestId !== null) {
+		toggleRealQuestHidden(hiddenQuestId, false);
+		hiddenQuestId = null;
+	}
+}
+
+// Тот же механизм иконки, что у маркеров локаций (L.icon, а не L.divIcon) —
+// иначе .leaflet-div-icon подмешивал свой фон/рамку/box-sizing, и иконка с
+// подписью «наезжали» друг на друга.
+function questPointIcon() {
+	return L.icon({
+		iconUrl: QUEST_ICON,
+		iconSize: [24, 24],
+		iconAnchor: [12, 12],
 		className: 'quest-point-icon',
-		html: `<img src="${QUEST_ICON}" width="24" height="24" alt="">`
-			+ `<span class="quest-point-dot" style="background:${s.fill};box-shadow:inset 0 0 0 1px ${s.line}"></span>`,
-		iconSize: [24, 24], iconAnchor: [12, 12],
 	});
+}
+
+// Подпись под черновым маркером задания — как у локаций (см. syncDraftTooltip).
+function syncQuestDraftTooltip() {
+	if (questDraftMarker?.getTooltip()) {
+		questDraftMarker.setTooltipContent(document.getElementById('q-runame').value.trim() || 'Новое задание');
+	}
 }
 
 function setQuestPoint(latlng) {
@@ -2833,12 +3602,53 @@ function setQuestPoint(latlng) {
 		questDraftMarker.setLatLng(latlng);
 	} else {
 		questDraftMarker = L.marker(latlng, {
-			icon: questDivIcon(document.getElementById('q-status').value),
+			icon: questPointIcon(),
 			zIndexOffset: 1000, draggable: true,
 		}).addTo(map);
-		questDraftMarker.on('drag',    () => setQuestPoint(questDraftMarker.getLatLng()));
-		questDraftMarker.on('dragend', () => setQuestPoint(questDraftMarker.getLatLng()));
+		questDraftMarker.bindTooltip('', {
+			permanent: true, direction: 'bottom', offset: [0, 12],
+			className: 'location-name-label', interactive: false,
+		});
+		questDraftMarker.on('drag',    questDraftDragMove);
+		questDraftMarker.on('dragend', questDraftDragEnd);
 	}
+	syncQuestDraftTooltip();
+}
+
+// Ближайший видимый маркер локации к точке (в экранных px) — цель для
+// «закидывания» задания в локацию перетаскиванием чернового маркера.
+function questDropLocationNear(latlng, thresholdPx = 22) {
+	const p = map.latLngToContainerPoint(latlng);
+	let bestId = null, bestD = thresholdPx;
+	for (const id of Object.keys(markersById)) {
+		const m = markersById[id];
+		if (!m._map || m.getElement()?.classList.contains('admin-editing-hidden')) continue;
+		const d = p.distanceTo(map.latLngToContainerPoint(m.getLatLng()));
+		if (d < bestD) { bestD = d; bestId = id; }
+	}
+	return bestId;
+}
+
+function questDraftDragMove() {
+	setQuestPoint(questDraftMarker.getLatLng());
+	clearQuestDropHighlight();
+	const id = questDropLocationNear(questDraftMarker.getLatLng());
+	if (id) markersById[id].getElement()?.classList.add('quest-drop-target');
+}
+
+function questDraftDragEnd() {
+	clearQuestDropHighlight();
+	if (!questDraftMarker) return;
+	const id = questDropLocationNear(questDraftMarker.getLatLng());
+	if (!id) { setQuestPoint(questDraftMarker.getLatLng()); return; }
+	// Бросили на локацию — привязываем к ней. Смену режима (она удаляет черновик)
+	// откладываем на тик, чтобы не дёргать слой во время его же события dragend.
+	document.getElementById('q-anchor-loc').value = markerRowById.get(id)?.runame ?? '';
+	setTimeout(() => {
+		setQuestAnchorMode('location');
+		setRegionsInteractive(factionRegions, false);   // форма ещё открыта — клики по карте по-прежнему ставят точку
+		setRegionsInteractive(provinceRegions, false);
+	}, 0);
 }
 
 // Переключение режима привязки: показываем нужное поле, а для «точки» ещё и
@@ -2870,11 +3680,6 @@ questAnchorModeEl.addEventListener('click', function(e) {
 	if (btn) setQuestAnchorMode(btn.dataset.anchor);
 });
 
-// смена статуса — обновляем иконку чернового маркера точки
-document.getElementById('q-status').addEventListener('change', function() {
-	if (questDraftMarker) questDraftMarker.setIcon(questDivIcon(this.value));
-});
-
 function populateQuestFormLists() {
 	document.getElementById('q-loc-options').innerHTML =
 		[...new Set(allMarkerRows.map(r => r.runame).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ru'))
@@ -2882,34 +3687,74 @@ function populateQuestFormLists() {
 	document.getElementById('q-prov-options').innerHTML =
 		regionsProvinces.features.map(f => f.properties.name).sort((a, b) => a.localeCompare(b, 'ru'))
 			.map(n => `<option value="${n}">`).join('');
-	document.getElementById('q-trait').innerHTML = '<option value="">— нет —</option>'
-		+ Object.entries(TRAITS).map(([k, t]) => `<option value="${k}">${t.tooltip}</option>`).join('');
+}
+
+// «Персонажи» задания — МУЛЬТИвыбор пилюлями .icon-toggle (персонажи из
+// CHARACTER_TRAITS), тот же вид/логика, что у ряда «Персонажи» в форме маркера.
+// Ряд строится один раз; клик по пилюле переключает её .selected. Значения
+// читаются из DOM на сабмите → колонка characters text[].
+const questCharactersRow = document.getElementById('q-characters-row');
+Object.entries(CHARACTER_TRAITS).forEach(([key, c]) => {
+	const btn = document.createElement('button');
+	btn.type = 'button';
+	btn.className = 'trait filter-pill icon-only icon-toggle icon-toggle--16';
+	btn.dataset.key = key;
+	btn.dataset.tooltip = c.tooltip;   // короткое имя, наш .trait-tooltip
+	btn.innerHTML = iconToggleIconHTML(c.icon ?? '', '');
+	btn.addEventListener('click', () => btn.classList.toggle('selected'));
+	questCharactersRow.appendChild(btn);
+});
+
+function getSelectedQuestCharacters() {
+	return [...questCharactersRow.querySelectorAll('.icon-toggle.selected')].map(b => b.dataset.key);
+}
+function setQuestCharacters(keys) {
+	const set = new Set(keys || []);
+	questCharactersRow.querySelectorAll('.icon-toggle').forEach(b =>
+		b.classList.toggle('selected', set.has(b.dataset.key)));
 }
 
 function resetQuestForm() {
 	questForm.reset();
 	questFormErrorEl.textContent = '';
+	setQuestCharacters([]);           // form.reset() не снимает .selected с пилюль
 	clearQuestDraftMarker();
 	populateQuestFormLists();
+	questStatusField.sync();          // form.reset() не обновляет подпись кастомного триггера
+	pendingQuestBranch = null;
+	renderQuestBranchRow();
 }
+
+// Поля формы задания, переведённые на новый компонент:
+const questStatusField = upgradeFieldSelect(document.getElementById('q-status'));
+upgradeFieldAutocomplete(document.getElementById('q-anchor-loc'), 'q-loc-options');
+upgradeFieldAutocomplete(document.getElementById('q-anchor-prov'), 'q-prov-options');
 
 // opts: { questId?, anchorKind?, anchorLocationId?, anchorProvinceId?, statusDefault? }
 function openQuestForm(opts = {}) {
 	resetQuestForm();
 	map.closePopup();
 	closeQuestCard();
+	closeBranchCard();
 
 	if (opts.questId) {
 		const q = questsById.get(opts.questId);
 		if (!q) return;
 		activeQuestId = q.id;
+		hideRealQuestMarker(q.id);   // точечное задание: прячем настоящий маркер, черновик его подменит
 		editQuestTitle.textContent = q.runame || 'Задание';
 		deleteQuestBtn.classList.remove('hidden');
 		document.getElementById('q-runame').value      = q.runame ?? '';
 		document.getElementById('q-engname').value     = q.engname ?? '';
 		document.getElementById('q-description').value = q.description ?? '';
+		document.getElementById('q-short-description').value = q.short_description ?? '';
 		document.getElementById('q-status').value      = q.status ?? 'rumor';
-		document.getElementById('q-trait').value       = q.trait ?? '';
+		questStatusField.sync();
+		pendingQuestBranch = q.branch_id ? { id: q.branch_id, runame: branchesById.get(q.branch_id)?.runame ?? '' } : null;
+		renderQuestBranchRow();
+		document.getElementById('q-branch-step').value = q.branch_step ?? '';
+		document.getElementById('q-branch-or-group').value = q.branch_or_group ?? '';
+		setQuestCharacters(q.characters);
 		if (q.anchor_kind === 'location') {
 			document.getElementById('q-anchor-loc').value = markerRowById.get(q.anchor_location_id)?.runame ?? '';
 		} else if (q.anchor_kind === 'province') {
@@ -2924,6 +3769,7 @@ function openQuestForm(opts = {}) {
 		editQuestTitle.textContent = 'Новое задание';
 		deleteQuestBtn.classList.add('hidden');
 		document.getElementById('q-status').value = opts.statusDefault || 'rumor';
+		questStatusField.sync();
 		if (opts.anchorLocationId) {
 			document.getElementById('q-anchor-loc').value = markerRowById.get(opts.anchorLocationId)?.runame ?? '';
 		}
@@ -2956,12 +3802,13 @@ document.addEventListener('click', function(e) {
 	if (t && t.dataset.editQuest) openQuestForm({ questId: t.dataset.editQuest });
 });
 
-// Клик по карте в режиме «точка»
+// Клик по карте при открытой форме задания — ставит точку и, если привязка была
+// иной, сам переключает её на «точка» с этими координатами.
 map.on('click', function(e) {
 	if (editQuestView.classList.contains('hidden')) return;
-	if (questAnchorKind !== 'point') return;
 	if (measuringActive) return;
-	setQuestPoint(e.latlng);
+	setQuestPoint(e.latlng);                       // ставит черновик + q-lng/q-lat
+	if (questAnchorKind !== 'point') setQuestAnchorMode('point');   // черновик уже есть → повторно не ставит, только переключает UI
 });
 
 questForm.addEventListener('submit', async function(e) {
@@ -2988,12 +3835,22 @@ questForm.addEventListener('submit', async function(e) {
 		if (Number.isNaN(lng) || Number.isNaN(lat)) { questFormErrorEl.textContent = 'Кликните по карте, чтобы поставить точку'; return; }
 	}
 
+	// Ветка теперь редактируется/создаётся своей модалкой (#branch-edit-overlay,
+	// сохраняется сразу в quest_branches) — здесь просто читаем уже готовый
+	// результат её выбора.
+	const branch_id = pendingQuestBranch?.id ?? null;
+	const branchStepRaw = document.getElementById('q-branch-step').value;
+	const branch_step = branch_id && branchStepRaw !== '' ? parseInt(branchStepRaw, 10) : null;
+	const branch_or_group = branch_id ? (document.getElementById('q-branch-or-group').value.trim() || null) : null;
+
 	const payload = {
 		runame,
 		engname:     document.getElementById('q-engname').value.trim() || null,
 		description: document.getElementById('q-description').value.trim() || null,
+		short_description: document.getElementById('q-short-description').value.trim() || null,
 		status:      document.getElementById('q-status').value,
-		trait:       document.getElementById('q-trait').value || null,
+		characters:  getSelectedQuestCharacters(),
+		branch_id, branch_step, branch_or_group,
 		anchor_kind: questAnchorKind,
 		anchor_location_id, anchor_province_id, lng, lat,
 		updated_at:  new Date().toISOString(),
@@ -3072,6 +3929,15 @@ function resolveQuestDrop(x, y, needCoords) {
 		const mid = markerIdFromIconEl(iconEl);
 		if (mid) return { kind: 'location', id: mid, el: iconEl };
 	}
+	// Провинция под курсором — когда включена политическая карта и провинции
+	// отрисованы (тот же принцип, что у маркера: бросил на область — привязал).
+	if (el && mapEl.contains(el) && map.hasLayer(provinceRegions)) {
+		const latlng = map.mouseEventToLatLng({ clientX: x, clientY: y });
+		const meta = provinceRegionMeta[detectProvinceAt(latlng)];
+		if (meta?.id) {
+			return { kind: 'province', id: meta.id, el: regionLayerById[meta.id]?.getElement?.() || null };
+		}
+	}
 	if (el && mapEl.contains(el)) {
 		if (!needCoords) return { kind: 'point' };
 		const latlng = map.mouseEventToLatLng({ clientX: x, clientY: y });
@@ -3146,6 +4012,8 @@ async function questDragEnd(e) {
 	// лёгкая обратная связь: показать результат в новом контексте
 	if (drop.kind === 'location') {
 		markersById[drop.id]?.openPopup();
+	} else if (drop.kind === 'province') {
+		regionLayerById[drop.id]?.openPopup();
 	} else if (drop.kind === 'point') {
 		openQuestCard(d.id);
 	} else if (drop.kind === 'unplaced') {
@@ -3169,7 +4037,7 @@ function questDragStart(id, e) {
 		sidebarRight: sb ? sb.getBoundingClientRect().right : 0,
 	};
 	questDragGhostMove(e.clientX, e.clientY);
-	questDragHintEl.textContent = 'тащите: в локацию · на карту · в журнал';
+	questDragHintEl.textContent = 'тащите: в локацию · в провинцию · на карту · в журнал';
 	questDragHintEl.classList.remove('hidden');
 	document.body.classList.add('quest-dragging');
 	window.addEventListener('pointermove', questDragMove);
@@ -3352,9 +4220,351 @@ document.addEventListener('click', function(e) {
 // заново, поэтому слушаем клики через делегирование на document. Удаление
 // теперь только из самой формы редактирования (см. deleteMarkerBtn ниже).
 document.addEventListener('click', function(e) {
+	if (!isAdmin) return;
 	const editLink = e.target.closest('[data-edit-marker]');
 	if (editLink?.dataset.editMarker) {
 		const row = allMarkerRows.find(r => r.id === editLink.dataset.editMarker);
 		if (row) openMarkerForEdit(row);
 	}
 });
+
+
+// ─── САЙДБАР «СЛАВА» (список фракций + репутация) ──────────────────────────
+// Список виден всем, редактирует только админ (см. isAdmin-проверки ниже).
+// Отдельная таблица quest_branches-подобного вида — factions — никак не
+// связана с существующими regionsFactions (полигоны фракций на политической
+// карте): это про сюжетную репутацию отряда, а не про территории.
+// Герб 16×16 — своя картинка (factions.image, путь как у markers.image),
+// без неё — общая заглушка FACTION_ICON.
+const FACTION_REPUTATION = {
+	positive: { label: 'Положительная', title: '#64a653', score: '#95c46e', effect: '#449a44' },
+	negative: { label: 'Отрицательная', title: '#cd5151', score: '#c8705d', effect: '#bc4a3b' },
+	neutral:  { label: 'Нейтральная',   title: '#d09b50', score: '#d1a24f', effect: '#b48e58' },
+};
+
+let allFactionRows = [];
+let factionsById   = new Map();
+// Блок описания свёрнут по умолчанию — раскрывается кликом по карточке
+// (не по названию — оно отдельная edit-ссылка для админа, см. ниже). Список
+// не персистится, обычное UI-состояние на сессию.
+const expandedFactionIds = new Set();
+
+async function loadFactions() {
+	const { data, error } = await supabaseClient.from('factions').select('*');
+	if (error) {
+		console.error('Не удалось загрузить фракции из Supabase:', error);
+		return;
+	}
+	allFactionRows = data;
+	factionsById = new Map(data.map(f => [f.id, f]));
+	renderFactionsList();
+}
+
+function loyaltyBarHTML(score, reputation) {
+	const repClass = FACTION_REPUTATION[reputation] ? reputation : 'neutral';
+	const filled = Math.max(0, Math.min(10, score ?? 0));
+	let html = '';
+	for (let i = 0; i < 10; i++) {
+		html += i < filled
+			? `<span class="faction-loyalty-pip faction-loyalty-pip--${repClass}"></span>`
+			: `<span class="faction-loyalty-pip"></span>`;
+	}
+	return html;
+}
+
+// Блок описания в вёрстке вообще только если у фракции есть текст описания
+// (без description весь блок — текст + «эффект репутации» — не выводится,
+// даже если effect заполнен); а из тех, что есть, показан только у
+// раскрытых (expandedFactionIds) — по умолчанию свёрнуты, разворачиваются
+// кликом по карточке. Название — отдельная edit-ссылка для админа (по
+// аналогии с заголовком попапа, см. popup-title--editable), клик по ней не
+// должен заодно разворачивать/сворачивать карточку — см. делегат кликов ниже.
+function factionCardHTML(f) {
+	const rep = FACTION_REPUTATION[f.reputation] ?? FACTION_REPUTATION.neutral;
+	const expandable = !!f.description;
+	const expanded = expandable && expandedFactionIds.has(f.id);
+	const cardClasses = ['faction-card'];
+	if (expandable) cardClasses.push('faction-card--expandable');
+	if (expanded) cardClasses.push('faction-card--expanded'); // держит яркий градиент, пока карточка раскрыта — независимо от hover
+	return `<div class="${cardClasses.join(' ')}" data-faction-id="${f.id}"${expandable ? ' tabindex="0"' : ''}>
+		<div class="faction-card-header">
+			<img class="faction-card-icon" src="${f.image || FACTION_ICON}" alt="">
+			<div class="faction-card-row">
+				<div class="faction-card-name-col">
+					<p class="faction-card-name${isAdmin ? ' faction-card-name--editable' : ''}"${isAdmin ? ` data-edit-faction="${f.id}" title="Редактировать фракцию"` : ''}>${f.runame ?? ''}</p>
+					${f.title ? `<p class="faction-card-title" style="color:${rep.title}">${f.title}</p>` : ''}
+				</div>
+				<p class="faction-card-score"><span class="faction-card-score-val" style="color:${rep.score}">${f.score ?? 0}</span><span class="faction-card-score-max">/10</span></p>
+			</div>
+		</div>
+		<div class="faction-card-loyalty">${loyaltyBarHTML(f.score, f.reputation)}</div>
+		${expanded ? `<div class="faction-card-desc">
+			<div class="description">${renderDescription(f.description)}</div>
+			${f.effect ? `<p class="faction-card-effect" style="color:${rep.effect}">${f.effect}</p>` : ''}
+		</div>` : ''}
+	</div>`;
+}
+
+function renderFactionsList() {
+	const listEl = document.getElementById('factions-list');
+	if (!allFactionRows.length) {
+		listEl.innerHTML = `<p class="factions-empty">Фракций пока нет</p>`;
+		return;
+	}
+	listEl.innerHTML = [...allFactionRows]
+		.sort((a, b) => (b.score ?? 0) - (a.score ?? 0) || (a.runame || '').localeCompare(b.runame || '', 'ru'))
+		.map(factionCardHTML)
+		.join('');
+}
+
+// «Слава» ⇄ «Карта Хейвена» — переход между обычным сайдбаром и списком
+// фракций; .map-title-slava используется на обеих сторонах (см. style.css).
+document.getElementById('glory-link').addEventListener('click', showGloryView);
+document.getElementById('glory-back-link').addEventListener('click', showNormalView);
+document.getElementById('glory-sidebar-toggle').addEventListener('click', toggleSidebarCollapsed);
+document.getElementById('edit-faction-sidebar-toggle').addEventListener('click', toggleSidebarCollapsed);
+
+const factionsListEl = document.getElementById('factions-list');
+factionsListEl.addEventListener('click', function(e) {
+	// Клик по заголовку (герб + название + титул + очки, вся .faction-card-header) —
+	// у админа переход в редактирование, карточку НЕ разворачиваем. Клик-цель —
+	// [data-edit-faction] на самих элементах содержимого (герб/название+титул/
+	// очки), а НЕ на всей строке .faction-card-header: та растянута на 100%
+	// ширины (flex-строка с justify-content:space-between между названием и
+	// очками), и clientTarget в пустом промежутке/после очков — это сам
+	// контейнер, а не текст. Раньше слушали closest('.faction-card-header') —
+	// оттуда и был баг «переносит в редактирование при клике правее заголовка».
+	const editTarget = e.target.closest('[data-edit-faction]');
+	if (editTarget && isAdmin) {
+		const row = factionsById.get(editTarget.dataset.editFaction);
+		if (row) openFactionForm({ factionId: row.id });
+		return;
+	}
+	// Не-админ по заголовку, или клик по остальной части раскрываемой карточки — тогл описания.
+	const card = e.target.closest('.faction-card--expandable');
+	if (!card) return;
+	const id = card.dataset.factionId;
+	if (expandedFactionIds.has(id)) expandedFactionIds.delete(id); else expandedFactionIds.add(id);
+	renderFactionsList();
+});
+factionsListEl.addEventListener('keydown', function(e) {
+	if (e.key !== 'Enter' && e.key !== ' ') return;
+	if (isAdmin && e.target.closest('[data-edit-faction]')) return; // клавиатурного доступа к редактированию нет — только мышь, как у popup-title--editable
+	const card = e.target.closest('.faction-card--expandable');
+	if (!card) return;
+	e.preventDefault();
+	const id = card.dataset.factionId;
+	if (expandedFactionIds.has(id)) expandedFactionIds.delete(id); else expandedFactionIds.add(id);
+	renderFactionsList();
+});
+
+
+// ─── АДМИНКА: ФОРМА ФРАКЦИИ (добавление / редактирование / удаление) ───────
+const editFactionTitle   = document.getElementById('edit-faction-title');
+const addFactionBtn      = document.getElementById('add-faction-btn');
+const factionBackBtn     = document.getElementById('faction-back-btn');
+const deleteFactionBtn   = document.getElementById('delete-faction-btn');
+const factionForm        = document.getElementById('faction-form');
+const factionFormErrorEl = document.getElementById('faction-form-error');
+
+let activeFactionId = null;
+
+const factionReputationField = upgradeFieldSelect(document.getElementById('fc-reputation'));
+document.getElementById('fc-description').addEventListener('keydown', handleFormatShortcut);
+
+function resetFactionForm() {
+	factionForm.reset();
+	factionFormErrorEl.textContent = '';
+	factionReputationField.sync(); // form.reset() не обновляет подпись кастомного триггера
+}
+
+// opts: { factionId? }
+function openFactionForm(opts = {}) {
+	resetFactionForm();
+
+	if (opts.factionId) {
+		const f = factionsById.get(opts.factionId);
+		if (!f) return;
+		activeFactionId = f.id;
+		editFactionTitle.textContent = f.runame || 'Фракция';
+		deleteFactionBtn.classList.remove('hidden');
+		document.getElementById('fc-runame').value = f.runame ?? '';
+		document.getElementById('fc-score').value  = f.score ?? 0;
+		document.getElementById('fc-reputation').value = f.reputation ?? 'neutral';
+		factionReputationField.sync();
+		document.getElementById('fc-title').value       = f.title ?? '';
+		document.getElementById('fc-effect').value      = f.effect ?? '';
+		document.getElementById('fc-image').value       = f.image ?? '';
+		document.getElementById('fc-description').value = f.description ?? '';
+	} else {
+		activeFactionId = null;
+		editFactionTitle.textContent = 'Новая фракция';
+		deleteFactionBtn.classList.add('hidden');
+		document.getElementById('fc-score').value = 0;
+	}
+	showFactionEditView();
+}
+
+addFactionBtn.addEventListener('click', () => openFactionForm({}));
+factionBackBtn.addEventListener('click', showGloryView);
+
+factionForm.addEventListener('submit', async function(e) {
+	e.preventDefault();
+	factionFormErrorEl.textContent = '';
+
+	const runame = document.getElementById('fc-runame').value.trim();
+	if (!runame) { factionFormErrorEl.textContent = 'Укажите название фракции'; return; }
+
+	const scoreRaw = parseInt(document.getElementById('fc-score').value, 10);
+	const score = Math.max(0, Math.min(10, Number.isNaN(scoreRaw) ? 0 : scoreRaw));
+
+	const payload = {
+		runame,
+		score,
+		reputation:  document.getElementById('fc-reputation').value,
+		title:       document.getElementById('fc-title').value.trim() || null,
+		effect:      document.getElementById('fc-effect').value.trim() || null,
+		image:       document.getElementById('fc-image').value.trim() || null,
+		description: document.getElementById('fc-description').value.trim() || null,
+		updated_at:  new Date().toISOString(),
+	};
+
+	const query = activeFactionId
+		? supabaseClient.from('factions').update(payload).eq('id', activeFactionId)
+		: supabaseClient.from('factions').insert(payload);
+
+	const result = await runWrite(query);
+	if (!result.ok) { factionFormErrorEl.textContent = 'Не удалось сохранить: ' + result.message; return; }
+
+	await loadFactions();
+	showGloryView();
+});
+
+deleteFactionBtn.addEventListener('click', async function() {
+	if (!activeFactionId) return;
+	if (!confirm('Удалить эту фракцию?')) return;
+	const result = await runWrite(supabaseClient.from('factions').delete().eq('id', activeFactionId));
+	if (!result.ok) { factionFormErrorEl.textContent = 'Не удалось удалить: ' + result.message; return; }
+	await loadFactions();
+	showGloryView();
+});
+
+
+// ─── ВЕТКА ЗАДАНИЙ: МОДАЛКА (общее описание — одно на все задания ветки) ───
+// Своя карточка/описание у ветки — слишком лёгкая сущность (имя + текст) для
+// отдельного сайдбара, поэтому редактируется маленьким модальным окном по
+// центру экрана (тот же стиль, что «Раскрытие описания» — #desc-expand-overlay
+// — но со своим сохранением: это отдельная запись в quest_branches, а не то
+// же самое поле, что и в форме задания). Сохраняется сразу по кнопке
+// «Сохранить» в модалке, НЕ дожидаясь сабмита формы задания — иначе описание
+// ветки терялось бы, если админ передумает и закроет форму без сохранения.
+let pendingQuestBranch = null;      // { id, runame } | null — ветка редактируемого/нового задания
+let lastAutoFilledBranchDesc = '';  // не перетирать ручной ввод описания при переключении между ветками в автокомплите
+
+function renderQuestBranchRow() {
+	const el = document.getElementById('quest-branch-row');
+	const stepField = document.getElementById('quest-branch-step-field');
+	const orGroupField = document.getElementById('quest-branch-or-group-field');
+	if (pendingQuestBranch) {
+		el.innerHTML = `<span class="quest-branch-chip" title="Изменить ветку">${pendingQuestBranch.runame}</span>`;
+		stepField.classList.remove('hidden');
+		orGroupField.classList.remove('hidden');
+	} else {
+		el.innerHTML = `<button type="button" class="glory-add-row">${PLUS_ICON_SVG}<span>Добавить в ветку</span></button>`;
+		stepField.classList.add('hidden');
+		orGroupField.classList.add('hidden');
+	}
+}
+
+const branchEditOverlay  = document.getElementById('branch-edit-overlay');
+const branchEditTitleEl  = document.getElementById('branch-edit-title');
+const beRunameInput      = document.getElementById('be-runame');
+const beDescriptionInput = document.getElementById('be-description');
+const branchEditErrorEl  = document.getElementById('branch-edit-error');
+const branchUnlinkBtn    = document.getElementById('branch-unlink-btn');
+
+upgradeFieldAutocomplete(beRunameInput, 'be-branch-options');
+beDescriptionInput.addEventListener('keydown', handleFormatShortcut);
+
+function populateBranchModalOptions() {
+	document.getElementById('be-branch-options').innerHTML =
+		allBranchRows.map(b => b.runame).filter(Boolean).sort((a, b) => a.localeCompare(b, 'ru'))
+			.map(n => `<option value="${n}">`).join('');
+}
+
+// Выбрали существующую ветку из автокомплита — сразу подтягиваем её текущее
+// описание, чтобы можно было тут же поправить. Не перетираем, если админ уже
+// что-то вписал сам (сравниваем с тем, что сами же туда в последний раз и
+// поставили — lastAutoFilledBranchDesc).
+beRunameInput.addEventListener('input', function() {
+	const match = allBranchRows.find(b => b.runame === this.value.trim());
+	if (!match) return;
+	if (beDescriptionInput.value === lastAutoFilledBranchDesc) {
+		beDescriptionInput.value = match.description ?? '';
+		lastAutoFilledBranchDesc = beDescriptionInput.value;
+	}
+});
+
+function openBranchEditModal() {
+	populateBranchModalOptions();
+	branchEditErrorEl.textContent = '';
+	if (pendingQuestBranch) {
+		branchEditTitleEl.textContent = 'Ветка заданий';
+		beRunameInput.value = pendingQuestBranch.runame;
+		beDescriptionInput.value = branchesById.get(pendingQuestBranch.id)?.description ?? '';
+		branchUnlinkBtn.classList.remove('hidden');
+	} else {
+		branchEditTitleEl.textContent = 'Новая ветка';
+		beRunameInput.value = '';
+		beDescriptionInput.value = '';
+		branchUnlinkBtn.classList.add('hidden');
+	}
+	lastAutoFilledBranchDesc = beDescriptionInput.value;
+	branchEditOverlay.classList.remove('hidden');
+	beRunameInput.focus();
+}
+function closeBranchEditModal() {
+	branchEditOverlay.classList.add('hidden');
+	closeFieldOptions(); // на случай открытой панели автокомплита
+}
+
+document.getElementById('quest-branch-row').addEventListener('click', openBranchEditModal);
+
+document.getElementById('branch-edit-save-btn').addEventListener('click', async function() {
+	branchEditErrorEl.textContent = '';
+	const runame = beRunameInput.value.trim();
+	if (!runame) { branchEditErrorEl.textContent = 'Укажите название ветки'; return; }
+	const description = beDescriptionInput.value.trim() || null;
+
+	// Резолвим по точному имени — как и раньше при неявном создании ветки:
+	// нашли существующую — обновляем её описание, не нашли — заводим новую.
+	const existing = allBranchRows.find(b => b.runame === runame);
+	const { data, error } = existing
+		? await supabaseClient.from('quest_branches').update({ description }).eq('id', existing.id).select().single()
+		: await supabaseClient.from('quest_branches').insert({ runame, description }).select().single();
+	if (error) { branchEditErrorEl.textContent = 'Не удалось сохранить: ' + error.message; return; }
+
+	allBranchRows = allBranchRows.filter(b => b.id !== data.id).concat(data);
+	branchesById.set(data.id, data);
+	pendingQuestBranch = { id: data.id, runame: data.runame };
+	renderQuestBranchRow();
+	closeBranchEditModal();
+});
+
+branchUnlinkBtn.addEventListener('click', function() {
+	pendingQuestBranch = null;
+	document.getElementById('q-branch-step').value = '';
+	document.getElementById('q-branch-or-group').value = '';
+	renderQuestBranchRow();
+	closeBranchEditModal();
+});
+
+document.getElementById('branch-edit-cancel-btn').addEventListener('click', closeBranchEditModal);
+branchEditOverlay.addEventListener('mousedown', function(e) {
+	if (e.target === branchEditOverlay) closeBranchEditModal();
+});
+document.addEventListener('keydown', function(e) {
+	if (e.key === 'Escape' && !branchEditOverlay.classList.contains('hidden')) closeBranchEditModal();
+});
+
+loadFactions();
