@@ -73,6 +73,11 @@ const questsByLocationId = new Map();// markers.id -> [строки задани
 const questsByProvinceId = new Map();// id провинции -> [строки заданий] (anchor_kind='province')
 const questMarkers = new Map();      // id задания -> Leaflet-маркер (anchor_kind='point')
 const questPointLayer = L.layerGroup();
+// Иконка задания в центре провинции, если в неё вложено видимое задание
+// (anchor_kind='province') — тот же слой «Задание», что и у точечных заданий
+// (см. MARKER_LAYERS ниже), просто вместо своей точки берём geo-центр региона.
+const provinceQuestLayer = L.layerGroup();
+const provinceQuestMarkers = new Map(); // id региона провинции -> Leaflet-маркер
 
 // Ветки заданий (quest_branches) — условный хаб для группы заданий, никогда не
 // отображается на карте. Задание попадает в ветку через quests.branch_id;
@@ -86,8 +91,6 @@ const questPointLayer = L.layerGroup();
 let allBranchRows = [];              // сырые строки из Supabase (quest_branches)
 let branchesById  = new Map();       // id -> строка ветки
 const questsByBranchId = new Map();  // branch id -> [строки заданий]
-const collapsedBranchIds = new Set();// свёрнутые (по умолчанию все ветки развёрнуты)
-const CHEVRON_SVG = '<svg width="8" height="5" viewBox="0 0 8 5" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0 0L4 5L8 0H0Z" fill="currentColor"/></svg>';
 
 // «Завершено» по умолчанию выключено, как в прототипе. Чип «Слух» рисуется
 // только админу; для анонима строк со статусом rumor всё равно нет в данных.
@@ -99,16 +102,29 @@ function questVisible(q) {
 	return true;
 }
 
-function questAnchorLabel(q) {
+// Пункт «Локация»/«Провинция» для info-grid карточки задания (макет 401:456) —
+// тот же якорь, что в questJournalAnchorHTML, но как {label, valueHTML} и со
+// ссылкой через общий делегат .desc-link[data-ref-type] (как в описаниях).
+// Нет якоря (unplaced / точка не в провинции) → null, пункт просто не рисуется.
+function questAnchorInfoItem(q) {
 	if (q.anchor_kind === 'location') {
 		const row = markerRowById.get(q.anchor_location_id);
-		return 'в локации: ' + (row ? row.runame : '—');
+		if (!row) return null;
+		return { label: 'Локация', valueHTML: `<a class="desc-link" data-ref-type="loc" data-ref-id="${q.anchor_location_id}">${row.runame ?? ''}</a>` };
 	}
 	if (q.anchor_kind === 'province') {
-		return 'в провинции: ' + (provinceNameById[q.anchor_province_id] || '—');
+		const name = provinceNameById[q.anchor_province_id];
+		if (!name) return null;
+		const meta = provinceRegionMeta[name];
+		return { label: 'Провинция', valueHTML: meta?.id ? `<a class="desc-link" data-ref-type="province" data-ref-id="${meta.id}">${name}</a>` : name };
 	}
-	if (q.anchor_kind === 'point') return 'своя точка на карте';
-	return 'без места';
+	if (q.anchor_kind === 'point' && q.lng != null && q.lat != null) {
+		const name = detectProvinceAt({ lat: q.lat, lng: q.lng });
+		if (!name) return null;
+		const meta = provinceRegionMeta[name];
+		return { label: 'Провинция', valueHTML: meta?.id ? `<a class="desc-link" data-ref-type="province" data-ref-id="${meta.id}">${name}</a>` : name };
+	}
+	return null;
 }
 
 // Строка «локации» под названием задания в Журнале: «Тип места Название», где
@@ -564,7 +580,12 @@ const MARKER_LAYERS = [
     { label: 'Святилище', 	   		group: shrines,      			defaultOn: true,		icons: ['images/icons/shrine.png'], size: 16 },
 	{ label: 'Точка интереса',		group: pointsOfInterest, 		defaultOn: true,		icons: ['images/icons/pointOfInterest.png'], size: 16 },
     { label: 'Врата Древних',  		group: polarGates,   			defaultOn: false,  		icons: ['images/icons/polarGates.png'], size: 16 },
-    { label: 'Задание',        		group: quests,       			defaultOn: true,  		icons: ['images/icons/quest.png'], size: 16 },
+    // extraLayers — слои настоящих заданий (таблица quests, не markers): точки
+    // на карте (questPointLayer) и иконки в центре провинций с вложенным
+    // заданием (provinceQuestLayer) — включаются/выключаются вместе с этой
+    // же галочкой, см. setLayerButtonState. defaultOn: false — по умолчанию
+    // задания на карте не показываем (слишком шумно поверх обычных локаций).
+    { label: 'Задание',        		group: quests,       			defaultOn: false,  		icons: ['images/icons/quest.png'], size: 16, extraLayers: [questPointLayer, provinceQuestLayer] },
 ];
 
 const MAP_LAYERS = [
@@ -644,29 +665,41 @@ function getAllSystemTraitKeys() {
 // поставить обратно true.
 const SHOW_LOCATION_IMAGES = false;
 
+// Сетка «метка сверху / значение снизу» в 2 колонки (макет 282:540/401:456) —
+// общий вид для инфо-блока попапа локации (Фракция/Провинция) и карточки
+// задания (Локация или Провинция / Ветка заданий). items: [{label, valueHTML}
+// | null]; пустые пункты отфильтровываются, вся сетка пропадает, если пунктов
+// не осталось (см. .filter(Boolean) вокруг вызовов).
+function popupInfoGridHTML(items) {
+	const list = items.filter(it => it && it.valueHTML);
+	if (!list.length) return '';
+	return `<div class="popup-info-grid">` + list.map(it =>
+		`<div class="popup-info-item"><span class="popup-info-label">${it.label}</span>`
+		+ `<span class="popup-info-val">${it.valueHTML}</span></div>`
+	).join('') + `</div>`;
+}
+
 function buildPopupHTML(props, opts = {}) {
 	// Переход к правке локации — на самом заголовке (только у админа, не в
 	// черновике). Клик ловит общий делегат по [data-edit-marker].
 	const editable = isAdmin && !opts.hideAdminActions && props.id;
 	const questsHTML = props.id ? questBlockInnerHTML('location', props.id) : '';
 
-	// «Фракция» / «Провинция»: слово — капсом (CSS), название — как в данных, но
-	// с заглавной первой буквы; если у названия есть регион на политической карте,
-	// это ссылка (клик — переход к региону, как у desc-link province/faction).
+	// «Фракция» / «Провинция»: название — как в данных, но с заглавной первой
+	// буквы; если у названия есть регион на политической карте, это ссылка
+	// (клик — переход к региону, как у desc-link province/faction).
 	const cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
-	const footerItem = (label, val, refType, refId) => {
-		if (!val) return `<span class="popup-footer-item"></span>`;
-		const value = refId
-			? `<a class="desc-link popup-footer-val" data-ref-type="${refType}" data-ref-id="${refId}">${cap(val)}</a>`
-			: `<span class="popup-footer-val">${cap(val)}</span>`;
-		return `<span class="popup-footer-item"><span class="popup-footer-label">${label}</span> ${value}</span>`;
+	const infoItem = (label, val, refType, refId) => {
+		if (!val) return null;
+		const valueHTML = refId
+			? `<a class="desc-link" data-ref-type="${refType}" data-ref-id="${refId}">${cap(val)}</a>`
+			: cap(val);
+		return { label, valueHTML };
 	};
-	const footerHTML = (props.faction || props.province)
-		? `<div class="popup-footer">`
-			+ footerItem('Фракция:',  props.faction,  'faction',  props.faction  ? factionIdByName[props.faction]              : null)
-			+ footerItem('Провинция:', props.province, 'province', props.province ? provinceRegionMeta[props.province]?.id     : null)
-			+ `</div>`
-		: '';
+	const infoGridHTML = popupInfoGridHTML([
+		infoItem('Фракция',   props.faction,  'faction',  props.faction  ? factionIdByName[props.faction]         : null),
+		infoItem('Провинция', props.province, 'province', props.province ? provinceRegionMeta[props.province]?.id : null),
+	]);
 
 	// Секции идут через .popup-divider — собираем только непустые, чтобы не
 	// плодить двойные разделители.
@@ -675,9 +708,9 @@ function buildPopupHTML(props, opts = {}) {
 			+ `<h1${editable ? ` class="popup-title--editable" data-edit-marker="${props.id}" title="Редактировать локацию"` : ''}>${props.runame ?? ''}</h1>`
 			+ `<div class="traits">${buildTraitsHTML(props.traits)}</div>`
 		+ `</div>`,
+		infoGridHTML,
 		props.description ? `<div class="description">${renderDescription(props.description)}</div>` : '',
 		questsHTML ? `<div class="popup-quests">${questsHTML}</div>` : '',
-		footerHTML,
 	].filter(Boolean);
 
 	return `
@@ -767,7 +800,13 @@ async function loadMarkers() {
 		// тот же сценарий, что и повторный клик по имени в сайдбаре (см.
 		// комментарий у fitPopupWidth): Leaflet сам popupopen второй раз не
 		// поднимает, поэтому размер попапа досчитываем на каждый клик явно.
-		marker.on('click', () => fitPopupWidth(marker.getPopup()));
+		// _questOpenId — подмена из updateLocationQuestOverrides (галочка
+		// «Задание» + ровно одно вложенное задание): вместо попапа локации
+		// сразу открываем карточку задания, как у точечного.
+		marker.on('click', () => {
+			if (marker._questOpenId) openQuestCard(marker._questOpenId);
+			else fitPopupWidth(marker.getPopup());
+		});
 
 		markersById[feature.properties.id] = marker;
 
@@ -789,15 +828,16 @@ async function loadMarkers() {
 
 	// loadMarkers() и loadQuests() стартуют параллельно. Если задания успели
 	// прийти раньше маркеров, «Локация …» в журнале отрисовалась прочерком
-	// (markerRowById была пуста) — перерисовываем, когда маркеры готовы.
-	if (allQuestRows.length) renderQuestJournal();
+	// (markerRowById была пуста) — перерисовываем, когда маркеры готовы; и по
+	// той же причине пересчитываем подмену иконок — до этого markersById был пуст.
+	if (allQuestRows.length) { renderQuestJournal(); updateQuestMapOverrides(); }
 }
 loadMarkers();
 
 
 // ─── ДОБАВЛЯЕМ СЛОИ НА КАРТУ СОГЛАСНО defaultOn ───────────────────────────
-MARKER_LAYERS.forEach(({ group, defaultOn }) => {
-	if (defaultOn) map.addLayer(group);
+MARKER_LAYERS.forEach(({ group, defaultOn, extraLayers }) => {
+	if (defaultOn) [group, ...(extraLayers ?? [])].forEach(g => map.addLayer(g));
 });
 MAP_LAYERS.forEach(({ layer, defaultOn, onToggle }) => {
 	if (onToggle) onToggle(defaultOn);          // виртуальная запись (подписи локаций) — не Leaflet-слой
@@ -810,7 +850,9 @@ MAP_LAYERS.forEach(({ layer, defaultOn, onToggle }) => {
 // «по провинции», точечные маркеры на карте, «Журнал заданий» в сайдбаре и
 // блок «Задания» в уже открытом попапе. Вызывается при старте, после входа/
 // выхода админа (меняется набор строк из-за RLS) и после любой правки задания.
-questPointLayer.addTo(map);
+// questPointLayer/provinceQuestLayer добавляются на карту не здесь, а вместе
+// с чекбоксом «Задание» (MARKER_LAYERS extraLayers, см. чуть выше и
+// setLayerButtonState) — по умолчанию она выключена.
 
 async function loadQuests() {
 	const [{ data, error }, { data: branchData, error: branchError }] = await Promise.all([
@@ -883,6 +925,88 @@ function renderQuestPointMarkers() {
 	// если прямо сейчас правится точечное задание (loadQuests мог перестроить
 	// маркеры по другой причине — тогл чипа статуса и т.п.) — снова прячем его
 	if (hiddenQuestId !== null) toggleRealQuestHidden(hiddenQuestId, true);
+	updateQuestMapOverrides();
+}
+
+function visibleQuestsSorted(list) {
+	return (list || [])
+		.filter(questVisible)
+		.sort((a, b) => QUEST_JOURNAL_ORDER.indexOf(normalizedQuestStatus(a.status)) - QUEST_JOURNAL_ORDER.indexOf(normalizedQuestStatus(b.status)));
+}
+
+// Локации с вложенным заданием (anchor_kind='location'), пока включена
+// галочка «Задание»: маркер временно показывает иконку задания вместо своей
+// обычной. Если видимое задание ровно одно — клик сразу открывает его
+// карточку (как у точечного, popup у маркера на это время отвязан); если их
+// несколько — попап локации остаётся как есть (там уже есть список
+// «Задания»), меняется только иконка-подсказка. Проходим по ВСЕМ маркерам
+// (не только тем, что сейчас в questsByLocationId), чтобы корректно снять
+// подмену с локации, у которой задание успели перепривязать в другое место.
+function updateLocationQuestOverrides() {
+	const questsLayerOn = map.hasLayer(quests);
+	for (const markerId in markersById) {
+		const marker = markersById[markerId];
+		const row = markerRowById.get(markerId);
+		if (!row) continue;
+		const visible = questsLayerOn ? visibleQuestsSorted(questsByLocationId.get(markerId)) : [];
+		const showQuestIcon = visible.length > 0;
+		if (!marker._questIconOn && !showQuestIcon) continue; // ни разу не подменялся и сейчас незачем
+
+		if (marker._questIconOn !== showQuestIcon) {
+			marker.setIcon(showQuestIcon ? questPointIcon() : getIcon(row.location_type));
+			marker._questIconOn = showQuestIcon;
+		}
+		const openId = visible.length === 1 ? visible[0].id : null;
+		const wasOpenId = marker._questOpenId || null;
+		marker._questOpenId = openId;
+		if (openId && !wasOpenId) marker.unbindPopup();
+		else if (!openId && wasOpenId) marker.bindPopup(buildPopupHTML(rowToFeature(row).properties), { closeButton: false });
+	}
+}
+
+// То же самое для заданий, вложенных в провинцию (anchor_kind='province') —
+// у провинции нет своего маркера (это полигон), поэтому иконку кладём в
+// geo-центр её региона отдельным маркером в provinceQuestLayer. Список
+// заданий провинции обычно короткий — просто перестраиваем слой целиком,
+// в отличие от точечной подмены у локаций.
+function updateProvinceQuestMarkers() {
+	provinceQuestLayer.clearLayers();
+	provinceQuestMarkers.clear();
+	if (!map.hasLayer(quests)) return;
+	for (const provinceDbId of questsByProvinceId.keys()) {
+		const visible = visibleQuestsSorted(questsByProvinceId.get(provinceDbId));
+		if (!visible.length) continue;
+		const name = provinceNameById[provinceDbId];
+		const meta = name ? provinceRegionMeta[name] : null;
+		const layer = meta?.id ? regionLayerById[meta.id] : null;
+		if (!layer) continue; // регион не найден на политической карте — иконку ставить некуда
+		const openId = visible.length === 1 ? visible[0].id : null;
+		const center = layer.getBounds().getCenter();
+		const marker = L.marker(center, { icon: questPointIcon() });
+		marker.on('click', () => {
+			if (openId) openQuestCard(openId);
+			else { layer.openPopup(center); fitPopupWidth(layer.getPopup()); }
+		});
+		marker.addTo(provinceQuestLayer);
+		provinceQuestMarkers.set(meta.id, marker);
+	}
+}
+
+function updateQuestMapOverrides() {
+	updateLocationQuestOverrides();
+	updateProvinceQuestMarkers();
+}
+
+// Открыть локацию на карте после focusLatLng — общая точка для всех «переходов
+// по клику» (список локаций в сайдбаре, ссылка в описании, «Локация …» в
+// журнале задания). Если у маркера сейчас включена подмена
+// (updateLocationQuestOverrides — ровно одно вложенное видимое задание при
+// включённой галочке «Задание»), popup у него отвязан, поэтому вместо
+// marker.openPopup() (который в этом случае молча ничего не сделает) сразу
+// открываем карточку задания — как и по прямому клику на саму иконку.
+function openLocationOnMap(marker) {
+	if (marker._questOpenId) openQuestCard(marker._questOpenId);
+	else { marker.openPopup(); fitPopupWidth(marker.getPopup()); }
 }
 
 // ─── Блок «Задания» внутри попапа локации / провинции ──────────────────────
@@ -916,6 +1040,31 @@ function questBranchInfoHTML(q) {
 		+ `<a class="desc-link" data-open-branch="${b.id}">${b.runame ?? ''}</a></div>`;
 }
 
+// Строка задания в попапе — развёрнута (заголовок + цель + ветка); яркость —
+// по группе статуса (как .journal-row-title--dim/--bright): слух/завершено —
+// тусклая пара, известно/активно — светлая. Общая для блока «Задания» в
+// попапе локации/провинции (макет 282:540) и списка участников карточки
+// ветки (макет 404:593 — те же quest-header/quest-description/quest-line).
+function questPopupRowHTML(q) {
+	const statusKey = QUEST_STATUS[q.status] ? q.status : 'known';
+	const normalized = normalizedQuestStatus(q.status);
+	const bright = normalized === 'known' || normalized === 'active';
+	const drag = isAdmin
+		? `<span class="quest-drag" data-drag-quest="${q.id}" title="Перетащить: на карту / в другую локацию / в журнал">${QUEST_GRIP_SVG}</span>`
+		: '';
+	const header = `<div class="popup-quest-header">`
+		+ `<button type="button" class="popup-quest-title${normalized === 'done' ? ' popup-quest-title--done' : ''}" data-open-quest="${q.id}">`
+		+ `<span class="quest-sq quest-sq--${statusKey}"></span>`
+		+ `<span class="popup-quest-name">${q.runame ?? ''}</span>`
+		+ `</button>`
+		+ drag
+		+ `</div>`;
+	// В попапе — только «Краткое описание» задания (отдельное поле формы);
+	// нет краткого — строки цели нет вовсе (полное описание в попап не идёт).
+	const goal = q.short_description ? `<div class="popup-quest-goal">${q.short_description}</div>` : '';
+	return `<div class="popup-quest-row${bright ? ' popup-quest-row--bright' : ' popup-quest-row--dim'}">${header}${goal}${questBranchInfoHTML(q)}</div>`;
+}
+
 function questBlockInnerHTML(kind, anchorId) {
 	const src = kind === 'location' ? questsByLocationId : questsByProvinceId;
 	const list = (src.get(anchorId) || [])
@@ -932,28 +1081,7 @@ function questBlockInnerHTML(kind, anchorId) {
 
 	if (!list.length) return head + `<div class="popup-quests-empty">Заданий нет</div>`;
 
-	// Активное задание — развёрнуто (заголовок + цель + ветка), остальные —
-	// только строка заголовка потусклее (см. макет 282:540).
-	const rows = list.map(q => {
-		const statusKey = QUEST_STATUS[q.status] ? q.status : 'known';
-		const active = q.status === 'active';
-		const drag = isAdmin
-			? `<span class="quest-drag" data-drag-quest="${q.id}" title="Перетащить: на карту / в другую локацию / в журнал">${QUEST_GRIP_SVG}</span>`
-			: '';
-		const header = `<div class="popup-quest-header">`
-			+ `<button type="button" class="popup-quest-title${active ? ' popup-quest-title--active' : ''}${normalizedQuestStatus(q.status) === 'done' ? ' popup-quest-title--done' : ''}" data-open-quest="${q.id}">`
-			+ `<span class="quest-sq quest-sq--${statusKey}"></span>`
-			+ `<span class="popup-quest-name">${q.runame ?? ''}</span>`
-			+ `</button>`
-			+ drag
-			+ `</div>`;
-		if (!active) return `<div class="popup-quest-row">${header}</div>`;
-		// В попапе — только «Краткое описание» задания (отдельное поле формы);
-		// нет краткого — строки цели нет вовсе (полное описание в попап не идёт).
-		const goal = q.short_description ? `<div class="popup-quest-goal">${q.short_description}</div>` : '';
-		return `<div class="popup-quest-row popup-quest-row--active">${header}${goal}${questBranchInfoHTML(q)}</div>`;
-	}).join('');
-
+	const rows = list.map(questPopupRowHTML).join('');
 	return head + `<div class="popup-quests-list">${rows}</div>`;
 }
 
@@ -1073,7 +1201,7 @@ function renderQuestJournal() {
 		|| (a.runame || '').localeCompare(b.runame || '', 'ru'));
 
 	const branchesHTML = branchIds
-		.map(id => questBranchGroupHTML(branchesById.get(id), (questsByBranchId.get(id) || []).filter(passesFilters)))
+		.map(id => questBranchGroupHTML(branchesById.get(id)))
 		.join('');
 	questJournalListEl.innerHTML = branchesHTML + soloRows.map(questJournalRowHTML).join('');
 
@@ -1091,12 +1219,40 @@ function branchGroupKey(q) {
 	return q.branch_or_group || `__solo_${q.id}`;
 }
 
+// «Выполнено/всего» ветки — не сырой счёт заданий, а счёт ШАГОВ (branch_step):
+// шаг закрыт, если целиком выполнена ЛЮБАЯ его альтернатива (группа заданий,
+// между которыми в branchMembersRowsHTML рисуется «или»). Иначе группа из 8
+// заданий «или» одно задание считалась бы как «8 из 9» вместо «1 из 1» —
+// хотя логически это одна развилка, а не девять независимых пунктов.
+// Задание без шага (branch_step = null) ни с кем не альтернатива (см. условие
+// step !== null в branchMembersRowsHTML) — считается своим отдельным шагом
+// из одной группы, это и даёт прежнее поведение для веток без «или».
+function branchProgress(members) {
+	const steps = new Map(); // stepKey -> Map<groupKey, quest[]>
+	for (const q of members) {
+		const stepKey = q.branch_step ?? `__nostep_${q.id}`;
+		const groupKey = branchGroupKey(q);
+		if (!steps.has(stepKey)) steps.set(stepKey, new Map());
+		const groups = steps.get(stepKey);
+		if (!groups.has(groupKey)) groups.set(groupKey, []);
+		groups.get(groupKey).push(q);
+	}
+	let done = 0;
+	for (const groups of steps.values()) {
+		const stepDone = [...groups.values()].some(group =>
+			group.every(q => normalizedQuestStatus(q.status) === 'done'));
+		if (stepDone) done++;
+	}
+	return { done, total: steps.size };
+}
+
 // Строки участников ветки в порядке branch_step; между заданиями одного шага
 // из РАЗНЫХ групп — метка «или» (альтернативы друг другу). Между заданиями
 // одной и той же группы метку не ставим — они и так идут подряд одним
-// блоком, это и есть «нужны все». Общая для строки-ветки в журнале и для
-// #branch-card.
-function branchMembersRowsHTML(members) {
+// блоком, это и есть «нужны все». rowRenderer — по умолчанию журнальная
+// строка (для строки-ветки в сайдбаре); #branch-card передаёт questPopupRowHTML
+// (макет 404:593 — те же строки, что в блоке «Задания» попапа локации).
+function branchMembersRowsHTML(members, rowRenderer = questJournalRowHTML) {
 	const sorted = [...members].sort((a, b) =>
 		(a.branch_step ?? Infinity) - (b.branch_step ?? Infinity)
 		|| branchGroupKey(a).localeCompare(branchGroupKey(b))
@@ -1110,31 +1266,27 @@ function branchMembersRowsHTML(members) {
 		if (step !== null && step === prevStep && groupKey !== prevGroupKey) {
 			html += `<div class="journal-branch-connector">или</div>`;
 		}
-		html += questJournalRowHTML(m);
+		html += rowRenderer(m);
 		prevStep = step;
 		prevGroupKey = groupKey;
 	}
 	return html;
 }
 
-// Строка ветки — шеврон (сворачивает/разворачивает список ниже, без перехода),
-// название (клик открывает #branch-card) и счётчик «выполнено/всего» — не
-// статус ветки (его нет), а посчитанные на лету статусы участников. Список
-// участников — те же .journal-row, что и в обычном журнале, просто с отступом.
-function questBranchGroupHTML(branch, members) {
+// Строка ветки — только заголовок: название (клик открывает #branch-card) и
+// счётчик «выполнено/всего» — не статус ветки (его нет), а посчитанные на
+// лету статусы участников. Список заданий внутри ветки виден только в
+// #branch-card, в журнале не разворачивается (нет ни шеврона, ни списка).
+function questBranchGroupHTML(branch) {
 	if (!branch) return '';
 	const all = questsByBranchId.get(branch.id) || [];
-	const done = all.filter(x => normalizedQuestStatus(x.status) === 'done').length;
-	const collapsed = collapsedBranchIds.has(branch.id);
-	const rowsHTML = branchMembersRowsHTML(members);
+	const { done, total } = branchProgress(all);
 
-	return `<div class="journal-branch${collapsed ? ' collapsed' : ''}" data-branch-id="${branch.id}">`
+	return `<div class="journal-branch" data-branch-id="${branch.id}">`
 		+ `<div class="journal-branch-header">`
-		+ `<button type="button" class="journal-branch-chevron" data-branch-toggle="${branch.id}" title="${collapsed ? 'Развернуть' : 'Свернуть'}">${CHEVRON_SVG}</button>`
 		+ `<span class="journal-branch-title" data-open-branch="${branch.id}">${branch.runame ?? ''}</span>`
-		+ `<span class="journal-branch-count">${done}/${all.length}</span>`
+		+ `<span class="journal-branch-count">${done}/${total}</span>`
 		+ `</div>`
-		+ `<div class="journal-branch-quests">${rowsHTML}</div>`
 		+ `</div>`;
 }
 
@@ -1185,13 +1337,6 @@ questFilterToggle.addEventListener('click', function() {
 //   • по ссылке-названию якоря → попап локации/провинции, в котором лежит задание;
 //   • по всему остальному (заголовок, ромб, фон строки) → попап самого задания.
 questJournalListEl.addEventListener('click', function(e) {
-	const toggleBtn = e.target.closest('[data-branch-toggle]');
-	if (toggleBtn) {
-		const id = toggleBtn.dataset.branchToggle;
-		if (collapsedBranchIds.has(id)) collapsedBranchIds.delete(id); else collapsedBranchIds.add(id);
-		renderQuestJournal();
-		return;
-	}
 	if (e.target.closest('[data-drag-quest]')) return; // клик по насечке — не навигация
 	const row = e.target.closest('.journal-row');
 	if (!row) return;
@@ -1212,7 +1357,7 @@ questJournalListEl.addEventListener('click', function(e) {
 		if (marker) {
 			ensureLocationTypeVisible(markerRowById.get(qrow.anchor_location_id)?.location_type);
 			focusLatLng(marker.getLatLng());
-			setTimeout(() => { marker.openPopup(); fitPopupWidth(marker.getPopup()); }, FOCUS_FLY_DURATION * 1000);
+			setTimeout(() => openLocationOnMap(marker), FOCUS_FLY_DURATION * 1000);
 		} else {
 			openQuestCard(qrow.id);
 		}
@@ -1275,26 +1420,32 @@ function openQuestCard(id) {
 	if (!q) return;
 	closeBranchCard();   // одна плавающая карточка за раз
 	openQuestCardId = id;
-	const s = QUEST_STATUS[q.status] ?? QUEST_STATUS.known;
-	questCardInnerEl.innerHTML = `
-		<div class="quest-card-head">
-			<h3>${q.runame ?? ''}</h3>
-			<button type="button" class="quest-card-close" title="Закрыть">✕</button>
-		</div>
-		${q.engname ? `<p class="quest-card-eng">${q.engname}</p>` : ''}
-		<div class="quest-card-divider"></div>
-		${q.description ? `<div class="quest-card-desc description">${renderDescription(q.description)}</div>` : ''}
-		<div class="quest-card-anchor">
-			<span class="quest-card-anchor-label">Привязка</span>
-			<span class="quest-card-anchor-val">${questAnchorLabel(q)}</span>
-		</div>
-		${questBranchInfoHTML(q)}
-		<div class="quest-card-divider"></div>
-		<div class="quest-card-foot">
-			<span class="quest-card-status" style="color:${s.ink}">${s.label}</span>
-			${isAdmin ? `<button type="button" class="quest-card-edit" data-edit-quest="${id}">Редактировать</button>` : ''}
-		</div>
-	`;
+	const statusKey = QUEST_STATUS[q.status] ? q.status : 'known';
+	const s = QUEST_STATUS[statusKey];
+	const branch = q.branch_id ? branchesById.get(q.branch_id) : null;
+	// Статус теперь виден иконкой в заголовке (макет 401:456), текстовой строки
+	// статуса больше нет — «Привязка» уступила место info-grid (Локация или
+	// Провинция / Ветка заданий), общей с попапом локации.
+	const infoGridHTML = popupInfoGridHTML([
+		questAnchorInfoItem(q),
+		branch ? { label: 'Ветка заданий', valueHTML: `<a class="desc-link" data-open-branch="${branch.id}">${branch.runame ?? ''}</a>` } : null,
+	]);
+	const head = `<div class="quest-card-head">`
+		+ `<div class="quest-card-title-row">`
+		+ `<h3>${q.runame ?? ''}</h3>`
+		+ `<span class="quest-sq quest-sq--${statusKey}" title="${s.label}"></span>`
+		+ `</div>`
+		+ `</div>`;
+	// Секции (как в buildPopupHTML) идут через .popup-divider — те же классы,
+	// что у обычного попапа локации, чтобы размеры/шрифты/цвета совпадали 1:1.
+	const sections = [
+		head,
+		infoGridHTML,
+		q.description ? `<div class="description">${renderDescription(q.description)}</div>` : '',
+		isAdmin ? `<div class="quest-card-foot"><button type="button" class="quest-card-edit" data-edit-quest="${id}">Редактировать</button></div>` : '',
+	].filter(Boolean);
+	questCardInnerEl.innerHTML = (q.engname ? `<p class="name-eng">${q.engname}</p>` : '')
+		+ sections.join('<div class="popup-divider"></div>');
 	positionQuestCard();
 	questCardEl.classList.remove('hidden');
 }
@@ -1305,27 +1456,35 @@ function closeQuestCard() {
 	questJournalListEl.querySelectorAll('.journal-row.selected').forEach(r => r.classList.remove('selected'));
 }
 
-// Карточка ветки — состав ровно как «Задания внутри ветки» из плана: заголовок
-// ветки (без статуса — его у ветки нет) + список участников теми же строками,
-// что в журнале (branchMembersRowsHTML — «и»/«или» между заданиями одного
-// шага). Клик по строке участника открывает обычную карточку задания.
+// Карточка ветки (макет 404:593): заголовок (название + счётчик
+// выполнено/всего, как у строки ветки в журнале) + список участников строками
+// попапа (questPopupRowHTML — те же заголовок/цель/ветка, что в блоке
+// «Задания» попапа локации), с «или» между шагом-альтернативами
+// (branchMembersRowsHTML). Клик по строке участника открывает карточку задания.
 function openBranchCard(id) {
 	const b = branchesById.get(id);
 	if (!b) return;
 	closeQuestCard();   // одна плавающая карточка за раз
 	openBranchCardId = id;
 
-	const rowsHTML = branchMembersRowsHTML(questsByBranchId.get(id) || []);
+	const all = questsByBranchId.get(id) || [];
+	const { done, total } = branchProgress(all);
+	const rowsHTML = branchMembersRowsHTML(all, questPopupRowHTML);
 
-	branchCardInnerEl.innerHTML = `
-		<div class="quest-card-head">
-			<h3>${b.runame ?? ''}</h3>
-			<button type="button" class="quest-card-close" title="Закрыть">✕</button>
-		</div>
-		${b.description ? `<div class="quest-card-desc description">${renderDescription(b.description)}</div>` : ''}
-		<div class="quest-card-divider"></div>
-		<div class="branch-card-list">${rowsHTML || '<div class="quest-journal-empty">Заданий пока нет</div>'}</div>
-	`;
+	const head = `<div class="quest-card-head">`
+		+ `<div class="quest-card-title-row quest-card-title-row--branch">`
+		+ `<h3>${b.runame ?? ''}</h3>`
+		+ `<span class="quest-card-branch-count">${done}<span class="quest-card-branch-total">/${total}</span></span>`
+		+ `</div>`
+		+ `</div>`;
+	// .popup-quests-list — тот же класс, что у списка «Задания» в попапе локации
+	// (questBlockInnerHTML), чтобы отступы между строками совпадали 1:1.
+	const sections = [
+		head,
+		b.description ? `<div class="description">${renderDescription(b.description)}</div>` : '',
+		`<div class="popup-quests-list">${rowsHTML || '<div class="quest-journal-empty">Заданий пока нет</div>'}</div>`,
+	].filter(Boolean);
+	branchCardInnerEl.innerHTML = sections.join('<div class="popup-divider"></div>');
 	positionBranchCard();
 	branchCardEl.classList.remove('hidden');
 }
@@ -1344,16 +1503,6 @@ document.addEventListener('click', function(e) {
 	if (br) openBranchCard(br.dataset.openBranch);
 });
 
-questCardEl.addEventListener('click', function(e) {
-	if (e.target.closest('.quest-card-close')) closeQuestCard();
-});
-branchCardEl.addEventListener('click', function(e) {
-	if (e.target.closest('.quest-card-close')) { closeBranchCard(); return; }
-	if (e.target.closest('[data-drag-quest]')) return;
-	const row = e.target.closest('.journal-row');
-	if (row) openQuestCard(row.dataset.questId);
-});
-
 // Клик мимо карточки — закрыть (но не когда кликнули по тому, что её открывает)
 document.addEventListener('click', function(e) {
 	if (!questCardEl.classList.contains('hidden')
@@ -1363,7 +1512,7 @@ document.addEventListener('click', function(e) {
 	}
 	if (!branchCardEl.classList.contains('hidden')
 		&& !branchCardEl.contains(e.target)
-		&& !e.target.closest('[data-open-branch]') && !e.target.closest('[data-branch-toggle]')) {
+		&& !e.target.closest('[data-open-branch]')) {
 		closeBranchCard();
 	}
 });
@@ -1442,8 +1591,12 @@ document.addEventListener('mouseout', function(e) {
 
 function setLayerButtonState(btn, group, on) {
 	btn.classList.toggle('selected', on);
+	// extraLayers («Задание» → questPointLayer/provinceQuestLayer, см.
+	// MARKER_LAYERS) едут той же галочкой, что и сама group.
+	const extraLayers = MARKER_LAYERS.find(l => l.group === group)?.extraLayers ?? [];
+	const layers = [group, ...extraLayers];
 	if (on) {
-		map.addLayer(group);
+		layers.forEach(g => map.addLayer(g));
 	} else {
 		// DivOverlay.onRemove (leaflet.js) при map._fadeAnimated сам не удаляет
 		// контейнер тултипа сразу, а гасит ему opacity и откладывает удаление на
@@ -1458,9 +1611,12 @@ function setLayerButtonState(btn, group, on) {
 		// возвращается сразу же.
 		const wasFadeAnimated = map._fadeAnimated;
 		map._fadeAnimated = false;
-		map.removeLayer(group);
+		layers.forEach(g => map.removeLayer(g));
 		map._fadeAnimated = wasFadeAnimated;
 	}
+	// Локации/провинции с вложенным заданием временно показывают его иконку
+	// вместо своей — актуально только когда переключили именно «Задание».
+	if (group === quests) updateQuestMapOverrides();
 }
 
 // Два визуальных подряда — 18px (город/поселение/форт) и 16px (остальные) —
@@ -1688,12 +1844,7 @@ function buildLocationList(features) {
 					if (marker) {
 						ensureLocationTypeVisible(f.properties.locationType);
 						focusLatLng(marker.getLatLng());
-						setTimeout(() => {
-							marker.openPopup();
-							// на случай повторного клика по той же локации, когда попап и
-							// так уже открыт — см. комментарий у fitPopupWidth
-							fitPopupWidth(marker.getPopup());
-						}, FOCUS_FLY_DURATION * 1000);
+						setTimeout(() => openLocationOnMap(marker), FOCUS_FLY_DURATION * 1000);
 					}
 				});
 
@@ -2361,7 +2512,7 @@ document.addEventListener('keydown', function(e) {
 // ─── ПОПАП: ДИНАМИЧЕСКАЯ ШИРИНА ───────────────────────────────────────────
 // Значение должно совпадать с .popup-content{width} в style.css — это её
 // база, от которой считаем, нужно ли раздвигать попап шире.
-const POPUP_DEFAULT_WIDTH = 342;
+const POPUP_DEFAULT_WIDTH = 314;
 
 // Вынесена в отдельную функцию (не только колбэк popupopen), потому что
 // событие popupopen срабатывает лишь на первое открытие конкретного попапа.
@@ -4011,7 +4162,8 @@ async function questDragEnd(e) {
 
 	// лёгкая обратная связь: показать результат в новом контексте
 	if (drop.kind === 'location') {
-		markersById[drop.id]?.openPopup();
+		const droppedMarker = markersById[drop.id];
+		if (droppedMarker) openLocationOnMap(droppedMarker);
 	} else if (drop.kind === 'province') {
 		regionLayerById[drop.id]?.openPopup();
 	} else if (drop.kind === 'point') {
@@ -4205,10 +4357,7 @@ document.addEventListener('click', function(e) {
 			const marker = markersById[refId];
 			if (marker) {
 				focusLatLng(marker.getLatLng());
-				setTimeout(() => {
-					marker.openPopup();
-					fitPopupWidth(marker.getPopup());
-				}, FOCUS_FLY_DURATION * 1000);
+				setTimeout(() => openLocationOnMap(marker), FOCUS_FLY_DURATION * 1000);
 			}
 		} else {
 			focusRegion(refId);
