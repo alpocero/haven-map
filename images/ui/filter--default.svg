@@ -1,11 +1,11 @@
-<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="13" height="11" viewBox="0 0 13 11" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g id="filter-icon">
-<g id="filter-icon_2" filter="url(#filter0_diin_0_14)">
-<path fill-rule="evenodd" clip-rule="evenodd" d="M7.88618 6.40509V9.33168L5.11382 10V6.40509L1 1H12L7.88618 6.40509Z" fill="url(#paint0_linear_0_14)"/>
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="icon/filter">
+<g id="icon/filter/default" filter="url(#filter0_diin_0_14)">
+<path d="M7 7V10L5 11V7L1 1H11L7 7Z" fill="url(#paint0_linear_0_14)"/>
 </g>
 </g>
 <defs>
-<filter id="filter0_diin_0_14" x="0" y="0" width="13" height="11" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<filter id="filter0_diin_0_14" x="0" y="0" width="12" height="12" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
 <feFlood flood-opacity="0" result="BackgroundImageFix"/>
 <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
 <feOffset/>
@@ -40,7 +40,7 @@
 </feMerge>
 <feBlend mode="normal" in="effect4_noise_0_14" in2="effect1_dropShadow_0_14" result="effect4_noise_0_14"/>
 </filter>
-<linearGradient id="paint0_linear_0_14" x1="6.5" y1="1" x2="6.5" y2="10" gradientUnits="userSpaceOnUse">
+<linearGradient id="paint0_linear_0_14" x1="6" y1="1" x2="6" y2="11" gradientUnits="userSpaceOnUse">
 <stop stop-color="#3E3C3A"/>
 <stop offset="1" stop-color="#6A655D"/>
 </linearGradient>

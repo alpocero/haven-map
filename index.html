@@ -39,6 +39,7 @@
 		<feColorMatrix type="matrix" values="0 0 0 0 0.901961 0 0 0 0 0.376118 0 0 0 0 0.306667 0 0 0 0.66 0"/>
 		<feBlend in2="SourceGraphic"/>
 	</filter>
+
 </svg>
 
 <div id="sidebar-wrapper">
@@ -48,9 +49,9 @@
 			<div id="normal-view">
 
 				<div class="sidebar-header-row">
-					<h2 id="map-title">Карта Хейвена<span class="fx-icon fx-icon--title-caret"><img class="fx-icon__layer fx-icon__layer--default" src="images/ui/title-caret--default.svg" alt=""><img class="fx-icon__layer fx-icon__layer--hover" src="images/ui/title-caret--hover.svg" alt=""></span></h2>
+					<h2 id="map-title"><span class="map-title-text">Карта Хейвена</span><span class="map-title-slava" id="glory-link">Слава</span></h2>
 					<button id="sidebar-toggle" class="icon-btn" title="Свернуть сайдбар">
-						<span class="fx-icon fx-icon--sidebar-toggle"><img class="fx-icon__layer fx-icon__layer--default" src="images/ui/sidebar-toggle--default.svg" alt=""><img class="fx-icon__layer fx-icon__layer--hover" src="images/ui/sidebar-toggle--hover.svg" alt=""><img class="fx-icon__layer fx-icon__layer--focus" src="images/ui/sidebar-toggle--focus.svg" alt=""></span>
+						<span class="fx-icon fx-icon--sidebar-toggle"><svg viewBox="1 1 12 10" aria-hidden="true" focusable="false"><path fill-rule="evenodd" d="M13 11H1V1H13V11ZM6.5 9.5H11.5V2.5H6.5V9.5ZM2.5 9.5H5V2.5H2.5V9.5Z" fill="currentColor"/></svg></span>
 					</button>
 				</div>
 				<hr class="sidebar-divider">
@@ -59,7 +60,7 @@
 					<div class="sidebar-section-label-row">
 						<p class="sidebar-section-label sidebar-section-label--toggle" id="locations-section-label">Локации</p>
 						<button type="button" id="add-marker-btn" class="icon-btn admin-only hidden" title="Добавить маркер">
-							<span class="fx-icon fx-icon--plus"><img class="fx-icon__layer fx-icon__layer--default" src="images/ui/plus--default.svg" alt=""><img class="fx-icon__layer fx-icon__layer--hover" src="images/ui/plus--hover.svg" alt=""><img class="fx-icon__layer fx-icon__layer--focus" src="images/ui/plus--focus.svg" alt=""></span>
+							<span class="fx-icon fx-icon--plus"><svg viewBox="1 1 10 10" aria-hidden="true" focusable="false"><path d="M6.99512 4.99512H11L10 6.99512H6.99512V10L4.99512 11V6.99512H1L2 4.99512H4.99512V2L6.99512 1V4.99512Z" fill="currentColor"/></svg></span>
 						</button>
 					</div>
 					<div id="individual-checkboxes" class="layer-icon-row">
@@ -68,24 +69,64 @@
 				</div>
 
 				<div id="maplayers-section" class="sb-section">
-					<p class="sidebar-section-label sidebar-section-label--toggle" id="maplayers-section-label">Слои карты</p>
+					<div class="sidebar-section-label-row">
+						<p class="sidebar-section-label sidebar-section-label--toggle" id="maplayers-section-label">Слои карты</p>
+					</div>
 					<div id="map-layer-checkboxes">
 						<!-- генерируется JS -->
 					</div>
 				</div>
 
-				<div id="provinces-section" class="sb-section">
-					<p class="sidebar-section-label" id="provinces-section-label">Провинции</p>
+				<div id="search-section" class="sb-section">
 					<div class="search-row">
-						<span class="fx-icon fx-icon--search"><img class="fx-icon__layer fx-icon__layer--default" src="images/ui/search--default.svg" alt=""><img class="fx-icon__layer fx-icon__layer--hover" src="images/ui/search--hover.svg" alt=""><img class="fx-icon__layer fx-icon__layer--focus" src="images/ui/search--focus.svg" alt=""></span>
+						<span class="fx-icon fx-icon--search"><svg viewBox="1 1 10 10" aria-hidden="true" focusable="false"><path fill-rule="evenodd" d="M4.98793 1C7.1904 1 8.97585 2.78546 8.97585 4.98793C8.97585 5.81885 8.72034 6.58948 8.28556 7.22822L11 9.94265L9.94265 11L7.22822 8.28556C6.58948 8.72034 5.81885 8.97585 4.98793 8.97585C2.78546 8.97585 1 7.1904 1 4.98793C1 2.78546 2.78546 1 4.98793 1ZM4.98793 2.49547C3.61138 2.49547 2.49547 3.61138 2.49547 4.98793C2.49547 6.36447 3.61138 7.48038 4.98793 7.48038C6.36447 7.48038 7.48038 6.36447 7.48038 4.98793C7.48038 3.61138 6.36447 2.49547 4.98793 2.49547Z" fill="currentColor"/></svg></span>
 						<div class="search-field">
-							<input type="text" id="sidebar-search" placeholder="Введите название провинции или места">
+							<input type="text" id="sidebar-search" placeholder="Введите название провинции, места или задания">
 							<button type="button" id="sidebar-search-clear" class="icon-btn hidden" title="Очистить">
 								<svg width="8" height="8" viewBox="0 0 8 8" fill="none" xmlns="http://www.w3.org/2000/svg" style="overflow:visible"><path d="M0.7 0L4 3.3L7.3 0L8 0.7L4.7 4L8 7.3L7.3 8L4 4.7L0.7 8L0 7.3L3.3 4L0 0.7L0.7 0Z" fill="currentColor"/></svg>
 							</button>
 						</div>
-						<button type="button" id="search-filter-toggle" class="icon-btn" title="Фильтры">
-							<span class="fx-icon fx-icon--filter"><img class="fx-icon__layer fx-icon__layer--default" src="images/ui/filter--default.svg" alt=""><img class="fx-icon__layer fx-icon__layer--hover" src="images/ui/filter--hover.svg" alt=""><img class="fx-icon__layer fx-icon__layer--focus" src="images/ui/filter--focus.svg" alt=""></span>
+					</div>
+				</div>
+
+				<div id="quests-section" class="sb-section">
+					<div class="sidebar-section-label-row">
+						<p class="sidebar-section-label" id="quests-section-label">Журнал заданий<span class="quests-total-count" id="quests-total-count"></span></p>
+						<div class="section-label-actions">
+							<button type="button" id="add-quest-btn" class="icon-btn admin-only hidden" title="Новое задание">
+								<span class="fx-icon fx-icon--plus"><svg viewBox="1 1 10 10" aria-hidden="true" focusable="false"><path d="M6.99512 4.99512H11L10 6.99512H6.99512V10L4.99512 11V6.99512H1L2 4.99512H4.99512V2L6.99512 1V4.99512Z" fill="currentColor"/></svg></span>
+							</button>
+							<button type="button" id="quest-filter-toggle" class="icon-btn filter-toggle-btn" title="Фильтры">
+								<span class="fx-icon fx-icon--filter"><svg viewBox="1 1 10 10" aria-hidden="true" focusable="false"><path d="M7 7V10L5 11V7L1 1H11L7 7Z" fill="currentColor"/></svg></span>
+							</button>
+						</div>
+					</div>
+					<div id="quest-filter-panel" class="hidden">
+						<div class="filter-section">
+							<p class="filter-section-label">Статус</p>
+							<div id="quest-status-chips" class="filter-pill-row"><!-- генерируется JS --></div>
+						</div>
+						<div class="filter-section">
+							<div class="filter-section-label-row">
+								<p class="filter-section-label">Персонажи</p>
+								<div id="filter-character-mode" class="trait-mode-toggle">
+									<button type="button" data-mode="or" class="trait-mode-btn selected">Или</button>
+									<button type="button" data-mode="and" class="trait-mode-btn">И</button>
+									<button type="button" data-mode="exclude" class="trait-mode-btn">Искл</button>
+								</div>
+							</div>
+							<div id="filter-character-row" class="filter-pill-row"><!-- генерируется JS --></div>
+						</div>
+					</div>
+					<div id="quest-journal-list"><!-- генерируется JS --></div>
+					<div id="journal-split-handle" title="Потянуть, чтобы изменить высоту журнала"></div>
+				</div>
+
+				<div id="provinces-section" class="sb-section">
+					<div class="sidebar-section-label-row">
+						<p class="sidebar-section-label" id="provinces-section-label">Провинции</p>
+						<button type="button" id="search-filter-toggle" class="icon-btn filter-toggle-btn" title="Фильтры">
+							<span class="fx-icon fx-icon--filter"><svg viewBox="1 1 10 10" aria-hidden="true" focusable="false"><path d="M7 7V10L5 11V7L1 1H11L7 7Z" fill="currentColor"/></svg></span>
 						</button>
 					</div>
 					<div id="search-filter-panel" class="hidden">
@@ -97,37 +138,41 @@
 							<div class="filter-section-label-row">
 								<p class="filter-section-label">Особенности</p>
 								<div id="filter-trait-mode" class="trait-mode-toggle">
-									<button type="button" data-mode="or" class="trait-mode-btn selected">любая</button>
-									<button type="button" data-mode="and" class="trait-mode-btn">все сразу</button>
-									<button type="button" data-mode="exclude" class="trait-mode-btn">искл</button>
+									<button type="button" data-mode="or" class="trait-mode-btn selected">Или</button>
+									<button type="button" data-mode="and" class="trait-mode-btn">И</button>
+									<button type="button" data-mode="exclude" class="trait-mode-btn">Искл</button>
 								</div>
 							</div>
 							<div id="filter-trait-row" class="filter-pill-row"><!-- генерируется JS --></div>
 						</div>
-						<div class="filter-section">
-							<div class="filter-section-label-row">
-								<p class="filter-section-label">Персонажи</p>
-								<div id="filter-character-mode" class="trait-mode-toggle">
-									<button type="button" data-mode="or" class="trait-mode-btn selected">любой</button>
-									<button type="button" data-mode="and" class="trait-mode-btn">все сразу</button>
-									<button type="button" data-mode="exclude" class="trait-mode-btn">искл</button>
-								</div>
-							</div>
-							<div id="filter-character-row" class="filter-pill-row"><!-- генерируется JS --></div>
-						</div>
 						<button type="button" id="filter-reset-btn" class="admin-back-btn hidden">Сбросить фильтры</button>
 					</div>
-
 					<div id="location-list"></div>
 				</div>
 
+			</div>
+
+			<div id="glory-view" class="hidden">
+				<div class="sidebar-header-row">
+					<h2 id="glory-title"><span class="map-title-text">Слава</span><span class="map-title-slava" id="glory-back-link">Карта Хейвена</span></h2>
+					<button id="glory-sidebar-toggle" class="icon-btn" title="Свернуть сайдбар">
+						<span class="fx-icon fx-icon--sidebar-toggle"><svg viewBox="1 1 12 10" aria-hidden="true" focusable="false"><path fill-rule="evenodd" d="M13 11H1V1H13V11ZM6.5 9.5H11.5V2.5H6.5V9.5ZM2.5 9.5H5V2.5H2.5V9.5Z" fill="currentColor"/></svg></span>
+					</button>
+				</div>
+				<p id="glory-intro">Слава отражает степень известности отряда среди представителей определённых фракций, но известность не всегда бывает положительной...</p>
+				<button type="button" id="add-faction-btn" class="glory-add-row admin-only hidden">
+					<span class="fx-icon fx-icon--plus"><svg viewBox="1 1 10 10" aria-hidden="true" focusable="false"><path d="M6.99512 4.99512H11L10 6.99512H6.99512V10L4.99512 11V6.99512H1L2 4.99512H4.99512V2L6.99512 1V4.99512Z" fill="currentColor"/></svg></span>
+					<span>Добавить фракцию</span>
+				</button>
+				<hr class="sidebar-divider">
+				<div id="factions-list"><!-- генерируется JS --></div>
 			</div>
 
 			<div id="edit-marker-view" class="hidden">
 				<div class="sidebar-header-row">
 					<h3 id="edit-marker-title">Новый маркер</h3>
 					<button id="edit-sidebar-toggle" class="icon-btn" title="Свернуть сайдбар">
-						<span class="fx-icon fx-icon--sidebar-toggle"><img class="fx-icon__layer fx-icon__layer--default" src="images/ui/sidebar-toggle--default.svg" alt=""><img class="fx-icon__layer fx-icon__layer--hover" src="images/ui/sidebar-toggle--hover.svg" alt=""><img class="fx-icon__layer fx-icon__layer--focus" src="images/ui/sidebar-toggle--focus.svg" alt=""></span>
+						<span class="fx-icon fx-icon--sidebar-toggle"><svg viewBox="1 1 12 10" aria-hidden="true" focusable="false"><path fill-rule="evenodd" d="M13 11H1V1H13V11ZM6.5 9.5H11.5V2.5H6.5V9.5ZM2.5 9.5H5V2.5H2.5V9.5Z" fill="currentColor"/></svg></span>
 					</button>
 				</div>
 				<hr class="sidebar-divider">
@@ -182,15 +227,18 @@
 							<textarea id="f-description"></textarea>
 						</div>
 					</div>
-					<label>Фракция
-						<input type="text" id="f-faction" list="faction-options" autocomplete="off">
+					<div class="form-field">
+						<label for="f-faction">Фракция</label>
+						<input type="text" id="f-faction" placeholder="Название фракции" autocomplete="off">
 						<datalist id="faction-options"></datalist>
-					</label>
-					<label>Провинция
-						<input type="text" id="f-province" list="province-options" autocomplete="off">
+					</div>
+					<div class="form-field">
+						<label for="f-province">Провинция</label>
+						<input type="text" id="f-province" placeholder="Название провинции" autocomplete="off">
 						<datalist id="province-options"></datalist>
-					</label>
-					<label>Тип
+					</div>
+					<div class="form-field">
+						<label for="f-locationType">Тип</label>
 						<select id="f-locationType">
 							<option value="city">Город</option>
 							<option value="town">Поселение</option>
@@ -202,14 +250,10 @@
 							<option value="polarGatesBroken">Врата Древних (разрушенные)</option>
 						<option value="quest">Задание</option>
 						</select>
-					</label>
+					</div>
 					<fieldset id="f-traits">
 						<legend>Особенности</legend>
 						<div id="traits-icons"><!-- генерируется JS --></div>
-					</fieldset>
-					<fieldset id="f-characters">
-						<legend>Персонажи</legend>
-						<div id="character-icons"><!-- генерируется JS --></div>
 					</fieldset>
 					<fieldset id="f-system-traits">
 						<legend>Системные особенности</legend>
@@ -248,6 +292,224 @@
 						</button>
 					</div>
 					<button type="submit" form="marker-form" class="admin-outline-btn">
+						<span class="btn__base"></span>
+						<span class="btn__line"></span>
+						<span class="btn__fill">Сохранить</span>
+					</button>
+				</div>
+			</div>
+
+			<div id="edit-quest-view" class="hidden">
+				<div class="sidebar-header-row">
+					<h3 id="edit-quest-title">Новое задание</h3>
+					<button id="quest-sidebar-toggle" class="icon-btn" title="Свернуть сайдбар">
+						<span class="fx-icon fx-icon--sidebar-toggle"><svg viewBox="1 1 12 10" aria-hidden="true" focusable="false"><path fill-rule="evenodd" d="M13 11H1V1H13V11ZM6.5 9.5H11.5V2.5H6.5V9.5ZM2.5 9.5H5V2.5H2.5V9.5Z" fill="currentColor"/></svg></span>
+					</button>
+				</div>
+				<hr class="sidebar-divider">
+
+				<form id="quest-form">
+					<label><span>Название (рус.) <span class="required-mark">*</span></span>
+						<input type="text" id="q-runame" autocomplete="off" required>
+					</label>
+					<label>Название (англ.)
+						<input type="text" id="q-engname" autocomplete="off">
+					</label>
+					<div class="form-field">
+						<label for="q-short-description">Краткое описание</label>
+						<textarea id="q-short-description" rows="2" placeholder="Текст для попапа локации / провинции"></textarea>
+					</div>
+					<div class="form-field">
+						<label for="q-description">Описание</label>
+						<div class="desc-editor">
+							<div class="desc-toolbar">
+								<button type="button" class="toolbar-btn" data-wrap="p" title="Абзац">
+									<svg width="8" height="9" viewBox="0 0 8 9" fill="currentColor"><path d="M2.85714 9V5.625C2.06667 5.625 1.39286 5.35078 0.835714 4.80234C0.278571 4.25391 0 3.59062 0 2.8125C0 2.03437 0.278571 1.37109 0.835714 0.822656C1.39286 0.274219 2.06667 0 2.85714 0H8V1.125H6.85714V9H5.71429V1.125H4V9H2.85714Z"/></svg>
+								</button>
+								<button type="button" class="toolbar-btn" data-wrap="blockquote" title="Цитата">
+									<svg width="9" height="7" viewBox="0 0 9 7" fill="currentColor"><path d="M3.74362 0V2.87428C3.74362 5.0925 2.3445 6.59594 0.375 7L0.001875 6.1635C0.913875 5.80689 1.5 4.74872 1.5 3.88889H0V0H3.74362ZM9 0V2.87428C9 5.0925 7.5945 6.59633 5.625 7L5.2515 6.1635C6.16388 5.80689 6.75 4.74872 6.75 3.88889H5.25638V0H9Z"/></svg>
+								</button>
+								<button type="button" class="toolbar-btn js-insert-link" title="Вставить ссылку на локацию/провинцию/фракцию">
+									<svg width="10" height="5" viewBox="0 0 10 5" fill="currentColor"><path d="M4.5 5H2.5C1.80833 5 1.21875 4.75625 0.73125 4.26875C0.24375 3.78125 0 3.19167 0 2.5C0 1.80833 0.24375 1.21875 0.73125 0.73125C1.21875 0.24375 1.80833 0 2.5 0H4.5V1H2.5C2.08333 1 1.72917 1.14583 1.4375 1.4375C1.14583 1.72917 1 2.08333 1 2.5C1 2.91667 1.14583 3.27083 1.4375 3.5625C1.72917 3.85417 2.08333 4 2.5 4H4.5V5ZM3 3V2H7V3H3ZM5.5 5V4H7.5C7.91667 4 8.27083 3.85417 8.5625 3.5625C8.85417 3.27083 9 2.91667 9 2.5C9 2.08333 8.85417 1.72917 8.5625 1.4375C8.27083 1.14583 7.91667 1 7.5 1H5.5V0H7.5C8.19167 0 8.78125 0.24375 9.26875 0.73125C9.75625 1.21875 10 1.80833 10 2.5C10 3.19167 9.75625 3.78125 9.26875 4.26875C8.78125 4.75625 8.19167 5 7.5 5H5.5Z"/></svg>
+								</button>
+								<div class="sep"></div>
+								<button type="button" class="toolbar-btn" data-wrap="b" title="Жирный (Ctrl+B)">
+									<svg width="7" height="8" viewBox="0 0 7 8" fill="currentColor"><path d="M0 8V0H3.71875C4.44792 0 5.12099 0.190476 5.73798 0.571429C6.35497 0.952381 6.66346 1.48095 6.66346 2.15714C6.66346 2.64286 6.53445 3.01667 6.27644 3.27857C6.01843 3.54048 5.77724 3.72857 5.55288 3.84286C5.83333 3.94762 6.14463 4.14286 6.48678 4.42857C6.82893 4.71429 7 5.14286 7 5.71429C7 6.5619 6.63542 7.15476 5.90625 7.49286C5.17708 7.83095 4.49279 8 3.85337 8H0ZM2.03606 6.4H3.78606C4.32452 6.4 4.65264 6.28333 4.77043 6.05C4.88822 5.81667 4.94711 5.64762 4.94711 5.54286C4.94711 5.4381 4.88822 5.26905 4.77043 5.03571C4.65264 4.80238 4.30769 4.68571 3.73558 4.68571H2.03606V6.4ZM2.03606 3.14286H3.60096C3.97115 3.14286 4.24038 3.0619 4.40865 2.9C4.57692 2.7381 4.66106 2.55714 4.66106 2.35714C4.66106 2.12857 4.5657 1.94286 4.375 1.8C4.18429 1.65714 3.9375 1.58571 3.63462 1.58571H2.03606V3.14286Z"/></svg>
+								</button>
+								<button type="button" class="toolbar-btn" data-wrap="i" title="Курсив (Ctrl+I)">
+									<svg width="7" height="8" viewBox="0 0 7 8" fill="currentColor"><path d="M0 8V6.57143H2.15385L3.76923 1.42857H1.61538V0H7V1.42857H5.11538L3.5 6.57143H5.38462V8H0Z"/></svg>
+								</button>
+								<button type="button" class="toolbar-btn" data-action="clear" title="Убрать разметку">
+									<svg width="11" height="11" viewBox="0 0 11 11" fill="currentColor"><path d="M6.55556 4.19444L5.26389 2.90278L3.58333 1.22222H10.3333V2.88889H7.11111L6.55556 4.19444ZM10.2222 11L5.61111 6.38889L4.5 9H2.68056L4.33333 5.11111L0 0.777778L0.777778 0L11 10.2222L10.2222 11Z"/></svg>
+								</button>
+								<div class="sep"></div>
+								<button type="button" class="toolbar-btn" data-align="left" title="По левому краю">
+									<svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><path d="M0 10V8.88889H10V10H0ZM0 7.77778V6.66667H6.66667V7.77778H0ZM0 5.55556V4.44444H10V5.55556H0ZM0 3.33333V2.22222H6.66667V3.33333H0ZM0 1.11111V0H10V1.11111H0Z"/></svg>
+								</button>
+								<button type="button" class="toolbar-btn" data-align="center" title="По центру">
+									<svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><path d="M0 10V8.88889H10V10H0ZM2.22222 7.77778V6.66667H7.77778V7.77778H2.22222ZM0 5.55556V4.44444H10V5.55556H0ZM2.22222 3.33333V2.22222H7.77778V3.33333H2.22222ZM0 1.11111V0H10V1.11111H0Z"/></svg>
+								</button>
+								<button type="button" class="toolbar-btn" data-align="right" title="По правому краю">
+									<svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><path d="M0 1.11111V0H10V1.11111H0ZM3.33333 3.33333V2.22222H10V3.33333H3.33333ZM0 5.55556V4.44444H10V5.55556H0ZM3.33333 7.77778V6.66667H10V7.77778H3.33333ZM0 10V8.88889H10V10H0Z"/></svg>
+								</button>
+							</div>
+							<textarea id="q-description" rows="4"></textarea>
+						</div>
+					</div>
+					<div class="form-field">
+						<label for="q-status">Статус</label>
+						<select id="q-status">
+							<option value="rumor">Слух</option>
+							<option value="known">Известно</option>
+							<option value="active">Активно</option>
+							<option value="done">Завершено</option>
+							<option value="failed">Провалено</option>
+						</select>
+					</div>
+					<div class="form-field">
+						<label>Персонажи</label>
+						<div id="q-characters-row" class="filter-pill-row"><!-- генерируется JS --></div>
+					</div>
+					<div class="form-field">
+						<label>Ветка заданий</label>
+						<div id="quest-branch-row"><!-- генерируется JS: «+ Добавить в ветку» или название текущей --></div>
+					</div>
+					<div class="form-field hidden" id="quest-branch-step-field">
+						<label for="q-branch-step">Шаг в ветке</label>
+						<input type="number" id="q-branch-step" min="1" step="1" placeholder="необязательно, задаёт порядок">
+					</div>
+					<div class="form-field hidden" id="quest-branch-or-group-field">
+						<label for="q-branch-or-group">Группа «или»</label>
+						<input type="text" id="q-branch-or-group" placeholder="необязательно — см. подсказку ниже">
+						<p class="q-anchor-hint">У заданий одного шага: одна и та же группа — «и» (нужны все), разные группы (или группа не указана) — «или» (любое одно/одна группа)</p>
+					</div>
+
+					<fieldset id="q-anchor">
+						<legend>Привязка</legend>
+						<div id="q-anchor-mode" class="filter-pill-row"><!-- кнопки-пилюли строит JS --></div>
+						<div class="q-anchor-field hidden" data-for="location">
+							<input type="text" id="q-anchor-loc" placeholder="Название локации" autocomplete="off">
+							<datalist id="q-loc-options"></datalist>
+						</div>
+						<div class="q-anchor-field hidden" data-for="province">
+							<input type="text" id="q-anchor-prov" placeholder="Название провинции" autocomplete="off">
+							<datalist id="q-prov-options"></datalist>
+						</div>
+						<div class="q-anchor-field hidden" data-for="point">
+							<p class="q-anchor-hint">Кликните по карте, чтобы поставить точку</p>
+							<div class="coord-row">
+								<input type="number" id="q-lng" step="any" placeholder="lng" autocomplete="off">
+								<input type="number" id="q-lat" step="any" placeholder="lat" autocomplete="off">
+							</div>
+						</div>
+					</fieldset>
+					<p id="quest-form-error"></p>
+				</form>
+
+				<div class="edit-footer-row">
+					<button type="button" id="quest-back-btn" class="admin-outline-btn">
+						<span class="btn__base"></span>
+						<span class="btn__line"></span>
+						<span class="btn__fill">Назад</span>
+					</button>
+					<div class="edit-footer-icons">
+						<button type="button" id="delete-quest-btn" class="icon-btn hidden" title="Удалить">
+							<svg width="8" height="10" viewBox="0 0 8 10" fill="none" xmlns="http://www.w3.org/2000/svg" style="overflow:visible"><path d="M3.11111 0L2.66667 0.5H0V1.5H8V0.5H5.33333L4.88889 0H3.11111ZM0.606771 2.5L1.28559 9.13184C1.34426 9.62684 1.72311 10 2.16667 10H5.83247C6.27602 10 6.6553 9.62743 6.71441 9.12793L7.39323 2.5H0.606771Z" fill="currentColor"/></svg>
+						</button>
+					</div>
+					<button type="submit" form="quest-form" class="admin-outline-btn">
+						<span class="btn__base"></span>
+						<span class="btn__line"></span>
+						<span class="btn__fill">Сохранить</span>
+					</button>
+				</div>
+			</div>
+
+			<div id="edit-faction-view" class="hidden">
+				<div class="sidebar-header-row">
+					<h3 id="edit-faction-title">Новая фракция</h3>
+					<button id="edit-faction-sidebar-toggle" class="icon-btn" title="Свернуть сайдбар">
+						<span class="fx-icon fx-icon--sidebar-toggle"><svg viewBox="1 1 12 10" aria-hidden="true" focusable="false"><path fill-rule="evenodd" d="M13 11H1V1H13V11ZM6.5 9.5H11.5V2.5H6.5V9.5ZM2.5 9.5H5V2.5H2.5V9.5Z" fill="currentColor"/></svg></span>
+					</button>
+				</div>
+				<hr class="sidebar-divider">
+
+				<form id="faction-form">
+					<label><span>Название фракции <span class="required-mark">*</span></span>
+						<input type="text" id="fc-runame" autocomplete="off" required>
+					</label>
+					<label>Очки славы
+						<input type="number" id="fc-score" min="0" max="10" step="1" value="0">
+					</label>
+					<div class="form-field">
+						<label for="fc-reputation">Репутация</label>
+						<select id="fc-reputation">
+							<option value="neutral">Нейтральная</option>
+							<option value="positive">Положительная</option>
+							<option value="negative">Отрицательная</option>
+						</select>
+					</div>
+					<label>Титул отряда
+						<input type="text" id="fc-title" placeholder="Как фракция называет отряд" autocomplete="off">
+					</label>
+					<label>Эффект репутации
+						<input type="text" id="fc-effect" placeholder="Последствие/бонус — необязательно" autocomplete="off">
+					</label>
+					<label>Герб (путь к картинке)
+						<input type="text" id="fc-image" placeholder="images/factions/..." autocomplete="off">
+					</label>
+					<div class="form-field">
+						<label for="fc-description">Описание</label>
+						<div class="desc-editor">
+							<div class="desc-toolbar">
+								<button type="button" class="toolbar-btn" data-wrap="p" title="Абзац">
+									<svg width="8" height="9" viewBox="0 0 8 9" fill="currentColor"><path d="M2.85714 9V5.625C2.06667 5.625 1.39286 5.35078 0.835714 4.80234C0.278571 4.25391 0 3.59062 0 2.8125C0 2.03437 0.278571 1.37109 0.835714 0.822656C1.39286 0.274219 2.06667 0 2.85714 0H8V1.125H6.85714V9H5.71429V1.125H4V9H2.85714Z"/></svg>
+								</button>
+								<button type="button" class="toolbar-btn" data-wrap="blockquote" title="Цитата">
+									<svg width="9" height="7" viewBox="0 0 9 7" fill="currentColor"><path d="M3.74362 0V2.87428C3.74362 5.0925 2.3445 6.59594 0.375 7L0.001875 6.1635C0.913875 5.80689 1.5 4.74872 1.5 3.88889H0V0H3.74362ZM9 0V2.87428C9 5.0925 7.5945 6.59633 5.625 7L5.2515 6.1635C6.16388 5.80689 6.75 4.74872 6.75 3.88889H5.25638V0H9Z"/></svg>
+								</button>
+								<button type="button" class="toolbar-btn js-insert-link" title="Вставить ссылку на локацию/провинцию/фракцию">
+									<svg width="10" height="5" viewBox="0 0 10 5" fill="currentColor"><path d="M4.5 5H2.5C1.80833 5 1.21875 4.75625 0.73125 4.26875C0.24375 3.78125 0 3.19167 0 2.5C0 1.80833 0.24375 1.21875 0.73125 0.73125C1.21875 0.24375 1.80833 0 2.5 0H4.5V1H2.5C2.08333 1 1.72917 1.14583 1.4375 1.4375C1.14583 1.72917 1 2.08333 1 2.5C1 2.91667 1.14583 3.27083 1.4375 3.5625C1.72917 3.85417 2.08333 4 2.5 4H4.5V5ZM3 3V2H7V3H3ZM5.5 5V4H7.5C7.91667 4 8.27083 3.85417 8.5625 3.5625C8.85417 3.27083 9 2.91667 9 2.5C9 2.08333 8.85417 1.72917 8.5625 1.4375C8.27083 1.14583 7.91667 1 7.5 1H5.5V0H7.5C8.19167 0 8.78125 0.24375 9.26875 0.73125C9.75625 1.21875 10 1.80833 10 2.5C10 3.19167 9.75625 3.78125 9.26875 4.26875C8.78125 4.75625 8.19167 5 7.5 5H5.5Z"/></svg>
+								</button>
+								<div class="sep"></div>
+								<button type="button" class="toolbar-btn" data-wrap="b" title="Жирный (Ctrl+B)">
+									<svg width="7" height="8" viewBox="0 0 7 8" fill="currentColor"><path d="M0 8V0H3.71875C4.44792 0 5.12099 0.190476 5.73798 0.571429C6.35497 0.952381 6.66346 1.48095 6.66346 2.15714C6.66346 2.64286 6.53445 3.01667 6.27644 3.27857C6.01843 3.54048 5.77724 3.72857 5.55288 3.84286C5.83333 3.94762 6.14463 4.14286 6.48678 4.42857C6.82893 4.71429 7 5.14286 7 5.71429C7 6.5619 6.63542 7.15476 5.90625 7.49286C5.17708 7.83095 4.49279 8 3.85337 8H0ZM2.03606 6.4H3.78606C4.32452 6.4 4.65264 6.28333 4.77043 6.05C4.88822 5.81667 4.94711 5.64762 4.94711 5.54286C4.94711 5.4381 4.88822 5.26905 4.77043 5.03571C4.65264 4.80238 4.30769 4.68571 3.73558 4.68571H2.03606V6.4ZM2.03606 3.14286H3.60096C3.97115 3.14286 4.24038 3.0619 4.40865 2.9C4.57692 2.7381 4.66106 2.55714 4.66106 2.35714C4.66106 2.12857 4.5657 1.94286 4.375 1.8C4.18429 1.65714 3.9375 1.58571 3.63462 1.58571H2.03606V3.14286Z"/></svg>
+								</button>
+								<button type="button" class="toolbar-btn" data-wrap="i" title="Курсив (Ctrl+I)">
+									<svg width="7" height="8" viewBox="0 0 7 8" fill="currentColor"><path d="M0 8V6.57143H2.15385L3.76923 1.42857H1.61538V0H7V1.42857H5.11538L3.5 6.57143H5.38462V8H0Z"/></svg>
+								</button>
+								<button type="button" class="toolbar-btn" data-action="clear" title="Убрать разметку">
+									<svg width="11" height="11" viewBox="0 0 11 11" fill="currentColor"><path d="M6.55556 4.19444L5.26389 2.90278L3.58333 1.22222H10.3333V2.88889H7.11111L6.55556 4.19444ZM10.2222 11L5.61111 6.38889L4.5 9H2.68056L4.33333 5.11111L0 0.777778L0.777778 0L11 10.2222L10.2222 11Z"/></svg>
+								</button>
+								<div class="sep"></div>
+								<button type="button" class="toolbar-btn" data-align="left" title="По левому краю">
+									<svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><path d="M0 10V8.88889H10V10H0ZM0 7.77778V6.66667H6.66667V7.77778H0ZM0 5.55556V4.44444H10V5.55556H0ZM0 3.33333V2.22222H6.66667V3.33333H0ZM0 1.11111V0H10V1.11111H0Z"/></svg>
+								</button>
+								<button type="button" class="toolbar-btn" data-align="center" title="По центру">
+									<svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><path d="M0 10V8.88889H10V10H0ZM2.22222 7.77778V6.66667H7.77778V7.77778H2.22222ZM0 5.55556V4.44444H10V5.55556H0ZM2.22222 3.33333V2.22222H7.77778V3.33333H2.22222ZM0 1.11111V0H10V1.11111H0Z"/></svg>
+								</button>
+								<button type="button" class="toolbar-btn" data-align="right" title="По правому краю">
+									<svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><path d="M0 1.11111V0H10V1.11111H0ZM3.33333 3.33333V2.22222H10V3.33333H3.33333ZM0 5.55556V4.44444H10V5.55556H0ZM3.33333 7.77778V6.66667H10V7.77778H3.33333ZM0 10V8.88889H10V10H0Z"/></svg>
+								</button>
+							</div>
+							<textarea id="fc-description" rows="4"></textarea>
+						</div>
+					</div>
+					<p id="faction-form-error"></p>
+				</form>
+
+				<div class="edit-footer-row">
+					<button type="button" id="faction-back-btn" class="admin-outline-btn">
+						<span class="btn__base"></span>
+						<span class="btn__line"></span>
+						<span class="btn__fill">Назад</span>
+					</button>
+					<div class="edit-footer-icons">
+						<button type="button" id="delete-faction-btn" class="icon-btn hidden" title="Удалить">
+							<svg width="8" height="10" viewBox="0 0 8 10" fill="none" xmlns="http://www.w3.org/2000/svg" style="overflow:visible"><path d="M3.11111 0L2.66667 0.5H0V1.5H8V0.5H5.33333L4.88889 0H3.11111ZM0.606771 2.5L1.28559 9.13184C1.34426 9.62684 1.72311 10 2.16667 10H5.83247C6.27602 10 6.6553 9.62743 6.71441 9.12793L7.39323 2.5H0.606771Z" fill="currentColor"/></svg>
+						</button>
+					</div>
+					<button type="submit" form="faction-form" class="admin-outline-btn">
 						<span class="btn__base"></span>
 						<span class="btn__line"></span>
 						<span class="btn__fill">Сохранить</span>
@@ -333,6 +595,69 @@
 	</div>
 </div>
 
+<!-- Ветка заданий — своя карточка/описание, общие для всех заданий в ветке;
+     редактируется отдельно от самого задания (сохраняется сразу, не дожидаясь
+     сабмита формы задания) через маленькое модальное окно по центру экрана,
+     а не отдельный сайдбар — сущность слишком лёгкая (имя + описание) для
+     полноценного вида. Открывается из формы задания кликом на "+ Добавить в
+     ветку" / на название уже привязанной ветки (см. #quest-branch-row). -->
+<div id="branch-edit-overlay" class="hidden">
+	<div id="branch-edit-dialog">
+		<h3 id="branch-edit-title">Новая ветка</h3>
+		<label>Название ветки
+			<input type="text" id="be-runame" autocomplete="off">
+			<datalist id="be-branch-options"></datalist>
+		</label>
+		<div class="form-field">
+			<label for="be-description">Описание</label>
+			<div class="desc-editor">
+				<div class="desc-toolbar">
+					<button type="button" class="toolbar-btn" data-wrap="p" title="Абзац">
+						<svg width="8" height="9" viewBox="0 0 8 9" fill="currentColor"><path d="M2.85714 9V5.625C2.06667 5.625 1.39286 5.35078 0.835714 4.80234C0.278571 4.25391 0 3.59062 0 2.8125C0 2.03437 0.278571 1.37109 0.835714 0.822656C1.39286 0.274219 2.06667 0 2.85714 0H8V1.125H6.85714V9H5.71429V1.125H4V9H2.85714Z"/></svg>
+					</button>
+					<button type="button" class="toolbar-btn" data-wrap="blockquote" title="Цитата">
+						<svg width="9" height="7" viewBox="0 0 9 7" fill="currentColor"><path d="M3.74362 0V2.87428C3.74362 5.0925 2.3445 6.59594 0.375 7L0.001875 6.1635C0.913875 5.80689 1.5 4.74872 1.5 3.88889H0V0H3.74362ZM9 0V2.87428C9 5.0925 7.5945 6.59633 5.625 7L5.2515 6.1635C6.16388 5.80689 6.75 4.74872 6.75 3.88889H5.25638V0H9Z"/></svg>
+					</button>
+					<button type="button" class="toolbar-btn js-insert-link" title="Вставить ссылку на локацию/провинцию/фракцию">
+						<svg width="10" height="5" viewBox="0 0 10 5" fill="currentColor"><path d="M4.5 5H2.5C1.80833 5 1.21875 4.75625 0.73125 4.26875C0.24375 3.78125 0 3.19167 0 2.5C0 1.80833 0.24375 1.21875 0.73125 0.73125C1.21875 0.24375 1.80833 0 2.5 0H4.5V1H2.5C2.08333 1 1.72917 1.14583 1.4375 1.4375C1.14583 1.72917 1 2.08333 1 2.5C1 2.91667 1.14583 3.27083 1.4375 3.5625C1.72917 3.85417 2.08333 4 2.5 4H4.5V5ZM3 3V2H7V3H3ZM5.5 5V4H7.5C7.91667 4 8.27083 3.85417 8.5625 3.5625C8.85417 3.27083 9 2.91667 9 2.5C9 2.08333 8.85417 1.72917 8.5625 1.4375C8.27083 1.14583 7.91667 1 7.5 1H5.5V0H7.5C8.19167 0 8.78125 0.24375 9.26875 0.73125C9.75625 1.21875 10 1.80833 10 2.5C10 3.19167 9.75625 3.78125 9.26875 4.26875C8.78125 4.75625 8.19167 5 7.5 5H5.5Z"/></svg>
+					</button>
+					<div class="sep"></div>
+					<button type="button" class="toolbar-btn" data-wrap="b" title="Жирный (Ctrl+B)">
+						<svg width="7" height="8" viewBox="0 0 7 8" fill="currentColor"><path d="M0 8V0H3.71875C4.44792 0 5.12099 0.190476 5.73798 0.571429C6.35497 0.952381 6.66346 1.48095 6.66346 2.15714C6.66346 2.64286 6.53445 3.01667 6.27644 3.27857C6.01843 3.54048 5.77724 3.72857 5.55288 3.84286C5.83333 3.94762 6.14463 4.14286 6.48678 4.42857C6.82893 4.71429 7 5.14286 7 5.71429C7 6.5619 6.63542 7.15476 5.90625 7.49286C5.17708 7.83095 4.49279 8 3.85337 8H0ZM2.03606 6.4H3.78606C4.32452 6.4 4.65264 6.28333 4.77043 6.05C4.88822 5.81667 4.94711 5.64762 4.94711 5.54286C4.94711 5.4381 4.88822 5.26905 4.77043 5.03571C4.65264 4.80238 4.30769 4.68571 3.73558 4.68571H2.03606V6.4ZM2.03606 3.14286H3.60096C3.97115 3.14286 4.24038 3.0619 4.40865 2.9C4.57692 2.7381 4.66106 2.55714 4.66106 2.35714C4.66106 2.12857 4.5657 1.94286 4.375 1.8C4.18429 1.65714 3.9375 1.58571 3.63462 1.58571H2.03606V3.14286Z"/></svg>
+					</button>
+					<button type="button" class="toolbar-btn" data-wrap="i" title="Курсив (Ctrl+I)">
+						<svg width="7" height="8" viewBox="0 0 7 8" fill="currentColor"><path d="M0 8V6.57143H2.15385L3.76923 1.42857H1.61538V0H7V1.42857H5.11538L3.5 6.57143H5.38462V8H0Z"/></svg>
+					</button>
+					<button type="button" class="toolbar-btn" data-action="clear" title="Убрать разметку">
+						<svg width="11" height="11" viewBox="0 0 11 11" fill="currentColor"><path d="M6.55556 4.19444L5.26389 2.90278L3.58333 1.22222H10.3333V2.88889H7.11111L6.55556 4.19444ZM10.2222 11L5.61111 6.38889L4.5 9H2.68056L4.33333 5.11111L0 0.777778L0.777778 0L11 10.2222L10.2222 11Z"/></svg>
+					</button>
+					<div class="sep"></div>
+					<button type="button" class="toolbar-btn" data-align="left" title="По левому краю">
+						<svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><path d="M0 10V8.88889H10V10H0ZM0 7.77778V6.66667H6.66667V7.77778H0ZM0 5.55556V4.44444H10V5.55556H0ZM0 3.33333V2.22222H6.66667V3.33333H0ZM0 1.11111V0H10V1.11111H0Z"/></svg>
+					</button>
+					<button type="button" class="toolbar-btn" data-align="center" title="По центру">
+						<svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><path d="M0 10V8.88889H10V10H0ZM2.22222 7.77778V6.66667H7.77778V7.77778H2.22222ZM0 5.55556V4.44444H10V5.55556H0ZM2.22222 3.33333V2.22222H7.77778V3.33333H2.22222ZM0 1.11111V0H10V1.11111H0Z"/></svg>
+					</button>
+					<button type="button" class="toolbar-btn" data-align="right" title="По правому краю">
+						<svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><path d="M0 1.11111V0H10V1.11111H0ZM3.33333 3.33333V2.22222H10V3.33333H3.33333ZM0 5.55556V4.44444H10V5.55556H0ZM3.33333 7.77778V6.66667H10V7.77778H3.33333ZM0 10V8.88889H10V10H0Z"/></svg>
+					</button>
+				</div>
+				<textarea id="be-description" rows="4"></textarea>
+			</div>
+		</div>
+		<p id="branch-edit-error"></p>
+		<div class="form-buttons">
+			<button type="button" id="branch-unlink-btn" class="admin-back-btn hidden">Убрать из ветки</button>
+			<button type="button" id="branch-edit-cancel-btn" class="admin-back-btn">Отмена</button>
+			<button type="button" id="branch-edit-save-btn" class="admin-outline-btn">
+				<span class="btn__base"></span>
+				<span class="btn__line"></span>
+				<span class="btn__fill">Сохранить</span>
+			</button>
+		</div>
+	</div>
+</div>
+
 <div id="login-popover" class="hidden">
 	<form id="login-form">
 		<input type="email" id="login-email" placeholder="Почта" autocomplete="username" required>
@@ -352,6 +677,20 @@
 </div>
 
 <div id="map"></div>
+
+<!-- Карточка задания — плавающая панель поверх открытого попапа локации/провинции
+     (Leaflet держит на карте только один попап, поэтому это не попап, а свой
+     слой, позиционируется JS относительно области карты). -->
+<div id="quest-card" class="hidden">
+	<div id="quest-card-inner"><!-- генерируется JS --></div>
+</div>
+
+<!-- Карточка ветки заданий — та же плавающая панель, что #quest-card, только
+     для ветки: открывается по клику на заголовок ветки в журнале. -->
+<div id="branch-card" class="hidden">
+	<div id="branch-card-inner"><!-- генерируется JS --></div>
+</div>
+
 <script src="script.js"></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-/* ─── ШРИФТЫ ─────────────────────────────────────────────────────────────
+/*  ─── ШРИФТЫ ─────────────────────────────────────────────────────────────
    El Messiri (заголовки) подключён через Google Fonts в <head> index.html.
    Beaufort for LoL (текст) — локальные файлы, тестовая замена IBM Plex Sans. */
 @font-face {
@@ -64,6 +64,12 @@
 
 
 /* ─── ЛЕЙАУТ ─────────────────────────────────────────────────────────── */
+/* Корневой размер шрифта задан явно и в px: 1em == 16px на всём сайте,
+   не зависит от настроек браузера пользователя. Весь остальной текст —
+   в em, кратно 2px (0.75em=12, 0.875em=14, 1em=16, 1.125em=18 …). */
+html {
+	font-size: 16px;
+}
 html, body {
 	height: 100%;
 	width: 100%;
@@ -72,11 +78,12 @@ html, body {
 	font-family: 'Beaufort for LoL', sans-serif;
 }
 
-/* input/button/select/textarea не наследуют font-family от предков по
-   умолчанию (сбрасывается UA-стилем на системный шрифт) — возвращаем
-   наследование явно, чтобы не дублировать шрифт на каждом элементе формы. */
+/* UA-стиль сбрасывает у контролов и шрифт, и размер (кнопкам — до ~13.33px),
+   из-за чего em внутри них считался бы от чужой базы. Возвращаем наследование
+   и того, и другого — чтобы 1em == 16px работало и в кнопках/полях. */
 button, input, select, textarea, optgroup, option {
 	font-family: inherit;
+	font-size: inherit;
 }
 
 #map {
@@ -142,6 +149,25 @@ button, input, select, textarea, optgroup, option {
 	touch-action: none; /* иначе на тач-устройствах жест уходит в скролл/зум страницы вместо resize-логики в JS */
 }
 
+/* Ручка изменения высоты: «Журнал заданий» ⇄ «Провинции». Невидимая полоса
+   в зазоре между секциями, курсор row-resize — тот же приём, что у ручки
+   ширины сайдбара выше. Абсолютна внутри #quests-section (position:relative),
+   поэтому не участвует в flex-потоке; тянем → JS меняет потолок высоты
+   #quest-journal-list, «Провинции» (flex:1) забирают остаток. */
+#journal-split-handle {
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0px;
+	height: 8px;
+	cursor: row-resize;
+	z-index: 6;
+	touch-action: none;
+}
+/* Нечего ресайзить, если «Провинции» свёрнуты (свёрнутый «Журнал» прячет
+   ручку общим правилом .sb-section.collapsed ниже). */
+#quests-section:has(~ #provinces-section.collapsed) #journal-split-handle { display: none; }
+
 #normal-view {
 	display: flex;
 	flex-direction: column;
@@ -152,7 +178,7 @@ button, input, select, textarea, optgroup, option {
 #location-list {
 	flex: 1;
 	min-height: 0;
-	overflow-y: auto;
+	overflow-y: visible;
 }
 
 /* Скроллбар */
@@ -207,11 +233,23 @@ button, input, select, textarea, optgroup, option {
    переключаются кроссфейдом (opacity), какой слой активен — решает конкретный
    модификатор ниже (:hover/:active/.active/:focus-within и т.д.), картинка не
    меняется через JS. */
+/* ─── FX-ICON — плоский инлайн-SVG, всё через CSS ─────────────────────────
+   Иконка = один <svg> с монохромным контуром прямо в разметке, у path
+   fill:currentColor. Цвет задаёт `color` на контейнере, свечение — filter:
+   drop-shadow. Состояния (hover / focus / «фильтры открыты») — просто смена
+   color/filter. Ни картинок, ни масок, ни слоёв, ни SVG-фильтров —
+   отрисовывается в любом браузере и не может сдвинуться. */
 .fx-icon {
-	position: relative;
-	display: inline-block;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
 	flex-shrink: 0;
+	color: #787167;                                 /* покой */
+	transition: color .14s ease, filter .14s ease;
 }
+.fx-icon svg { display: block; width: 100%; height: 100%; }
+
+/* базовые слои оставлены для .checkbox-fx — у неё свой кроссфейд .fx-icon__layer */
 .fx-icon__layer {
 	position: absolute;
 	display: block;
@@ -221,56 +259,27 @@ button, input, select, textarea, optgroup, option {
 }
 .fx-icon__layer--default { opacity: 1; }
 
-.fx-icon--plus { width: 11px; height: 11px; }
-.fx-icon--plus .fx-icon__layer--default { inset: -9.09%; }
-.fx-icon--plus .fx-icon__layer--hover,
-.fx-icon--plus .fx-icon__layer--focus { inset: -36.36%; }
-/* plus-icon: hover — курсор наведён, focus — нажатие/клавиатурный фокус */
-.icon-btn:hover .fx-icon--plus .fx-icon__layer--default { opacity: 0; }
-.icon-btn:hover .fx-icon--plus .fx-icon__layer--hover { opacity: 1; }
-.icon-btn:active .fx-icon--plus .fx-icon__layer--default,
-.icon-btn:focus-visible .fx-icon--plus .fx-icon__layer--default { opacity: 0; }
-.icon-btn:active .fx-icon--plus .fx-icon__layer--hover,
-.icon-btn:focus-visible .fx-icon--plus .fx-icon__layer--hover { opacity: 0; }
-.icon-btn:active .fx-icon--plus .fx-icon__layer--focus,
-.icon-btn:focus-visible .fx-icon--plus .fx-icon__layer--focus { opacity: 1; }
+.fx-icon--plus           { width: 10px; height: 10px; }
+.fx-icon--filter         { width: 10px; height: 10px; }
+.fx-icon--search         { width: 10px; height: 10px; }
+.fx-icon--sidebar-toggle { width: 12px; height: 10px; }
 
-.fx-icon--sidebar-toggle { width: 12px; height: 11px; }
-.fx-icon--sidebar-toggle .fx-icon__layer--default { inset: -9.09% -8.33%; }
-.fx-icon--sidebar-toggle .fx-icon__layer--hover,
-.fx-icon--sidebar-toggle .fx-icon__layer--focus { inset: -36.36% -33.33%; }
-.icon-btn:hover .fx-icon--sidebar-toggle .fx-icon__layer--default { opacity: 0; }
-.icon-btn:hover .fx-icon--sidebar-toggle .fx-icon__layer--hover { opacity: 1; }
-.icon-btn:active .fx-icon--sidebar-toggle .fx-icon__layer--default,
-.icon-btn:focus-visible .fx-icon--sidebar-toggle .fx-icon__layer--default { opacity: 0; }
-.icon-btn:active .fx-icon--sidebar-toggle .fx-icon__layer--hover,
-.icon-btn:focus-visible .fx-icon--sidebar-toggle .fx-icon__layer--hover { opacity: 0; }
-.icon-btn:active .fx-icon--sidebar-toggle .fx-icon__layer--focus,
-.icon-btn:focus-visible .fx-icon--sidebar-toggle .fx-icon__layer--focus { opacity: 1; }
-
-/* filter-icon: focus в Figma — не клавиатурный фокус, а "фильтры открыты"
-   (тот же смысл, что у уже существующего .active на #search-filter-toggle) */
-.fx-icon--filter { width: 11px; height: 9px; }
-.fx-icon--filter .fx-icon__layer--default { inset: -11.11% -9.09%; }
-.fx-icon--filter .fx-icon__layer--hover,
-.fx-icon--filter .fx-icon__layer--focus { inset: -44.44% -36.36%; }
-#search-filter-toggle:hover .fx-icon--filter .fx-icon__layer--default { opacity: 0; }
-#search-filter-toggle:hover .fx-icon--filter .fx-icon__layer--hover { opacity: 1; }
-#search-filter-toggle.active .fx-icon--filter .fx-icon__layer--default,
-#search-filter-toggle.active .fx-icon--filter .fx-icon__layer--hover { opacity: 0; }
-#search-filter-toggle.active .fx-icon--filter .fx-icon__layer--focus { opacity: 1; }
-
-/* search-icon: hover — наведение на всю строку поиска, focus — реально
-   печатают (:focus-within на .search-row, а не на самой лупе) */
-.fx-icon--search { width: 11px; height: 11px; }
-.fx-icon--search .fx-icon__layer--default { inset: -9.09%; }
-.fx-icon--search .fx-icon__layer--hover,
-.fx-icon--search .fx-icon__layer--focus { inset: -36.36%; }
-.search-row:hover .fx-icon--search .fx-icon__layer--default { opacity: 0; }
-.search-row:hover .fx-icon--search .fx-icon__layer--hover { opacity: 1; }
-.search-row:focus-within .fx-icon--search .fx-icon__layer--default,
-.search-row:focus-within .fx-icon--search .fx-icon__layer--hover { opacity: 0; }
-.search-row:focus-within .fx-icon--search .fx-icon__layer--focus { opacity: 1; }
+/* наведение / клавиатурный фокус — светлее + мягкое свечение */
+.icon-btn:hover          .fx-icon--plus,
+.icon-btn:focus-visible  .fx-icon--plus,
+.icon-btn:hover          .fx-icon--sidebar-toggle,
+.icon-btn:focus-visible  .fx-icon--sidebar-toggle,
+.search-row:hover        .fx-icon--search,
+.search-row:focus-within .fx-icon--search,
+.filter-toggle-btn:hover .fx-icon--filter {
+	color: #B7AE9E;
+	filter: drop-shadow(0 0 2px rgba(207, 199, 184, 0.5));
+}
+/* воронка «фильтры открыты» — латунь */
+.filter-toggle-btn.active .fx-icon--filter {
+	color: #E6CF95;
+	filter: drop-shadow(0 0 3px rgba(230, 207, 149, 0.6));
+}
 
 /* button__collapse: декоративный "▾" у заголовка — только default/hover */
 .fx-icon--title-caret { width: 8px; height: 5px; }
@@ -314,55 +323,69 @@ button, input, select, textarea, optgroup, option {
 /* ─── САЙДБАР ────────────────────────────────────────────────────────── */
 #map-title {
 	display: inline-flex;
-	align-items: flex-end;
-	gap: 3px;
+	gap: 4px;
+	align-items: flex-start;
+	font-size: 1em; /* гасим UA h2{1.5em}, чтобы em у .map-title-text считался от 16 */
+}
+/* text-box-trim/-edge — как у .popup-content h1 ниже: обрезает "фантомный"
+   отступ над/под буквами, который браузер добавляет из метрик шрифта
+   (ascent/descent), до реальных границ текста (cap-height/baseline) — в
+   Figma у текста включён "hug contents", там этого воздуха нет вообще.
+   Без этого практически ЛЮБОЙ текст в сайдбаре сидит на несколько px ниже/
+   правее/с лишней высотой блока, чем в Figma — отсюда и "лишние пиксели"
+   почти везде, где есть текст с около-единичным line-height. */
+.map-title-text {
 	font-family: 'El Messiri', sans-serif;
-	font-size: 1.3em;
+	font-size: 2em; /* 32px */
 	font-weight: 600;
 	color: #dcd0c0;
 	line-height: 1.2;
+	text-box-trim: trim-both;
+	text-box-edge: cap alphabetic;
 }
 
 /* Декоративный "▾" рядом с заголовком — из шапки сайдбара в Figma
    (scrollbar-title/Frame 5), функции не несёт. */
+/* — Разделитель под заголовком: плоская линия 1px (была текстура из
+     divider.svg — градиент #3E3C3A→#282726 + зерно; форму упростили до
+     сплошного цвета, #343130 — середина того градиента). Один и тот же вид
+     во всех трёх шапках сайдбара (главная / правка маркера / правка задания);
+     flex-shrink:0 — чтобы линию не «съедала» вытянутая форма-сосед. — */
 .sidebar-divider {
-	border: none;
-	border-top: 1px solid #343130;
-	margin: 12px 0;
+	flex-shrink: 0;
+	border: 0;
+	height: 1px;
+	margin: 0;
+	background: #343130;
 }
-/* В обычном виде <hr> ничего своего не добавляет — весь отступ вокруг него
-   даёт общий gap-[10px] на #normal-view (см. ниже); 12px 0 остаётся только
-   дефолтом для формы редактирования маркера, где раскладки Figma нет. */
-#normal-view > .sidebar-divider { margin: 0; }
-
-/* ─── СЕКЦИИ САЙДБАРА ────────────────────────────────────────────────────
-   В Figma между "header"/"locations"/"map-layers"/"provinces" нет разделительных
-   линий (кроме одной, после шапки) — отступ держится общим gap-[10px] на
-   самом сайдбаре плюс собственным pt/pb КАЖДОЙ секции. Раньше это считалось
-   вручную в одно составное margin-top на заголовке секции (10+14=24,
-   4+10+14=28...) — тем самым числа переставали быть отслеживаемыми и не
-   обновлялись при правках дизайна. Теперь #normal-view сам даёт 10px между
-   всеми секциями через gap, а каждая секция — обёртка <div class="sb-section">
-   с ЕДИНСТВЕННЫМ своим числом (pt и/или pb), 1:1 как в Figma. */
-#normal-view { gap: 10px; }
-
-#locations-section { padding-top: 11px; }   /* pt-[11px] у "locations" */
 
 #maplayers-section {
-	padding-top: 14px;    /* pt-[14px] у "map-layers" */
-	padding-bottom: 4px;  /* pb-[4px] у "map-layers" */
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
-#maplayers-section-label { margin-bottom: 10px; } /* gap-[10px] у "map-layers" (не общие 7px секций с заголовком+рядом) */
 
-#provinces-section {
-	padding-top: 14px;    /* pt-[14px] у "provinces" */
+/* ─── СЕКЦИИ САЙДБАРА ──────────────────────────────────────────────────── */
+
+/* Поиск с фильтрами — своя секция между «Слоями карты» и «Журналом заданий»,
+   без заголовка. Раньше жил внутри «Провинций», отсюда gap-7 между строкой
+   поиска и панелью фильтров переехал сюда. */
+#search-section {
+	padding-top: 14px;
 	display: flex;
 	flex-direction: column;
-	gap: 7px;              /* gap-[7px] у "provinces" — между заголовком/поиском/фильтрами/списком */
-	flex: 1;                /* flex-[1_0_0] у "provinces" — тянется на всё оставшееся место */
-	min-height: 0;
+	gap: 7px;
 }
-#provinces-section-label { margin-bottom: 0; } /* иначе унаследованный .sidebar-section-label{margin-bottom:7px} удвоил бы gap-7 у секции */
+
+#provinces-section {
+	    /* pt-[14px] у "provinces" */
+	    display: flex;
+	    flex-direction: column;
+	    gap: 12px;              /* gap-[7px] у "provinces" — между заголовком и списком */
+	    flex: 1;                /* flex-[1_0_0] у "provinces" — тянется на всё оставшееся место */
+	    min-height: 0;
+}
+#provinces-section > .sidebar-section-label-row {} /* -5 + 5px внутр. центровки = 0; дальше только gap-7 секции */
 
 .sidebar-section-label {
 	font-size: 0.72em;
@@ -375,20 +398,40 @@ button, input, select, textarea, optgroup, option {
 	                       потому что раньше это место почти всегда перекрывалось
 	                       отдельным margin-top на конкретных #id) */
 	margin-bottom: 7px;
+	text-box-trim: trim-both; /* см. комментарий у .map-title-text */
+	text-box-edge: cap alphabetic;
 }
 
 /* Клик по заголовку включает/выключает все пункты секции разом — меняется
    только курсор, никакой подсветки/тултипа. */
 .sidebar-section-label--toggle { cursor: pointer; }
 
-/* «Локации» + кнопка «+ добавить маркер» в одну строку */
+/* «Локации» + кнопка «+ добавить маркер» в одну строку.
+   min-height 18px — чтобы полоса-заголовок была удобной мишенью для клика-
+   сворачивания (сам текст с text-box-trim высотой всего ~8px). Лишние 10px
+   центрируются align-items:center (по 5px свер/снизу), а компенсирующий
+   margin (-5px сверху, -5 к каждому нижнему отступу ниже) держит соседей
+   ровно там же, где были: раскладка визуально не меняется. */
 .sidebar-section-label-row {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	margin: 0 0 7px;
+	min-height: 10px;
 }
 .sidebar-section-label-row .sidebar-section-label { margin: 0; }
+
+/* ─── СВОРАЧИВАНИЕ СЕКЦИЙ (только главный вид) ────────────────────────────
+   Клик строго по фону строки-заголовка (пустое место справа от текста,
+   левее «+») сворачивает секцию — остаётся только сама строка. По тексту
+   поведение прежнее: у «Локаций»/«Слоёв карты» это тумблер всех пунктов,
+   у «Журнала»/«Провинций» — ничего. Поэтому курсор-pointer на строке, но
+   auto на не-тумблерных <p> (кнопки .icon-btn свой pointer уже имеют). */
+#normal-view .sb-section > .sidebar-section-label-row { cursor: pointer; }
+#quests-section-label,
+#provinces-section-label { cursor: auto; }
+
+#normal-view .sb-section.collapsed { flex: 0 0 auto; }
+#normal-view .sb-section.collapsed > :not(.sidebar-section-label-row) { display: none; }
 
 
 
@@ -399,7 +442,7 @@ button, input, select, textarea, optgroup, option {
 	display: flex;
 	align-items: center;
 	gap: 5px; /* gap-[5px] у ".checkbox" в Figma */
-	font-size: 0.84em;
+	font-size: 0.875em; /* 14px — важный пользовательский тоггл */
 	/* Невключенный слой — тусклая подпись (ink-500), включенный — светлее
 	   (parch-200), как в Figma (.checkbox default/checked): состояние читается
 	   не только по галочке, но и по яркости самой подписи. */
@@ -412,6 +455,11 @@ button, input, select, textarea, optgroup, option {
 
 .layer-checkbox:has(input:checked) { color: #cfc7b8; }
 .layer-checkbox:hover { color: #dcd0c0; }
+
+.layer-checkbox-label {
+	text-box-trim: trim-both;
+	text-box-edge: cap alphabetic;
+}
 
 #map-layer-checkboxes {
 	display: flex;
@@ -500,6 +548,104 @@ button, input, select, textarea, optgroup, option {
 	max-width: 100%;
 	max-height: 100%;
 	background-color: #111111;
+	font-size: 16px; /* leaflet.css ставит 12px — возвращаем к общему 1em==16px */
+}
+
+/* ─── ПОДПИСЬ ЛОКАЦИИ ПОД ИКОНКОЙ (zoom-location-name в Figma) ───────────────
+   Постоянный Leaflet-тултип без стандартного оформления (фон/рамка/тень/
+   стрелка) — голый текст с тёмным свечением для читаемости поверх любого
+   участка карты. Показывается только на zoom 0/1 — см. LOCATION_NAME_MIN_ZOOM
+   в script.js, который переключает .show-location-names на #map.
+
+   Прячем через visibility, а НЕ display:none. Leaflet центрирует тултип
+   direction:'bottom' вычитая container.offsetWidth/2 из позиции (Tooltip.
+   _setPosition). У display:none элемента offsetWidth === 0, поэтому Leaflet
+   ставит подпись левым краем к центру иконки — визуально она уезжает вправо
+   на половину своей ширины. _setPosition вызывается на zoomanim/zoom/
+   viewreset, то есть ДО zoomend, на котором навешивается .show-location-names;
+   значит на том самом переходе, что впервые показывает подписи, ширина ещё
+   меряется по скрытому элементу. visibility:hidden сохраняет геометрию, поэтому
+   offsetWidth всегда реальный и подпись центрируется сразу.
+
+   Появление/исчезновение — плавный кроссфейд с лёгким подъёмом (при смене
+   зума через порог класс .show-location-names навешивается/снимается разом,
+   поэтому и все подписи всплывают/гаснут одновременно за один transition).
+   Асимметрия по времени намеренная: ПОЯВЛЕНИЕ мягкое и с задержкой (.2s + .15s
+   delay) — класс вешается на zoomend, и хочется, чтобы названия «оседали» уже
+   после остановки карты; УХОД быстрый (.1s, без задержки) — класс снимается
+   ещё на старте зум-аута (zoomanim в script.js), тянуть фейд незачем.
+   opacity помечен !important: Leaflet сам вешает каждому тултипу инлайновый
+   opacity (Tooltip.options.opacity = 0.9) один раз при открытии, перебить его
+   из класса можно только так; transition при этом всё равно отрабатывает.
+   visibility в переходе держим до конца фейда (0s .1s) на скрытие и снимаем
+   сразу (0s) на показ. Сдвиг делаем свойством translate, а не transform:
+   transform у тултипа занят позиционированием Leaflet (translate3d), а translate
+   с ним свободно комбинируется. */
+.leaflet-tooltip.location-name-label {
+	visibility: hidden;
+	opacity: 0 !important;
+	translate: 0 3px;
+	transition: opacity .1s ease-out, translate .1s ease-out, visibility 0s linear .1s;
+	background: none;
+	border: none;
+	border-radius: 0;
+	box-shadow: none;
+	padding: 0;
+	margin: 0;
+	font-family: 'El Messiri', sans-serif;
+	font-size: 16px;
+	font-weight: 500; /* Medium */
+	line-height: normal; /* без этого браузер брал line-height шрифта (~24px на 16px тексте) — тот же баг с "разбуханием" текста, что чинили в сайдбаре */
+	color: #fffbee;
+	text-shadow: 0 0 3px #2d140c, 0 0 4px #190b07, 0 0 5px #0c0606;
+	-webkit-text-stroke: 3px #2d140c;
+	paint-order: stroke fill; /* обводка под заливкой — иначе 3px stroke съедает буквы */
+	white-space: nowrap;
+	pointer-events: none;
+	text-box-trim: trim-both;
+	text-box-edge: cap alphabetic;
+}
+.leaflet-tooltip.location-name-label::before {
+	display: none; /* убираем стрелку-указатель у стандартного leaflet-тултипа */
+}
+#map.show-location-names .leaflet-tooltip.location-name-label {
+	visibility: visible;
+	opacity: .9 !important;
+	translate: 0 0;
+	transition: opacity .2s ease-out .15s, translate .2s ease-out .15s, visibility 0s;
+}
+/* Во время зум-анимации — НИКАКИХ переходов у подписей. Их ~475 штук, каждая с
+   тяжёлой отрисовкой (3px -webkit-text-stroke + тройная text-shadow); если дать
+   им transition: transform на время зума (как делает leaflet.css для
+   .leaflet-zoom-animated), браузер пытается поднять 475 слоёв с дорогим
+   содержимым — компоновщик захлёбывается и зум идёт в ~5 fps. Без перехода
+   Leaflet ставит каждую подпись сразу в конечную точку (она «щёлкает» на месте,
+   пока карта ~0.25 с доезжает) — незаметный компромисс против дичайшего лага.
+   Фейд появления/ухода это не трогает: он срабатывает на zoomend, когда
+   .leaflet-zoom-anim уже снят. */
+.leaflet-zoom-anim .leaflet-tooltip.location-name-label {
+	transition: none;
+}
+
+/* На тех же зумах, где показываются подписи локаций (класс .show-location-names,
+   см. LOCATION_NAME_MIN_ZOOM в script.js), приглушаем растровый слой «Провинции»
+   до 50 % — чтобы подписи и иконки читались поверх него. Гасим сам pane: у него,
+   в отличие от вложенного .leaflet-layer, нет инлайнового opacity от Leaflet,
+   поэтому !important не нужен, а результат перемножается с opacity слоя.
+   transition вынесен на базовый селектор, чтобы фейд шёл в обе стороны. */
+.leaflet-provinces-pane {
+	transition: opacity .2s ease-out;
+}
+#map.show-location-names .leaflet-provinces-pane {
+	opacity: .5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.leaflet-tooltip.location-name-label,
+	#map.show-location-names .leaflet-tooltip.location-name-label,
+	.leaflet-provinces-pane {
+		transition: none;
+	}
 }
 
 .leaflet-control-attribution,
@@ -510,16 +656,16 @@ button, input, select, textarea, optgroup, option {
 
 .leaflet-popup-content-wrapper,
 .leaflet-popup-tip {
-    background: rgba(20, 20, 20, 0.86);
-    background-color: rgba(20, 20, 20, 0.86);
+    background: rgba(3, 3, 3, 0.83);            /* как фон сайдбара (#030303d4) */
+    background-color: rgba(3, 3, 3, 0.83);
     border-radius: 0px;
-    backdrop-filter: blur(8px);
+    backdrop-filter: blur(15px);
 }
 
 .leaflet-popup-content-wrapper {
     position: relative;
     padding: 0px;
-    box-shadow: 0 0 13px rgba(0, 0, 0, 1);
+    box-shadow: 0 0 6px 3px rgba(0, 0, 0, 0.5);
 }
 
 /* Рамка попапа — отдельным слоем поверх фона/контента, с наложением
@@ -530,7 +676,7 @@ button, input, select, textarea, optgroup, option {
     position: absolute;
     inset: 0;
     pointer-events: none;
-    border: 1px solid #EFE7D6;
+    border: 1px solid #efe7d666;
     mix-blend-mode: overlay;
 }
 
@@ -538,6 +684,7 @@ button, input, select, textarea, optgroup, option {
     color: #dcd0c0;
     margin: 0 !important;
     width: auto !important;
+    font-size: 1em; /* leaflet.css ставит тут 1.08333em — гасим, 1em==16px в попапе */
 }
 
 h1, h2, h3 {
@@ -560,51 +707,69 @@ h1, h2, h3 {
 	/* Поле поиска в Figma (search-input-active) лежит прямо на фоне сайдбара,
 	   совсем без рамки, фона или свечения ни в одном состоянии — иконка лупы,
 	   текст и воронка фильтра просто в одну строку. Реакция на фокус —
-	   исключительно смена яркости: плейсхолдер/текст ink-700 в покое, parch-200
-	   на фокусе (search-input__placeholder-text default/focus), плюс своя
-	   fx-icon-подсветка у самой лупы (.search-row:focus-within, см. выше). */
+	   исключительно смена яркости: плейсхолдер держит свой ink-600 в любом
+	   состоянии, а вот набранный текст на фокусе становится светлее
+	   (parch-200 → #dcd0c0), плюс своя fx-icon-подсветка у самой лупы
+	   (.search-row:focus-within, см. выше). */
 	.search-row {
 		display: flex;
 		align-items: center;
 		gap: 5px;
-		padding: 6px 0; /* py-[6px] у "search-input-active" в Figma — на всей строке, не только на инпуте */
 	}
 
+	/* display:flex + align-items:center — чтобы .search-field хватал по высоте
+	   ровно сам <input>, а не «страховочную» строку-strut от собственного
+	   16px-шрифта поля: из-за неё input (12px) прижимался к низу и текст/
+	   плейсхолдер сидели на ~1.5px ниже центра лупы. */
 	.search-field {
 		position: relative;
 		flex: 1;
 		min-width: 0;
+		display: flex;
+		align-items: center;
 	}
 
 	#sidebar-search {
-		width: 100%;
+		flex: 1;
+		min-width: 0;
 		box-sizing: border-box;
 		background: none;
 		border: none;
 		border-radius: 0;
-		color: #cfc7b8; /* parch-200 — как активный (сфокусированный) текст */
-		font-size: 0.84em;
-		padding: 0 24px 0 0;
+		line-height: 1;
+		color: #cfc7b8; /* parch-200 — набранный текст в покое */
+		font-size: 0.875em; /* 14px */
 		outline: none;
+		transition: color .15s ease;
+		/* Коробку инпута align-items:center уже ставит по центру строки, но глиф
+		   внутри всё равно сидит на ~1px ниже центра лупы: у 'Beaufort for LoL'
+		   метрики «тяжёлые сверху» (font-ascent 12 против descent 3 на 12px), а
+		   text-box-trim на <input> в Chromium не действует — правит только
+		   контейнеры, не внутренний редактор поля. Поэтому подвиг глиф на 1px
+		   вверх напрямую (position/top, раскладку не трогает). */
+		position: relative;
+		top: -1px;
 	}
+	#sidebar-search:focus { color: #dcd0c0; } /* на фокусе набранный текст светлее */
 
 	.search-field .icon-btn {
 		position: absolute;
 		top: 50%;
-		right: 8px;
+		right: 0px;
 		transform: translateY(-50%);
 		color: #787167;
 	}
 	.search-field .icon-btn:hover { opacity: 0.75; }
 
-	#search-filter-toggle {
+	.filter-toggle-btn {
 		flex-shrink: 0;
 		color: #787167;
 	}
-	#search-filter-toggle:hover { opacity: 0.75; }
-	#search-filter-toggle.active { color: #977b61; }
+	.filter-toggle-btn:hover { opacity: 0.75; }
+	.filter-toggle-btn.active { color: #977b61; }
 
-	#search-filter-panel {
+	#search-filter-panel,
+	#quest-filter-panel {
 		display: flex;
 		flex-direction: column;
 		gap: 14px; /* gap-[14px] внутри самого "filter"-фрейма */
@@ -626,6 +791,8 @@ h1, h2, h3 {
 		text-transform: uppercase;
 		color: #787167;
 		margin: 0;
+		text-box-trim: trim-both;
+		text-box-edge: cap alphabetic;
 	}
 
 	.filter-pill-row {
@@ -655,7 +822,7 @@ h1, h2, h3 {
 	/* Особенности/Персонажи — один ряд 16px-иконок (+ текстовые пилюли у
 	   особенностей), 12px между ними, 1px отступа слева — как в
 	   COMPONENTS__TRAITS/COMPONENTS__CHARACTERS. */
-	#filter-trait-row, #filter-character-row {
+	#filter-trait-row, #filter-character-row, #quest-status-chips {
 		align-items: center;
 		gap: 12px;
 		padding-left: 1px;
@@ -683,6 +850,10 @@ h1, h2, h3 {
 		-webkit-user-select: none;
 		user-select: none;
 	}
+	/* Пилюли особенностей/персонажей несут ещё и класс .trait (ради мгновенного
+	   .trait-tooltip), а .trait ниже ставит cursor:default — возвращаем pointer.
+	   Элемент+класс специфичнее .trait, порядок файла уже не важен. */
+	button.icon-toggle { cursor: pointer; }
 	.icon-toggle.icon-toggle--16 { width: 16px; height: 16px; }
 	.icon-toggle.icon-toggle--18 { width: 18px; height: 18px; }
 	.icon-toggle.icon-toggle--text { width: auto; height: 16px; }
@@ -706,17 +877,27 @@ h1, h2, h3 {
 		position: relative;
 		z-index: 2;
 		font-family: 'Beaufort for LoL', Georgia, serif;
-		font-size: 10px;
+		font-size: 0.875em; /* 14px (.filter-pill возвращён к 1em == 16px) */
 		line-height: normal;
-		letter-spacing: 0.02em;
-		text-transform: uppercase;
+		text-transform: none;
 		white-space: nowrap;
 		color: #6a655d; /* ink-500 */
 		transition: color .17s ease;
+		text-box-trim: trim-both;
+		text-box-edge: cap alphabetic;
 	}
 	.icon-toggle:hover .icon-toggle__label { color: #9a9285; } /* parch-400 */
 	.icon-toggle.selected .icon-toggle__label { color: #e6cf95; } /* brass-300 */
 
+	/* Общая анимация подсветки-градиента для ЛЮБОГО .icon-toggle. Два входа:
+	   — :hover — плавный рост через transition (превью);
+	   — .selected — рост через keyframes-animation. Animation переигрывается,
+	     когда правило начинает совпадать: и у только что вставленной в DOM
+	     кнопки (ряды фильтров/чипов пересоздаются на каждый клик), и когда
+	     .selected навесили на уже существующий узел (быстрый ряд «Локации»,
+	     особенности в формах — там transition сам не сыграл бы, кнопка уже
+	     под курсором в scaleX(1)). Опт-инить что-либо в конкретных рядах или
+	     метить кнопки в JS не нужно. */
 	.icon-toggle .icon-toggle__fx {
 		position: absolute;
 		left: -1px;
@@ -730,13 +911,29 @@ h1, h2, h3 {
 		transition: transform .16s cubic-bezier(.16, .84, .24, 1);
 	}
 	.icon-toggle--text .icon-toggle__fx { left: -2px; right: -2px; }
-	.icon-toggle:hover .icon-toggle__fx,
-	.icon-toggle.selected .icon-toggle__fx { transform: scaleX(1); }
+	.icon-toggle:hover .icon-toggle__fx { transform: scaleX(1); }
+	.icon-toggle.selected .icon-toggle__fx {
+		transform: scaleX(1);
+		animation: iconToggleFxGrow .16s cubic-bezier(.16, .84, .24, 1);
+	}
+	@keyframes iconToggleFxGrow {
+		from { transform: scaleX(0); }
+		to   { transform: scaleX(1); }
+	}
 
 	.icon-toggle .icon-toggle__layer { position: absolute; inset: 0; opacity: 0; transition: opacity .17s ease; }
 	.icon-toggle:hover .icon-toggle__layer--hover { opacity: 1; }
 	.icon-toggle.selected .icon-toggle__layer--hover { opacity: 0; }
-	.icon-toggle.selected .icon-toggle__layer--selected { opacity: 1; }
+	/* Появление яркого «выбранного» слоя — тоже animation, а не только transition,
+	   чтобы играло и у только что пересозданных кнопок (см. .icon-toggle__fx). */
+	.icon-toggle.selected .icon-toggle__layer--selected {
+		opacity: 1;
+		animation: iconToggleSelFade .19s cubic-bezier(.16, .84, .24, 1);
+	}
+	@keyframes iconToggleSelFade {
+		from { opacity: 0; }
+		to   { opacity: 1; }
+	}
 
 	.icon-toggle .icon-toggle__grad { position: absolute; left: 0; right: 0; top: 0; bottom: 1px; }
 	.icon-toggle .icon-toggle__line { position: absolute; left: 0; right: 0; bottom: 0; height: 1px; }
@@ -767,33 +964,28 @@ h1, h2, h3 {
 		transform: translateY(3px);
 		transition: transform .19s cubic-bezier(.16, .84, .24, 1);
 	}
-	.icon-toggle.selected .icon-toggle__layer--selected .icon-toggle__grad { transform: translateY(0); }
+	/* «Оседание» градиента снизу вверх — animation, чтобы играло и у пересозданных
+	   кнопок, а не только при навешивании .selected на существующий узел. */
+	.icon-toggle.selected .icon-toggle__layer--selected .icon-toggle__grad {
+		transform: translateY(0);
+		animation: iconToggleGradRise .19s cubic-bezier(.16, .84, .24, 1);
+	}
+	@keyframes iconToggleGradRise {
+		from { transform: translateY(3px); }
+		to   { transform: translateY(0); }
+	}
 	.icon-toggle .icon-toggle__layer--selected .icon-toggle__noise { background-color: rgba(150, 118, 62, .06); }
 	.icon-toggle .icon-toggle__layer--selected .icon-toggle__line {
 		background: rgb(201, 162, 77);
 		box-shadow: inset 0 0 .8px rgb(255, 245, 219);
 	}
 
-	/* .just-selected — одноразовая метка именно той кнопки, которую только
-	   что включили (см. lastToggled*Key в script.js): buildFilter*Row()
-	   пересоздаёт ВЕСЬ ряд на каждый клик, и обычный transition тут не
-	   сыграл бы — новый DOM-узел появляется сразу в конечном состоянии,
-	   кадра "до" браузер не увидит. У верхнего быстрого ряда «Локации»
-	   кнопки не пересоздаются — там для того же эффекта достаточно обычного
-	   transition на :hover/.selected выше. */
-	.icon-toggle.just-selected .icon-toggle__fx {
-		animation: iconToggleFxIn 160ms cubic-bezier(.16, .84, .24, 1);
-	}
-	@keyframes iconToggleFxIn {
-		from { transform: scaleX(0); }
-		to   { transform: scaleX(1); }
-	}
-
 	@media (prefers-reduced-motion: reduce) {
 		.icon-toggle .icon-toggle__fx,
 		.icon-toggle .icon-toggle__layer,
+		.icon-toggle .icon-toggle__layer--selected .icon-toggle__grad,
 		.icon-toggle .icon-toggle__icon,
-		.icon-toggle .icon-toggle__label { transition: none; }
+		.icon-toggle .icon-toggle__label { transition: none; animation: none; }
 	}
 
 	.icon-toggle-group { display: flex; align-items: center; }
@@ -814,6 +1006,8 @@ h1, h2, h3 {
 		padding: 5px 0; /* py-[5px] общий; лево/право — только там, где есть сосед (см. ниже) */
 		cursor: pointer;
 		transition: color 0.15s;
+		text-box-trim: trim-both;
+		text-box-edge: cap alphabetic;
 	}
 	/* "или"/"и"/"искл" в Figma — pr-[4px] / px-[4px] / pl-[4px]: паддинг только
 	   на стороне, где стоит сосед (gap-px между кнопками уже даёт 1px) — с
@@ -829,10 +1023,10 @@ h1, h2, h3 {
 
 	#filter-reset-btn { align-self: flex-start; padding: 0; }
 
-	/* default/focus у search-input__placeholder-text в Figma: ink-700 в покое,
-	   parch-200 на фокусе — никакой рамки/фона/свечения, только яркость. */
-	#sidebar-search::placeholder { color: #282726; transition: color 0.15s ease; }
-	#sidebar-search:focus::placeholder { color: #cfc7b8; }
+	/* Плейсхолдер держит один и тот же цвет в покое и на фокусе — «оживает»
+	   на фокусе только набранный текст (#sidebar-search:focus выше). Итоговый
+	   цвет плейсхолдера задаётся ниже в блоке рескина (ink-600). */
+	#sidebar-search::placeholder { color: #282726; }
 
 	/* ─── LOCATION LIST ───────────────────────────────────────────────────────
 	   Раскладка "родословного дерева" из Figma (provinces-list): треугольник +
@@ -844,16 +1038,21 @@ h1, h2, h3 {
 	.province-group:last-child { margin-bottom: 0; }
 
 	.province-header {
-		font-family: 'El Messiri', sans-serif;
-		font-size: 16px;
-		line-height: 1;
-		color: #cfc7b8; /* parch-200 */
-		font-weight: 400;
+		color: var(--parch-200); /* наследуется в .province-header-text; currentColor для ::before-треугольника */
 		cursor: pointer;
 		user-select: none;
 		display: flex;
 		align-items: center;
 		gap: 6px;
+	}
+
+	.province-header-text {
+		font-family: 'El Messiri', sans-serif;
+		font-size: 16px;
+		line-height: 1;
+		font-weight: 400;
+		text-box-trim: trim-both;
+		text-box-edge: cap alphabetic;
 	}
 
 	/* Провинции без вложенного списка ("свёрнутые" по умолчанию — collapsed
@@ -913,7 +1112,7 @@ h1, h2, h3 {
 	}
 
 	.province-header.has-region .province-header-text:hover {
-		color: #e6cf95; /* brass-300 */
+		color: var(--brass-300);
 	}
 
 	/* ─── RESET VIEW BUTTON ───────────────────────────────────────────────── */
@@ -1005,7 +1204,9 @@ h1, h2, h3 {
 
 
 .popup-content {
-    width: 300px;
+    width: 342px;                  /* внутренняя ширина по макету (282:540); POPUP_DEFAULT_WIDTH в script.js */
+    padding: 20px 18px;           /* py-[20px] px-[18px] у фрейма попапа */
+    box-sizing: content-box;
     color: #dcd0c0;
     display: grid;
     grid-template-areas: "stack";  /* один именованный слот */
@@ -1032,47 +1233,79 @@ h1, h2, h3 {
 
 .popup-text {
     position: relative;
-    /* padding: 10px 12px; */
-    margin: 14px 20px 17px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;                     /* gap-[8px] между секциями попапа */
 }
 
 .popup-content h1 {
-    margin: 0 0 1px;
+    margin: 0;
     font-family: 'El Messiri';
-    font-weight: 600;
+    font-weight: 500;             /* Medium по макету */
     font-size: 20px;
-    line-height: 31px;
-    color: #EFE7D6;
+    line-height: normal;
+    color: #EFE7D6;               /* parch-100 */
     mix-blend-mode: screen;
-    /* line-height:31px — это полный line-box шрифта (ascent+descent), а не
-       высота самих букв: у El Messiri у "Утренний" есть выносные элементы
-       (р), из-за которых зазор ascent/descent несимметричный, и центр
-       line-box не совпадает с видимым центром текста — align-items:center
-       у .title-row центрует именно line-box. text-box-trim обрезает рамку
-       строки до реальных границ букв (cap-height/baseline), после чего
-       центрирование по строке = центрирование по видимому тексту. Именно
-       это и просил Figma-экспорт (там были leading-trim/text-edge). */
+    /* text-box-trim: строку обрезаем до cap-height/baseline, чтобы вертикальное
+       выравнивание с .traits шло по видимым буквам, а не по line-box. */
+    text-box-trim: trim-both;
+    text-box-edge: cap alphabetic;
+}
+/* Клик по названию (только админ) → форма правки локации. */
+.popup-title--editable { cursor: pointer; transition: color .14s ease; }
+.popup-title--editable:hover { color: #E6CF95; }
+
+/* Разделитель между секциями: 8px-строка, линия по центру (divider в макете). */
+.popup-divider {
+    align-self: stretch;
+    height: 8px;
+    background: linear-gradient(#3e3c3a, #3e3c3a) center / 100% 1px no-repeat;
+}
+
+/* Подвал: «ФРАКЦИЯ: …» слева, «ПРОВИНЦИЯ: …» справа. */
+.popup-footer {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding-top: 4px;
+    font-family: 'Beaufort for LoL', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.24px;
+    line-height: 1;
+}
+.popup-footer .popup-footer-item { text-box-trim: trim-both; text-box-edge: cap alphabetic; }
+/* «Фракция» / «Провинция» — всегда капсом; сами названия — как в данных
+   (первую букву поднимает cap() в JS), латунные, при наличии региона — ссылка. */
+.popup-footer .popup-footer-label { color: #9A9285; text-transform: uppercase; }   /* parch-400 */
+.popup-footer .popup-footer-val   { color: #96763E; }   /* brass-600 */
+
+.popup-content .name-eng {
+    margin: 0;
+    font-size: 12px;
+    line-height: normal;
+    font-weight: 500;                /* Medium */
+    letter-spacing: 0.24px;
+    text-transform: uppercase;
+    color: #9A9285;                  /* parch-400 */
+    mix-blend-mode: screen;
     text-box-trim: trim-both;
     text-box-edge: cap alphabetic;
 }
 
-.popup-content .name-eng {
-    margin: 0;
-    font-size: 10px;
-    line-height: 14px;
-    font-weight: 600;
-    text-transform: uppercase;
-    color: #9A9285;
-    mix-blend-mode: screen;
-}
-
 .popup-content .description {
-    margin: 5px 0 9px;
-    font-size: 12px;
-    line-height: 16px;
-    color: #CFC7B8;
+    margin: 0;
+    padding-bottom: 8px;            /* pb-[8px] у text-block/paragraph */
+    font-size: 14px;
+	font-weight: 200;
+    line-height: normal;
+    letter-spacing: 0.28px;
+    color: #CFC7B8;                  /* parch-200 */
     hyphens: auto;
 }
+.popup-content .description p { margin: 0 0 8px; }
+.popup-content .description p:last-child { margin-bottom: 0; }
 
 /* Фракция и провинция стоят в один ряд (Group 79/64/65 в popup.txt), а не
    друг под другом — .info-row-group их выравнивает по горизонтали. */
@@ -1089,8 +1322,8 @@ h1, h2, h3 {
     align-items: center;
     gap: 2px;
     margin-top: 1px;
-    font-size: 11px;
-    line-height: 11px;
+    font-size: 0.75em; /* 12px — фракция/провинция в попапе */
+    line-height: 1;
     color: #9A9285;
 }
 
@@ -1114,22 +1347,6 @@ h1, h2, h3 {
     align-items: center;
     gap: 6px;
     flex-wrap: wrap;
-}
-
-/* Иконка редактирования маркера — слева от названия локации, только для админа */
-.popup-edit-icon {
-    background: none;
-    border: none;
-    padding: 0;
-    cursor: pointer;
-    flex-shrink: 0;
-    color: #787167;
-    transition: color 0.14s, filter 0.14s;
-}
-.popup-edit-icon svg { overflow: visible; display: block; }
-.popup-edit-icon:hover {
-    color: #C9A24D;
-    filter: url(#inner-gold) drop-shadow(0 0 4.5px rgba(201, 162, 77, 0.66));
 }
 
 .traits {
@@ -1222,14 +1439,6 @@ button.layer-icon-btn { cursor: pointer; }
 
 
 
-.popup-content .description p {
-    margin: 0 0 8px;
-}
-
-.popup-content .description p:last-child {
-    margin-bottom: 0;
-}
-
 /* ─── БЛОК ЦИТАТЫ (кнопка Quote в тулбаре описания) ─────────────────────────
    Ступенчатая рамка из Scalable Notched Frame.dc.html (раздел 01):
    ::before — линия без маски (даёт "пол" яркости), ::after — та же линия,
@@ -1248,14 +1457,16 @@ button.layer-icon-btn { cursor: pointer; }
 .description blockquote {
     position: relative;
     margin: 8px 0;
-    padding: 10px;
-    background: linear-gradient(90deg, rgba(62, 60, 58, 0.435) 0%, rgba(62, 60, 58, 0.155) 100%);
+    padding: 12px;                  /* p-[12px] у text-block/quote */
+    background: linear-gradient(90deg, rgba(62, 60, 58, 0.44) 0%, rgba(62, 60, 58, 0.16) 100%);
     font-style: italic;
-    font-size: 12px;
-    line-height: 16px;
-    color: #9A9285;
-    opacity: 0.95;
+    font-size: 14px;               /* popup-quote 14/Italic */
+    line-height: normal;
+    letter-spacing: 0.28px;
+    color: #9A9285;                 /* parch-400 */
 }
+.description blockquote p { margin: 0 0 8px; }
+.description blockquote p:last-child { margin-bottom: 0; }
 
 .description blockquote::before,
 .description blockquote::after {
@@ -1303,8 +1514,9 @@ button.layer-icon-btn { cursor: pointer; }
    !important нужен, чтобы не проигрывать по специфичности собственным
    display-правилам компонентов (например .popup-admin-actions{display:flex}). */
 .admin-only { display: none !important; }
-body.is-admin .popup-edit-icon.admin-only { display: inline-flex !important; }
 body.is-admin #add-marker-btn.admin-only { display: flex !important; }
+body.is-admin #add-quest-btn.admin-only { display: flex !important; }
+body.is-admin #add-faction-btn.admin-only { display: flex !important; }
 
 .sidebar-header-row {
     display: flex;
@@ -1312,9 +1524,6 @@ body.is-admin #add-marker-btn.admin-only { display: flex !important; }
     justify-content: space-between;
     gap: 8px;
 }
-/* pt-[14px] у "header" в Figma — сверх py-[20px] самого сайдбара; только для
-   обычного вида, у формы редактирования маркера в Figma этой раскладки нет. */
-#normal-view > .sidebar-header-row { padding-top: 14px; }
 
 /* ─── ИКОНКА ВХОДА/ВЫХОДА (Leaflet-контрол, topright) ────────────────────
    Одна и та же кнопка: не авторизован — иконка «войти» (дверь со стрелкой
@@ -1466,7 +1675,7 @@ body.is-admin .leaflet-control-admin a::after {
     padding: 0 17px;
     background: #0a0a0a;
     color: #998c7c;
-    font-size: 0.82em;
+    font-size: 0.875em; /* 14px */
     letter-spacing: 0.02em;
     clip-path: polygon(0 0, 100% 0, 100% calc(50% - 3px), calc(100% - 2.5px) 50%,
         100% calc(50% + 3px), 100% 100%, 0 100%,
@@ -1562,7 +1771,8 @@ body.is-admin .leaflet-control-admin a::after {
 .revert-value.diff { color: #dcd0c0; background: #3a2f22; padding: 1px 4px; }
 
 /* ─── БОЛЬШОЕ ОКНО РЕДАКТИРОВАНИЯ ОПИСАНИЯ (тот же стиль, что #revert-dialog) ── */
-#desc-expand-overlay {
+#desc-expand-overlay,
+#branch-edit-overlay {
     position: fixed;
     inset: 0;
     z-index: 2000;
@@ -1573,7 +1783,8 @@ body.is-admin .leaflet-control-admin a::after {
     backdrop-filter: blur(8px);
 }
 
-#desc-expand-dialog {
+#desc-expand-dialog,
+#branch-edit-dialog {
     width: min(700px, 90vw);
     max-height: 85vh;
     background: #0a0a0af0;
@@ -1586,22 +1797,64 @@ body.is-admin .leaflet-control-admin a::after {
     gap: 14px;
 }
 
-#desc-expand-dialog h3 {
+#desc-expand-dialog h3,
+#branch-edit-dialog h3 {
     font-family: 'El Messiri', sans-serif;
     font-weight: 600;
     margin: 0;
 }
 
-#desc-expand-dialog .form-buttons {
+#desc-expand-dialog .form-buttons,
+#branch-edit-dialog .form-buttons {
     flex-shrink: 0;
     justify-content: flex-end;
 }
+
+/* Ветка заданий — своя лёгкая форма внутри модалки: те же лейблы/поля, что и
+   в #quest-form (см. блок ФОРМА ЗАДАНИЯ), но со своим селектором, т.к. диалог
+   физически не внутри формы задания. */
+#branch-edit-dialog label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.72em;
+    font-weight: 500;
+    color: #787167;
+    text-transform: uppercase;
+}
+#branch-edit-dialog .form-field label { display: block; }
+#branch-edit-dialog input[type="text"] {
+    background: rgba(7, 7, 7, 0.5);
+    border: 1px solid #343130;
+    border-radius: 0;
+    color: #dcd0c0;
+    font-size: 0.75rem;
+    padding: 7px 9px;
+    outline: none;
+    font-family: inherit;
+}
+#branch-edit-dialog input:focus { border-color: #776d61; }
+#branch-edit-dialog .desc-editor textarea {
+    background: transparent;
+    border: none;
+    min-height: 68px;
+}
+#branch-edit-dialog .desc-editor textarea:focus { border: none; }
+#branch-edit-error {
+    margin: 0;
+    font-size: 0.75em;
+    color: #C0564A;
+    min-height: 1em;
+}
+/* «Убрать из ветки» — деструктивно-нейтральное действие, держим слева от
+   Отмена/Сохранить автомаржином, а не отдельным justify-content на всём ряду. */
+#branch-unlink-btn { margin-right: auto; }
 
 .admin-back-btn {
     background: none;
     border: none;
     color: #998c7c;
-    font-size: 0.82em;
+    font-size: 0.75em; /* 12px */
     cursor: pointer;
     padding: 0 0 10px;
 }
@@ -1643,11 +1896,13 @@ body.is-admin .leaflet-control-admin a::after {
 
 #edit-marker-view h3 {
     font-family: 'El Messiri', sans-serif;
-    font-size: 1.3em;
+    font-size: 1.5em; /* 24px — как .map-title-text в главной шапке */
     color: #dcd0c0;
-    font-weight: 600;
+    font-weight: 700;
     line-height: 1.2;
     margin: 0;
+    text-box-trim: trim-both;
+    text-box-edge: cap alphabetic;
 }
 
 #marker-form {
@@ -1708,7 +1963,7 @@ body.is-admin .leaflet-control-admin a::after {
        #system-trait-new-input объединён в это же правило, а не описан
        отдельно, — раньше отдельное описание с другим значением тут же
        расходилось с остальными при любой правке этого блока. */
-    font-size: 0.684rem;
+    font-size: 0.75rem; /* 12px */
     padding: 7px 9px;
     outline: none;
     resize: vertical;
@@ -1728,7 +1983,7 @@ body.is-admin .leaflet-control-admin a::after {
     border-radius: 0;
     height: 50vh;
     max-height: 60vh;
-    font-size: 0.95rem;
+    font-size: 1rem; /* 16px — крупнее для письма в большом окне */
     resize: none;
 }
 
@@ -1739,14 +1994,218 @@ body.is-admin .leaflet-control-admin a::after {
 }
 
 /* Провинция, подставленная автоматически по вектору (см. applyAutoProvince
-   в script.js) — визуально как плейсхолдер, но это настоящее значение поля */
-#f-province.auto-filled {
-    color: #534f49;
+   в script.js) — визуально как плейсхолдер, но это настоящее значение поля.
+   Специфичность должна перебить .field-input:not(:placeholder-shown) ниже —
+   иначе авто-подставленное (не пустое!) значение красилось бы как «активное». */
+#marker-form input.field-input.auto-filled {
+    color: var(--ink-500, #6a655d);
+    border-color: #2e2b26;
     font-style: italic;
 }
 
 .coord-row { display: flex; gap: 6px; }
 .coord-row input { width: 50%; }
+
+/* ─── ЕДИНЫЙ КОМПОНЕНТ ПОЛЕЙ ФОРМЫ: инпут-автокомплит / select ─────────────
+   (макет field/input, field/select — node 365:254, 377:251, 377:253, 377:262)
+   Открытый список — своя вёрстка (см. upgradeFieldSelect/upgradeFieldAutocomplete
+   в script.js), нативный <select>/<datalist> её не умеют. .field-wrap — якорь
+   позиционирования только по X/Y на момент открытия; сама панель — fixed и
+   лежит в <body>, а не внутри .field-wrap, чтобы не резалась скроллом формы. */
+.field-wrap { position: relative; }
+.field-select-native { display: none; }
+
+#marker-form input.field-input,
+#quest-form input.field-input,
+#branch-edit-dialog input.field-input,
+.field-select-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    box-sizing: border-box;
+    background: rgba(3, 3, 3, 0.83);
+    border: 1px solid #2e2b26; /* parch-700 */
+    border-radius: 0;
+    padding: 8px 10px 10px;
+    font-family: 'Beaufort for LoL', sans-serif;
+    font-size: 12px;
+    line-height: normal;
+    color: var(--ink-500, #6a655d);
+    outline: none;
+}
+.field-select-trigger { cursor: pointer; }
+.field-select-trigger:focus-visible { border-color: #4b4740; }
+#marker-form input.field-input::placeholder,
+#quest-form input.field-input::placeholder,
+#branch-edit-dialog input.field-input::placeholder { color: var(--ink-500, #6a655d); }
+
+/* «есть значение» — граница ярче, текст у инпутов (не у select — у него
+   подпись всегда серая, см. макет) светлеет на #cfc7b8 (parch-200) */
+#marker-form input.field-input:focus,
+#quest-form input.field-input:focus,
+#branch-edit-dialog input.field-input:focus,
+#marker-form input.field-input:not(:placeholder-shown),
+#quest-form input.field-input:not(:placeholder-shown),
+#branch-edit-dialog input.field-input:not(:placeholder-shown),
+.field-select-trigger.open {
+    border-color: #4b4740; /* parch-600 */
+}
+#marker-form input.field-input:not(:placeholder-shown),
+#quest-form input.field-input:not(:placeholder-shown),
+#branch-edit-dialog input.field-input:not(:placeholder-shown) {
+    color: var(--parch-200, #cfc7b8);
+}
+
+.field-select-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.field-select-chevron {
+    flex-shrink: 0;
+    color: var(--ink-500, #6a655d);
+    transition: transform .12s ease;
+}
+.field-select-trigger.open .field-select-chevron { transform: scaleY(-1); }
+
+.field-options {
+    position: fixed;
+    z-index: 2000;
+    background: rgba(3, 3, 3, 0.83);
+    backdrop-filter: blur(8px); /* без блюра сквозь 83%-фон читались поля формы под панелью (см. #quest-card) */
+    border: 1px solid #2e2b26;
+    border-top: 0;
+    max-height: 240px;
+    overflow-y: auto;
+    padding-top: 4px;
+    box-sizing: border-box;
+}
+.field-options::-webkit-scrollbar       { width: 4px; }
+.field-options::-webkit-scrollbar-track { background: transparent; }
+.field-options::-webkit-scrollbar-thumb { background: #3d3531; }
+
+.field-option {
+    padding: 8px 10px 10px;
+    font-family: 'Beaufort for LoL', sans-serif;
+    font-size: 12px;
+    color: var(--parch-400, #9a9285);
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.field-option:hover,
+.field-option.active {
+    background: rgba(106, 101, 93, 0.25);
+    color: var(--parch-200, #cfc7b8);
+}
+.field-options-empty {
+    padding: 8px 10px 10px;
+    font-size: 12px;
+    color: var(--ink-500, #6a655d);
+}
+
+
+/* ─── ФОРМА ЗАДАНИЯ (по образцу формы маркера) ────────────────────────────── */
+#edit-quest-view {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    flex: 1;
+}
+#edit-quest-view h3 {
+    font-family: 'El Messiri', sans-serif;
+    font-size: 1.5em; /* 24px — как .map-title-text в главной шапке */
+    color: #dcd0c0;
+    font-weight: 700;
+    line-height: 1.2;
+    margin: 0;
+    text-box-trim: trim-both;
+    text-box-edge: cap alphabetic;
+}
+#quest-form {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 0 10px 10px 0;
+}
+#quest-form::-webkit-scrollbar       { width: 4px; }
+#quest-form::-webkit-scrollbar-track { background: transparent; }
+#quest-form::-webkit-scrollbar-thumb { background: #3d3531; }
+
+#quest-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.72em;
+    font-weight: 500;
+    color: #787167;
+    text-transform: uppercase;
+}
+#quest-form .form-field label { display: block; }
+#quest-form label .required-mark { color: #8C3A30; text-transform: none; }
+
+#quest-form input[type="text"],
+#quest-form input[type="number"],
+#quest-form select,
+#quest-form textarea {
+    background: rgba(7, 7, 7, 0.5);
+    border: 1px solid #343130;
+    border-radius: 0;
+    color: #dcd0c0;
+    font-size: 0.75rem; /* 12px */
+    padding: 7px 9px;
+    outline: none;
+    resize: vertical;
+    font-family: inherit;
+}
+#quest-form input:focus,
+#quest-form select:focus,
+#quest-form textarea:focus { border-color: #776d61; }
+
+/* «Описание» задания лежит в .desc-editor (тулбар + textarea) — рамку/фон
+   рисует сам .desc-editor, поэтому у textarea их убираем, иначе рамка в рамке. */
+#quest-form .desc-editor textarea {
+    background: transparent;
+    border: none;
+    min-height: 68px;
+}
+#quest-form .desc-editor textarea:focus { border: none; }
+#q-short-description { min-height: 38px; }
+
+/* «Привязка» — единственный fieldset в форме задания. Без рамки и падингов
+   (как borderless #f-traits у маркера); legend-лейбл заподлицо, его
+   размер/начертание задаёт общий блок «ЕДИНЫЙ ВИД ЛЕЙБЛОВ» ниже. */
+#quest-form fieldset {
+    border: 0;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+#quest-form legend {
+    padding: 0;
+    color: #787167;
+    text-transform: uppercase;
+}
+#q-anchor-mode { gap: 10px 12px; padding-left: 1px; }   /* full-width, чтобы flex-wrap мог переносить пилюли */
+.q-anchor-field { display: flex; flex-direction: column; gap: 6px; }
+.q-anchor-hint {
+    margin: 0;
+    font-size: 0.75em; /* 12px */
+    color: #6A655D;
+}
+#quest-form-error {
+    margin: 0;
+    font-size: 0.75em; /* 12px */
+    color: #C0564A;
+    min-height: 1em;
+}
 
 /* "?" рядом с «Координаты» — свой (не системный) тултип через .trait/
    .trait-tooltip (см. document.addEventListener('mouseover', ...)), текст
@@ -1762,7 +2221,7 @@ body.is-admin .leaflet-control-admin a::after {
 }
 .label-help-icon svg { display: block; }
 
-#f-traits, #f-characters {
+#f-traits {
     border: none;
     padding: 0;
     display: flex;
@@ -1770,7 +2229,7 @@ body.is-admin .leaflet-control-admin a::after {
     gap: 4px;
 }
 
-#f-traits legend, #f-characters legend {
+#f-traits legend {
     font-size: 0.72em;
     font-weight: 500;
     color: #787167;
@@ -1778,42 +2237,26 @@ body.is-admin .leaflet-control-admin a::after {
     padding: 0;
 }
 
-/* Особенности/Персонажи — ряд иконок-переключателей вместо списка чекбоксов;
-   выбранная иконка становится цветной, невыбранная — приглушённой. */
-#traits-icons, #character-icons {
+/* Особенности / Персонажи / Системные (форма маркера) и Персонажи (форма
+   задания) — тот же ряд пилюль-переключателей, что и в фильтре провинций
+   (#filter-trait-row): .filter-pill.icon-toggle с растущей от курсора
+   подсветкой, gap 12, отступ слева 1px. Сами кнопки строит JS
+   (iconToggleIconHTML / iconToggleTextHTML), стили — общий блок .icon-toggle*
+   выше. */
+#traits-icons,
+#system-traits-chips,
+#q-characters-row {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    align-items: center;
+    gap: 12px;
+    padding-left: 1px;
 }
 
-.trait-icon-btn {
-    background: none;
-    border: none;
-    padding: 0;
-    line-height: 0;
-}
-
-/* см. комментарий у button.layer-icon-btn — специфичность вместо порядка файла */
-button.trait-icon-btn { cursor: pointer; }
-
-.trait-icon-btn img {
-    width: 16px;
-    height: 16px;
-    object-fit: contain;
-    filter: grayscale(1) brightness(0.55);
-    transition: filter 0.15s;
-}
-
-.trait-icon-btn:hover img { filter: grayscale(0.5) brightness(0.8); }
-
-.trait-icon-btn.selected img {
-    filter: drop-shadow(0 0 3px #977b61);
-}
-
-/* Системные особенности — те же принципы токена/переключателя, что и
-   .filter-pill в поиске (см. там), но живут в форме маркера: свои особенности
-   без иконки, которые не показываются в попапе — см. buildTraitsHTML,
-   он молча пропускает любой ключ, которого нет в TRAITS. */
+/* Системные особенности — свои особенности без иконки, которые не
+   показываются в попапе (см. buildTraitsHTML — он молча пропускает любой
+   ключ, которого нет в TRAITS). Вид — текстовая пилюля .icon-toggle--text,
+   как системные особенности в фильтре. */
 #f-system-traits {
     border: none;
     padding: 0;
@@ -1830,33 +2273,23 @@ button.trait-icon-btn { cursor: pointer; }
     padding: 0;
 }
 
-#system-traits-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
+/* ─── ЕДИНЫЙ ВИД ЛЕЙБЛОВ ВО ВСЕХ САЙДБАРАХ ────────────────────────────────
+   Все подписи секций и полей (главный вид + формы маркера и задания) — один
+   размер и начертание. Стоит ПОСЛЕ всех индивидуальных правил лейблов, чтобы
+   перебивать их font-size/weight; регистр (uppercase) и цвет каждый лейбл
+   сохраняет свои. 0.75em == 12px при 1em==16px; letter-spacing 2% == 0.02em. */
+.sidebar-section-label,
+.filter-section-label,
+#marker-form label,
+#marker-form legend,
+#quest-form label,
+#quest-form legend {
+    font-size: 0.75em;
+    font-weight: 700;
+    letter-spacing: 0.02em;
 }
 
 #system-traits-chips:empty { display: none; }
-
-/* Без рамки — тот же язык, что у иконок особенностей (.trait-icon-btn):
-   состояние держится на filter (свечение), а не на бордере/фоне. */
-.system-trait-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    background: none;
-    border: none;
-    color: #998c7c;
-    font-size: 0.78em;
-    padding: 3px 2px;
-    cursor: pointer;
-    transition: filter 0.15s, color 0.15s;
-}
-.system-trait-chip:hover { color: #dcd0c0; }
-.system-trait-chip.selected {
-    color: #dcd0c0;
-    filter: drop-shadow(0 0 3px #977b61);
-}
 
 .system-trait-add-row {
     display: flex;
@@ -2038,15 +2471,15 @@ button.trait-icon-btn { cursor: pointer; }
     color: #787167;
 }
 
-/* рендер ссылки внутри попапа (публичная сторона) */
+/* ссылки: в описаниях попапов и в подписи-локации задания в журнале */
 a.desc-link {
-    color: #C9A24D;
-    text-decoration: underline;
+    color: #96763E; /* brass-600 */
+    text-decoration: none;
     text-underline-offset: 2px;
     cursor: pointer;
 }
 
-a.desc-link:hover { color: #E6CF95; }
+a.desc-link:hover { color: #C9A24D; text-decoration: underline; } /* brass-500 */
 
 .desc-link-icon {
     width: 12px;
@@ -2054,5 +2487,1156 @@ a.desc-link:hover { color: #E6CF95; }
     object-fit: contain;
     vertical-align: -2px;
     margin-right: 1px;
+}
+
+
+/* ═══ ЗАДАНИЯ (КВЕСТЫ) ═══════════════════════════════════════════════════════
+   Задание — отдельная сущность с «якорем» (локация / провинция / точка / без
+   места). Палитра статусов — из хендоффа (design_handoff_quests_in_locations):
+   слух почти не виден, активное — единственное латунное пятно, завершённое
+   уходит в тёмную латунь и зачёркивается. Одни и те же цвета работают на
+   квадрате 9×9 в списке и на точке 5×5 у маркера. */
+
+/* ─── Секция «Журнал заданий» в сайдбаре ──────────────────────────────────
+   Над «Провинциями». Список заданий скроллится в своём окне с потолком по
+   высоте — чтобы дерево провинций под ним оставалось основной областью. */
+#quests-section {
+	padding-bottom: 8px;
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+	gap: 8px;
+	position: relative;
+}
+#quests-section-label {
+	margin-bottom: 0;
+	gap: 12px;
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	align-items: center;}
+
+/* Общий счётчик заданий справа от «Журнал заданий» — как счётчик у «Задания» в
+   попапе локации (.popup-quests-count): тот же шрифт/размер, что у заголовка,
+   но regular 400; отступ от слова 12px — ровно как gap у .popup-quests-label. */
+.quests-total-count { 
+	font-weight: 400;
+	font-size: 10px;
+}
+
+.quests-total-count:empty { display: none; }
+
+/* Строка заголовка: лейбл хватает по своему тексту (не тянется), «+» (в
+   режиме админа) и воронка фильтров сгруппированы в .section-label-actions
+   справа со своим gap-[4px], между лейблом и группой — space-between
+   (наследуется от .sidebar-section-label-row). Клик по пустому месту между
+   ними по-прежнему сворачивает секцию. */
+.section-label-actions {
+	display: flex;
+	align-items: center;
+	gap: 9px;
+	flex-shrink: 0;
+}
+
+/* Ряд чипов статусов теперь раскрывается воронкой (по умолчанию .hidden), как
+   панель фильтров у «Провинций». Разметка/классы чипов = 1:1 «Особенности»
+   (контейнер в правиле align/gap/padding вместе с #filter-trait-row). */
+#quest-journal-list {
+	max-height: 26vh;
+	overflow-y: auto;
+	overflow-x: hidden;
+}
+#quest-journal-list::-webkit-scrollbar       { width: 4px; }
+#quest-journal-list::-webkit-scrollbar-track { background: transparent; }
+#quest-journal-list::-webkit-scrollbar-thumb { background: #3d3531; }
+
+.quest-journal-empty {
+	font-size: 0.75em;
+	color: #3E3C3A;
+}
+
+.journal-row {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	padding: 7px 5px 7px 0;
+	border-bottom: 1px solid #282726;
+	cursor: pointer;
+	transition: background-color .12s linear;
+}
+.journal-row:hover { background: rgba(52, 49, 48, 0.35); }
+.journal-row.selected { background: rgba(52, 49, 48, 0.35); }
+
+.journal-row-main {
+	flex: 1;
+	/* min-width: 0; */
+	/* display: flex; */
+	flex-direction: column;
+	gap: 3px;
+}
+.journal-row-title {
+	grid-area: title;
+	min-width: 0;
+	font-size: 0.75em;
+	font-weight: 500;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+/* Цвет заголовка в журнале — по группе статуса (см. questJournalRowHTML в
+   script.js): слух/завершено (+провалено, оно нормализуется в done) — тусклая
+   пара ink-500→parch-400; известно/активно — пара повеселее, parch-400→parch-200.
+   Наводимся на всю строку (.journal-row:hover), а не только на текст —
+   так же, как уже подсвечивается фон строки. */
+.journal-row-title--dim    { color: var(--ink-500); }
+.journal-row-title--bright { color: var(--parch-400); }
+.journal-row:hover .journal-row-title--dim    { color: var(--parch-400); }
+.journal-row:hover .journal-row-title--bright { color: var(--parch-200); }
+.journal-row-anchor {
+	font-size: 10px;
+	line-height: 14px;
+	color: #6A655D;
+	white-space: nowrap;
+	overflow: visible;
+	text-overflow: ellipsis;
+}
+
+/* Квадрат статуса — общий для журнала и попапов. */
+.quest-sq {
+	width: 9px;
+	height: 9px;
+	flex-shrink: 0;
+	margin-top: 2px;
+	display: block;
+}
+
+/* ─── Блок «Задания» внутри попапа локации / провинции ────────────────────
+   Пустой слот (нет заданий и не админ) прячется через :empty. */
+/* ─── БЛОК ЗАДАНИЙ В ПОПАПЕ (макет 282:540 → quests / quests-list) ────────── */
+.popup-quests:empty { display: none; }
+.popup-quests {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;                     /* gap-[16px] у quests */
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+.popup-quests-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin: 0;
+}
+.popup-quests-label {
+	display: inline-flex;
+	gap: 12px;                     /* gap-[12px] «Задания»↔счётчик */
+	font-family: 'Beaufort for LoL', sans-serif;
+	font-size: 12px;
+	font-weight: 500;
+	letter-spacing: 0.24px;
+	text-transform: uppercase;
+	line-height: normal;
+	color: #9A9285;                /* parch-400 */
+	text-box-trim: trim-both;
+	text-box-edge: cap alphabetic;
+}
+.popup-quests-count { font-weight: 400; }
+.popup-quest-add {
+	flex-shrink: 0;
+	display: inline-flex;
+	width: 10px;
+	height: 10px;
+	border: 0;
+	background: none;
+	padding: 0;
+	color: #9A9285;
+	cursor: pointer;
+}
+.popup-quest-add svg { display: block; width: 100%; height: 100%; }
+.popup-quest-add:hover { color: #E6CF95; }
+.popup-quests-empty {
+	font-size: 11px;
+	color: #787167;
+}
+
+.popup-quests-list {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;                     /* gap-[20px] между заданиями */
+}
+.popup-quest-row {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 0;
+	border: 0;
+}
+
+.popup-quest-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+}
+/* Насечка в попапе — тот же размер, что в журнале сайдбара (8.5×12).
+   Гасим только базовые padding/margin у .quest-drag, чтобы бокс не смещал
+   насечку от правого края; размер глифа оставляем родной. */
+.popup-quest-header .quest-drag {
+	align-self: center;
+	margin: 0;
+	padding: 0;
+}
+.popup-quest-header .quest-drag img {
+	width: 8.5px;
+	height: 12px;
+}
+.popup-quest-title {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;                      /* ромб ↔ название */
+	min-width: 0;
+	border: 0;
+	background: none;
+	padding: 0;
+	text-align: left;
+	cursor: pointer;
+	font-family: 'El Messiri', sans-serif;
+	color: #6a655d;                /* ink-500 — обычное задание */
+}
+.popup-quest-title .quest-sq {
+	flex-shrink: 0;
+	width: 10px;
+	height: 10px;
+	margin: 0;
+	transform: none;
+	box-shadow: none;
+	/* contain, а не 100% 100%: у новых SVG-глифов статусов разное соотношение
+	   сторон (у «известно» это узкий «!», у «завершено» — 10×9), их нельзя
+	   растягивать под квадрат. */
+	background: center / contain no-repeat;
+}
+.popup-quest-title .quest-sq--rumor  { background-image: url("images/ui/quest-status-rumor.svg"); }
+.popup-quest-title .quest-sq--known  { background-image: url("images/ui/quest-status-known.svg"); }
+.popup-quest-title .quest-sq--active { background-image: url("images/ui/quest-status-active.svg"); }
+.popup-quest-title .quest-sq--done   { background-image: url("images/ui/quest-status-done.svg"); }
+.popup-quest-title .quest-sq--failed { background-image: url("images/ui/quest-status-failed.svg"); }
+.popup-quest-name {
+	font-size: 14px;
+	font-weight: 500;              /* Medium */
+	letter-spacing: 0.28px;
+	line-height: normal;
+	color: inherit;
+	text-box-trim: trim-both;
+	text-box-edge: cap alphabetic;
+}
+.popup-quest-title--active .popup-quest-name { font-weight: 600; color: #cfc7b8; }  /* SemiBold, parch-200 */
+.popup-quest-title--done   .popup-quest-name { text-decoration: line-through; }
+.popup-quest-title:hover .popup-quest-name { text-shadow: 0 0 4px rgba(227, 155, 39, 0.55); }
+
+.popup-quest-goal,
+.popup-quest-branch {
+	padding-left: 18px;           /* под ромб, вровень с названием */
+	font-family: 'Beaufort for LoL', sans-serif;
+	font-size: 12px;
+	line-height: normal;
+}
+.popup-quest-goal   { color: #cfc7b8; }   /* parch-200 */
+.popup-quest-branch { color: #9a9285; }
+.popup-quest-branch-label { font-style: italic; font-weight: 500; color: #9a9285; }
+
+/* ─── Точечное задание на карте (anchor_kind = 'point') ───────────────────
+   L.icon → класс висит на самом <img.leaflet-marker-icon>. */
+.quest-point-icon {
+	filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8));
+}
+
+/* ─── Карточка задания (плавающая, поверх попапа) ─────────────────────────
+   Геометрия и стекло — как у попапа локации (настоящий border #EFE7D6). */
+#quest-card,
+#branch-card {
+	position: fixed;
+	width: 300px;
+	max-height: calc(100vh - 120px);
+	box-sizing: border-box;
+	background: rgba(20, 20, 20, 0.86);
+	border: 1px solid #EFE7D6;
+	backdrop-filter: blur(8px);
+	box-shadow: 0 0 13px rgba(0, 0, 0, 1);
+	padding: 14px 20px 17px;
+	overflow-y: auto;
+	color: #DCD0C0;
+	z-index: 1100;
+}
+#quest-card-inner,
+#branch-card-inner {
+	display: flex;
+	flex-direction: column;
+}
+.branch-card-list {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	margin-top: 4px;
+}
+.quest-card-head {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 10px;
+}
+.quest-card-head h3 {
+	margin: 0;
+	font-family: 'El Messiri', sans-serif;
+	font-weight: 600;
+	font-size: 20px;
+	line-height: 1.1;
+	color: #EFE7D6;
+}
+.quest-card-close {
+	border: none;
+	background: none;
+	padding: 0;
+	font-size: 12px;
+	line-height: 12px;
+	color: #6A655D;
+	cursor: pointer;
+	flex-shrink: 0;
+}
+.quest-card-close:hover { color: #D3B495; text-shadow: 0 0 1.5px rgba(227, 155, 39, 0.66); }
+.quest-card-eng {
+	margin: 12px 0 0;
+	font-size: 10px;
+	line-height: 14px;
+	font-weight: 600;
+	text-transform: uppercase;
+	color: #787167;
+}
+.quest-card-divider {
+	height: 1px;
+	background: #343130;
+	margin: 10px 0 12px;
+}
+.quest-card-desc {
+	font-size: 12px;
+	line-height: 16px;
+	color: #CFC7B8;
+}
+.quest-card-anchor {
+	margin-top: 12px;
+	padding: 11px 13px;
+	background: linear-gradient(90deg, rgba(62, 60, 58, 0.435) 0%, rgba(62, 60, 58, 0.155) 100%);
+	display: flex;
+	flex-direction: column;
+	gap: 7px;
+}
+.quest-card-anchor-label {
+	font-size: 10px;
+	line-height: 14px;
+	color: #6A655D;
+}
+.quest-card-anchor-val {
+	font-size: 12px;
+	line-height: 1;
+	color: #CFC7B8;
+}
+.quest-card-foot {
+	display: flex;
+	align-items: center;
+	gap: 15px;
+	margin-top: 4px;
+}
+.quest-card-status {
+	font-size: 11px;
+	line-height: 14px;
+}
+.quest-card-edit {
+	margin-left: auto;
+	border: none;
+	background: none;
+	padding: 0;
+	font-size: 11px;
+	color: #998C7C;
+	cursor: pointer;
+}
+.quest-card-edit:hover { color: #D3B495; text-shadow: 0 0 1.5px rgba(227, 155, 39, 0.66); }
+
+
+/* ─── Drag-and-drop привязки задания (только админ) ───────────────────────── */
+.quest-drag {
+	flex-shrink: 0;
+	align-self: center;
+	padding: 2px 3px;
+	margin: 0px 8px;
+	color: #6A655D;
+	cursor: grab;
+	touch-action: none;
+	display: inline-flex;
+}
+.quest-drag:hover { color: #998C7C; }
+.quest-drag svg,
+.quest-drag img { display: block; }
+/* Глиф теперь — quest-drag.svg с запечённым градиентом (node 254:1525),
+   currentColor на него не влияет, поэтому hover подсвечиваем яркостью. */
+.quest-drag:hover img { filter: brightness(1.35); }
+
+/* Насечка в строке журнала.
+   По умолчанию — вплотную к правому краю строки: строка тянется на всю ширину
+   контейнера, поэтому насечка встаёт вровень с его правым краем = с правым
+   краем иконки фильтра в шапке секции. Это и есть состояние «скроллбара нет».
+   Когда скроллбар отрисован, JS вешает на #quest-journal-list класс
+   .has-scrollbar → добавляется ровно 12px зазора до полосы прокрутки (при
+   таком зазоре насечка визуально центрируется под иконкой «+»/icon--plus).
+   Раньше зазор был безусловным margin'ом — из-за него без скроллбара насечка
+   не доезжала до правого края. */
+.journal-row .quest-drag {
+	align-self: flex-start;
+	margin: 0;
+	padding-right: 1px;   /* глиф вплотную к правому краю блока — «12px» отсчитываются от самой иконки */
+}
+#quest-journal-list.has-scrollbar .journal-row .quest-drag {
+	margin-right: 10px;
+}
+/* Счётчик «выполнено/всего» у строки ветки — та же насечка вправо при
+   отрисованном скроллбаре, чтобы правый край совпадал с quest-drag строк
+   ниже (у самой строки ветки насечки нет, только чекнуть/название/счётчик). */
+#quest-journal-list.has-scrollbar .journal-branch-count {
+	margin-right: 10px;
+}
+
+body.quest-dragging,
+body.quest-dragging * { cursor: grabbing !important; }
+
+.quest-drag-ghost {
+	position: fixed;
+	left: 0;
+	top: 0;
+	will-change: transform;
+	z-index: 1200;
+	pointer-events: none;
+	display: flex;
+	align-items: center;
+	gap: 7px;
+	padding: 5px 9px;
+	/* БЕЗ backdrop-filter: призрак двигается каждый кадр, а blur заставлял
+	   браузер пересэмплировать и заново размывать всю карту под ним на каждом
+	   кадре — это и был лаг «в 5 fps» при перетаскивании. Просто делаем фон
+	   почти непрозрачным. */
+	background: rgba(18, 18, 18, 0.95);
+	box-shadow: inset 0 0 0 1px #343130, 0 0 6px 0 rgba(0, 0, 0, 0.35);
+	font-family: 'El Messiri', sans-serif;
+	font-size: 12px;
+	color: #EFE7D6;
+	white-space: nowrap;
+}
+.quest-drag-ghost.over-target { box-shadow: inset 0 0 0 1px #96763E, 0 0 6px 0 rgba(0, 0, 0, 0.25); }
+.quest-drag-ghost img { display: block; }
+
+/* подсветка цели: маркер локации / открытый попап провинции / область провинции */
+.leaflet-marker-icon.quest-drop-target {
+	outline: 1px solid #80684D;
+	outline-offset: 3px;
+	box-shadow: 0 0 6px 2px rgba(142, 85, 19, 0.5);
+	filter: drop-shadow(0 0 6px rgba(227, 155, 39, 0.9));
+}
+.leaflet-popup.quest-drop-target .leaflet-popup-content-wrapper {
+	box-shadow: 0 0 13px rgba(0, 0, 0, 1), inset 0 0 0 1px #96763E, inset 0 0 6px 2px rgba(142, 85, 19, 0.35);
+}
+/* полигон провинции (region-shape — SVG path, стили Leaflet инлайновые → !important) */
+path.region-shape.quest-drop-target {
+	fill: #96763E !important;
+	fill-opacity: .38 !important;
+	stroke: #E39B27 !important;
+	stroke-width: 2 !important;
+	stroke-opacity: 1 !important;
+}
+
+#quest-drag-hint {
+	position: fixed;
+	left: 50%;
+	bottom: 22px;
+	transform: translateX(-50%);
+	z-index: 1200;
+	pointer-events: none;
+	padding: 4px 10px;
+	background: rgba(6, 6, 6, 0.92);
+	box-shadow: inset 0 0 0 1px #96763E;
+	font-family: 'El Messiri', sans-serif;
+	font-size: 12px;
+	color: #DCD0C0;
+	white-space: nowrap;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   РЕСКИН — Figma «Sidebar — Карта Хейвена (admin)», node 254:1525.
+   Только значения/цвета/ассеты поверх существующей структуры + новый
+   скроллбар. Токены — из макета. Растровые иконки (city.png и т.п.) не
+   тронуты: PNG-экспорт Figma отдавал 1×1-заглушки, глифы идентичны.
+   ═══════════════════════════════════════════════════════════════════════════ */
+:root {
+	--ink-600:   #3e3c3a;
+	--ink-500:   #6a655d;
+	--parch-400: #9a9285;
+	--parch-200: #cfc7b8;
+	--brass-300: #e6cf95;
+	--brass-600: #96763e;
+}
+
+/* — Ритм секций: gap-[16px] внутри вида; шапка (заголовок + разделитель +
+     контент) одинаковая во всех трёх видах сайдбара — */
+#normal-view,
+#edit-marker-view,
+#edit-quest-view,
+#glory-view,
+#edit-faction-view { gap: 16px; }
+.sidebar-header-row { align-items: flex-end; padding-top: 8px; }
+
+/* — Заголовок: «Карта Хейвена» 24/700 + «Слава» 12/700 вместо каретки —
+   Тот же приём в #glory-view, только имена в заголовке зеркально
+   поменялись местами: «Слава» — большой заголовок, «Карта Хейвена» —
+   маленькая ссылка назад. .map-title-slava используется в обоих местах —
+   класс назван по первому случаю, но это просто «маленькая кликабельная
+   ссылка рядом с заголовком», а не буквально про слово «Слава». */
+#glory-title { display: inline-flex; gap: 4px; align-items: flex-start; font-size: 1em; }
+.map-title-text { font-size: 1.5em; font-weight: 700; }
+.map-title-slava {
+	font-family: 'El Messiri', sans-serif;
+	font-size: .75em;
+	font-weight: 700;
+	line-height: 1.2;
+	color: var(--ink-600);
+	text-box-trim: trim-both;
+	text-box-edge: cap alphabetic;
+	cursor: pointer;
+	transition: color .14s ease;
+}
+.map-title-slava:hover { color: var(--parch-400); }
+
+/* — Все лейблы секций → ink-500 — */
+.sidebar-section-label { color: var(--ink-500); }
+
+/* — Локации: без pt, pb-[8px], gap заголовок→иконки 8 — */
+#locations-section { 
+	padding-bottom: 8px;
+	display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* — Слои карты: gap заголовок→чекбоксы 12, в строке 6 — */
+.layer-checkbox { gap: 6px; }
+
+/* — Поиск: строка py-[8px], плейсхолдер 12 italic ink-600 (размер лупы — в
+     блоке icon/search выше, из компонента 276:231) — */
+#search-section {padding: 8px 0;}
+#sidebar-search { font-size: .75em; }
+#sidebar-search::placeholder { font-style: italic; color: var(--ink-600); opacity: 1; }
+
+/* [Вариант 3 (глиф-маска + SVG-фильтр #fx-icon-tex) откатан: не отрисовывался
+   кросс-браузерно, иконки исчезали. Иконки снова на 3-слойных <img>-экспортах
+   компонентов Figma — см. правила .fx-icon--* выше (контейнер 10×10 / 12×10,
+   inset -10/-30/-40 на состояние, кроссфейд по opacity, глиф не сдвигается).] */
+
+/* — Журнал заданий: лейбл по тексту, «+» и воронка сгруппированы справа
+     (.section-label-actions, gap-[4px]), между ними space-between — см. блок
+     «Секция Журнал заданий» выше — */
+
+/* — Чипы статусов: та же логика, что у текстовых пилюль «Особенностей»
+     (.filter-pill.icon-toggle.icon-toggle--text — эталон «Кровь Иши»):
+     покой ink-500 → hover parch-400 → выбрано brass-300, растущая от курсора
+     заливка с её анимацией появления — всё из общего блока .icon-toggle выше.
+     Своих цветов по статусу нет. — */
+#quest-status-chips { margin: 0; }   /* теперь лежит внутри .filter-section панели */
+.icon-toggle .icon-toggle__label { font-size: .75em; }
+
+/* Ромб статуса слева от текста: 10×10, тот же SVG, что в журнале. gap:4px до
+   подписи. Ромб и подпись — обычные in-flow flex-элементы кнопки, поэтому её
+   ширина (а с ней и подсветка .icon-toggle__fx, что тянется left/right:-2px)
+   сама охватывает «ромб + текст».
+   Подпись остаётся ровно там же, где у пилюль «Особенностей» (align-items у
+   .icon-toggle — center), а ромб опускаем к базовой линии текста:
+   align-self:flex-end прижимает его к низу кнопки, margin-bottom 4px = ровно
+   расстояние от низа кнопки до альфабетик-бейслайна подписи (12px-текст с
+   text-box-trim по центру 16px-кнопки). Низ ромба садится на бейслайн. */
+#quest-status-chips .icon-toggle--text { gap: 4px; }
+#quest-status-chips .quest-status-chip__sq {
+	position: relative;
+	z-index: 2;
+	flex-shrink: 0;
+	align-self: flex-end;
+	margin-bottom: 3px;
+	width: 10px;
+	height: 10px;
+	background: center / contain no-repeat;   /* см. .popup-quest-title .quest-sq */
+}
+#quest-status-chips .quest-status-chip__sq--rumor  { background-image: url("images/ui/quest-status-rumor.svg"); }
+#quest-status-chips .quest-status-chip__sq--known  { background-image: url("images/ui/quest-status-known.svg"); }
+#quest-status-chips .quest-status-chip__sq--active { background-image: url("images/ui/quest-status-active.svg"); }
+#quest-status-chips .quest-status-chip__sq--done   { background-image: url("images/ui/quest-status-done.svg"); }
+
+/* Выбранная пилюля (.selected — под ромбом появляется яркая латунная заливка):
+   ромб отделяем от фона тенью по его контуру (drop-shadow идёт по фигуре, не
+   по квадрату 10×10). Два слоя, порядок важен — фильтры применяются слева
+   направо, поэтому первым идёт светлая тонкая кромка (она ляжет вплотную к
+   ромбу), вторым — чёрная тень (расходится дальше, за кромкой). Кромка нужна,
+   чтобы почти чёрный ромб «Слуха» не сливался со своей же чёрной тенью.
+   У невыбранных/hover фон тёмный — фильтра нет. */
+#quest-status-chips .icon-toggle.selected .quest-status-chip__sq {
+	filter: drop-shadow(0 0 3px rgb(0 0 0 / 50%))
+			drop-shadow(0 0 0.5px rgb(0 0 0));	
+}
+
+#quest-status-chips .icon-toggle:not(:hover):not(.selected) .quest-status-chip__sq {
+	filter: drop-shadow(0 0 3px rgb(0 0 0 / 50%));
+}
+
+#quest-status-chips .icon-toggle:hover .quest-status-chip__sq {
+	filter: drop-shadow(0 0 3px rgb(0 0 0 / 50%))
+			drop-shadow(0 0 0.5px rgb(0 0 0 / 50%));	
+}
+
+/* — Строки журнала: колонка [ромб + название 14] / [локация 12, отступ 16] — */
+#quest-journal-list {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin-top: 4px;
+}
+.journal-row {
+	display: grid;
+	grid-template-columns: auto 1fr auto;
+	grid-template-areas:
+		"sq title grip"
+		"loc loc loc";
+	column-gap: 4px;
+	row-gap: 4px;
+	align-items: end;
+	padding: 0;
+	border: 0;
+	align-content: center;
+}
+.journal-row-main { display: contents; }
+.quest-sq {
+	grid-area: sq;
+	align-self: center;
+	margin: 0;
+	width: 8.5px;
+	height: 8.5px;
+	transform: rotate(45deg);
+}
+/* Ромб статуса именно в журнале сайдбара — SVG из макета (quest__status,
+   node 254:1525): градиент по статусу + внутренний свет + зерно. Плоский
+   rotate(45deg)-квадрат выше остаётся для попапов локаций/провинций. */
+#quest-journal-list .quest-sq,
+#branch-card .quest-sq {
+	width: 10px;
+	height: 10px;
+	transform: none;
+	background: center / contain no-repeat;   /* см. .popup-quest-title .quest-sq */
+	box-shadow: none;
+	margin-top: 3px;
+}
+#quest-journal-list .quest-sq--rumor,  #branch-card .quest-sq--rumor  { background-image: url("images/ui/quest-status-rumor.svg"); }
+#quest-journal-list .quest-sq--known,  #branch-card .quest-sq--known  { background-image: url("images/ui/quest-status-known.svg"); }
+#quest-journal-list .quest-sq--active, #branch-card .quest-sq--active { background-image: url("images/ui/quest-status-active.svg"); }
+#quest-journal-list .quest-sq--done,   #branch-card .quest-sq--done   { background-image: url("images/ui/quest-status-done.svg"); }
+#quest-journal-list .quest-sq--failed, #branch-card .quest-sq--failed { background-image: url("images/ui/quest-status-failed.svg"); }
+
+/* ─── Ветки заданий: разворачиваемые группы прямо в журнале (node 367:257) ──
+   Заголовок ветки — шеврон (сворачивает/разворачивает список ниже) + название
+   (клик открывает #branch-card) + счётчик «выполнено/всего», посчитанный на
+   лету по статусам участников (у самой ветки статуса нет). Список участников
+   ниже — те же .journal-row, что в обычном журнале, просто с отступом слева
+   (макет: pl-[15px] pt-[4px] gap-[16px]). */
+.journal-branch {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	width: 100%;
+	margin-bottom: 4px;
+}
+.journal-branch-header {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+.journal-branch-chevron {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 8px;
+	height: 5px;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: var(--parch-200);
+	cursor: pointer;
+	flex-shrink: 0;
+	transition: transform .15s ease;
+}
+.journal-branch.collapsed .journal-branch-chevron { transform: rotate(-90deg); }
+.journal-branch-title {
+	flex: 1;
+	min-width: 0;
+	font-family: 'El Messiri', sans-serif;
+	font-weight: 500;
+	font-size: 16px;
+	line-height: 1;
+	color: var(--parch-200);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	cursor: pointer;
+}
+.journal-branch-title:hover { color: var(--brass-300); }
+.journal-branch-count {
+	flex-shrink: 0;
+	font-family: 'Beaufort for LoL', sans-serif;
+	font-size: 12px;
+	color: var(--brass-600);
+}
+.journal-branch-quests {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding-left: 15px;
+	padding-top: 4px;
+}
+.journal-branch.collapsed .journal-branch-quests { display: none; }
+.journal-branch-connector {
+	padding-left: 15px;
+	font-size: 11px;
+	font-style: italic;
+	text-transform: lowercase;
+	color: var(--ink-500);
+}
+
+/* Насечка перетаскивания в строке журнала — просто занимает свою ячейку
+   грида; сам глиф рисует инлайновый SVG из JS (QUEST_GRIP_SVG), как и было. */
+.quest-drag { grid-area: grip; }
+.journal-row-anchor {
+	grid-area: loc;
+	padding-left: 14px;
+	font-size: 12px;
+	line-height: 1;
+	color: var(--ink-500);
+}
+
+/* — Скроллбар (журнал + провинции): 9px, без трека. Ползунок — растяжимая
+     плашка scrollbar-thumb.svg (1px рамка + 1px отступ + заливка, вертикальный
+     градиент). Тянем через border-image / 9-slice: срез 2 (= 1px рамка + 1px
+     отступ) фиксирует края при любой высоте, тянется только центральная
+     заливка. Высоту самого ползунка (доля видимой области от всего контента)
+     считает браузер — отсюда «responsive». */
+#quest-journal-list::-webkit-scrollbar,
+#location-list::-webkit-scrollbar { width: 9px; background: transparent; }
+
+/* трека нет — просвечивает фон сайдбара */
+#quest-journal-list::-webkit-scrollbar-track,
+#location-list::-webkit-scrollbar-track,
+#quest-journal-list::-webkit-scrollbar-track-piece,
+#location-list::-webkit-scrollbar-track-piece { background: transparent; }
+
+#quest-journal-list::-webkit-scrollbar-thumb,
+#location-list::-webkit-scrollbar-thumb {
+	background: none;
+	border: 0;
+	border-radius: 0;
+	min-height: 24px;
+	border-image: url("images/ui/scrollbar-thumb.svg") 2 fill / 2px stretch;
+}
+
+/* — Панель фильтров: без фона; линии-разделители сверху и снизу «отрывают»
+     опции фильтров и от лейбла секции, и от списка под ними. Видны только пока
+     панель открыта (в .hidden она display:none). — */
+#search-filter-panel,
+#quest-filter-panel {
+	background: none;
+	border: 0;
+	border-top: 1px solid #343130;
+	border-bottom: 1px solid #343130;
+	padding: 8px 0;
+	gap: 12px;
+}
+.filter-section { gap: 8px; }
+.filter-section-label {
+	font-size: 10px;
+	font-weight: 500;
+	letter-spacing: .2px;
+	color: var(--ink-500);
+}
+.trait-mode-btn {
+	font-size: 12px;
+	text-transform: lowercase;
+	padding: 5px 4px;
+}
+.trait-mode-btn.selected {
+	color: var(--parch-400);
+	text-shadow: 0 0 4px rgba(106, 101, 93, .8);
+}
+
+/* — Дерево провинций: треугольник из triangle.svg, рельса #282726 — */
+.province-header::before {
+	background: url("images/ui/triangle.svg") center / 8px 5px no-repeat;
+	clip-path: none;
+}
+.province-rail { background: #282726; }
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   САЙДБАР «СЛАВА» — Figma node 378:357 (список) + примерный макет формы
+   «Новая фракция» из чата. Список виден всем, «+ Добавить фракцию» и клик по
+   заголовку фракции — только админу (см. isAdmin в script.js).
+   ═══════════════════════════════════════════════════════════════════════════ */
+#glory-view {
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+	flex: 1;
+}
+#glory-intro {
+	margin: 0;
+	font-size: 12px;
+	line-height: normal;
+	color: var(--parch-200);
+}
+.glory-add-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	background: none;
+	border: 0;
+	padding: 0;
+	font-size: 12px;
+	color: var(--ink-500);
+	cursor: pointer;
+	transition: color .14s ease;
+}
+.glory-add-row:hover { color: var(--parch-400); }
+.glory-add-row .fx-icon--plus { color: inherit; }
+
+/* Название уже привязанной ветки заданий в форме задания (#quest-branch-row) —
+   клик открывает ту же модалку #branch-edit-overlay, что и «+ Добавить в
+   ветку», просто предзаполненную. */
+.quest-branch-chip {
+	display: inline-block;
+	font-size: 12px;
+	color: var(--parch-200, #cfc7b8);
+	cursor: pointer;
+	transition: color .14s ease;
+}
+.quest-branch-chip:hover { color: var(--brass-300); }
+
+#factions-list {
+	flex: 1;
+	min-height: 0;
+	overflow-y: auto;
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+}
+#factions-list::-webkit-scrollbar       { width: 4px; }
+#factions-list::-webkit-scrollbar-track { background: transparent; }
+#factions-list::-webkit-scrollbar-thumb { background: #3d3531; }
+.factions-empty { font-size: .75em; color: #3E3C3A; margin: 0; }
+
+.faction-card {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	padding: 8px 6px 8px 4px;
+	width: 100%;
+	box-sizing: border-box;
+	outline: none;
+}
+/* Разворачивается кликом (или Enter/Space, если раньше сфокусирована через
+   Tab — карточка получает tabindex только когда есть что разворачивать, см.
+   factionCardHTML). Два разных градиента — 1:1 два состояния .icon-toggle
+   (сами градиенты см. .icon-toggle__layer--hover/--selected .icon-toggle__grad
+   в этом файле), только горизонтальные и отзеркаленные — самая яркая точка
+   справа (270deg разворачивает те же проценты-стопы в обратную сторону, счёт
+   значений менять не пришлось):
+   — hover/клавиатурный фокус — бледный (rgba(122,95,42,...), «hover» токен),
+     временный, гаснет как только мышь/фокус ушли;
+   — раскрыта (.faction-card--expanded, ставится в JS из expandedFactionIds,
+     см. factionCardHTML) — яркий (rgba(150,118,62,...), «selected» токен),
+     держится, пока карточку не свернут кликом ещё раз, независимо от hover.
+
+   Оба градиента лежат в ::before/::after СРАЗУ (background тут не участвует
+   в переходе — интерполяция twin-градиентов между собой и особенно между
+   «фона нет» и градиентом ненадёжна в браузерах и легко просто щёлкает без
+   анимации). Плавность — через transition: opacity на самих слоях, это
+   работает всегда. ::after (яркий) рисуется поверх ::before (бледный) по
+   порядку в DOM, поэтому при наведении на уже раскрытую карточку бледный
+   слой отдельно гасим — иначе оба смешивались бы в третий, незапланированный
+   оттенок. */
+.faction-card--expandable {
+	position: relative;
+	cursor: pointer;
+}
+.faction-card--expandable::before,
+.faction-card--expandable::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	opacity: 0;
+	transition: opacity .3s ease;
+	pointer-events: none;
+}
+.faction-card--expandable::before {
+	background: linear-gradient(270deg,
+		rgba(122, 95, 42, .35) 5.069%,
+		rgba(122, 95, 42, .021) 59.631%,
+		rgba(122, 95, 42, 0) 94.931%);
+}
+.faction-card--expandable::after {
+	background: linear-gradient(270deg,
+		rgba(150, 118, 62, .55) 5.069%,
+		rgba(150, 118, 62, .045) 59.631%,
+		rgba(150, 118, 62, 0) 94.931%);
+}
+.faction-card--expandable:hover::before,
+.faction-card--expandable:focus-visible::before {
+	opacity: 1;
+}
+.faction-card--expandable.faction-card--expanded::before {
+	opacity: 0;
+}
+.faction-card--expandable.faction-card--expanded::after {
+	opacity: 1;
+}
+.faction-card-header {
+	display: flex;
+	gap: 6px;
+	align-items: flex-start;
+	width: 100%;
+}
+/* Клик-цель редактирования — ТОЛЬКО .faction-card-name (само название), ничего
+   больше: ни герб, ни титул, ни очки, ни вся строка шапки. См. делегат клика
+   в script.js — там тоже [data-edit-faction], который теперь висит только
+   на этом элементе. */
+.faction-card-name--editable { cursor: pointer; }
+.faction-card-name--editable:hover { color: var(--brass-300); } /* как .popup-title--editable:hover */
+.faction-card-icon {
+	width: 16px;
+	height: 16px;
+	flex-shrink: 0;
+	object-fit: cover;
+	margin-top: 2px;
+}
+.faction-card-row {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 8px;
+}
+.faction-card-name-col {
+	display: flex;
+	flex-direction: column;
+	gap: 0px;
+}
+.faction-card-name {
+	margin: 0;
+	font-family: 'El Messiri', sans-serif;
+	font-weight: 500;
+	font-size: 16px;
+	line-height: normal;
+	color: var(--parch-200);
+	transition: color .14s ease;
+}
+.faction-card-title {
+	margin: 0;
+	font-family: 'Beaufort for LoL', sans-serif;
+	font-style: italic;
+	font-size: 12px;
+	line-height: normal;
+}
+.faction-card-score {
+	flex-shrink: 0;
+	margin: 0;
+	white-space: nowrap;
+	font-family: 'Beaufort for LoL', sans-serif;
+}
+.faction-card-score-val { font-weight: 700; font-size: 16px; }
+.faction-card-score-max { font-size: 12px; color: var(--parch-400); }
+
+.faction-card-loyalty {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	margin-left: 22px; /* герб 16px + gap 6px у .faction-card-header — чтобы полоса шла вровень с колонкой названия, а не с гербом. Вертикальный отступ от шапки — общий gap:12px у .faction-card */
+}
+.faction-loyalty-pip {
+	width: 16px;
+	height: 16px;
+	flex-shrink: 0;
+	background: center / contain no-repeat;
+	background-image: url("images/ui/loyalty-empty.svg");
+}
+.faction-loyalty-pip--positive { background-image: url("images/ui/loyalty-high.png"); }
+.faction-loyalty-pip--negative { background-image: url("images/ui/loyalty-low.png"); }
+.faction-loyalty-pip--neutral  { background-image: url("images/ui/loyalty-neutral.png"); }
+
+/* Блок описания — только если у фракции есть description (см. factionCardHTML
+   в script.js); градиент затухает слева направо, как в макете. */
+.faction-card-desc {
+	background: linear-gradient(90deg, rgba(3, 3, 3, .5) 0%, rgba(3, 3, 3, 0) 100%);
+	padding: 14px;
+	font-size: 12px;
+	line-height: normal;
+	color: var(--parch-400);
+}
+.faction-card-desc .description p { margin: 0 0 8px; }
+.faction-card-desc .description p:last-child { margin-bottom: 0; }
+.faction-card-effect {
+	margin: 8px 0 0;
+	font-weight: 700;
+	font-size: 12px;
+	line-height: normal;
+}
+
+/* — Форма «Новая фракция» — тот же ритм/поля, что у формы задания — */
+#edit-faction-view {
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+	flex: 1;
+}
+#edit-faction-view h3 {
+	font-family: 'El Messiri', sans-serif;
+	font-size: 1.5em;
+	color: #dcd0c0;
+	font-weight: 700;
+	line-height: 1.2;
+	margin: 0;
+	text-box-trim: trim-both;
+	text-box-edge: cap alphabetic;
+}
+#faction-form {
+	flex: 1;
+	overflow-y: auto;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	padding: 0 10px 10px 0;
+}
+#faction-form::-webkit-scrollbar       { width: 4px; }
+#faction-form::-webkit-scrollbar-track { background: transparent; }
+#faction-form::-webkit-scrollbar-thumb { background: #3d3531; }
+#faction-form label {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	font-size: 0.72em;
+	font-weight: 500;
+	color: #787167;
+	text-transform: uppercase;
+}
+#faction-form .form-field label { display: block; }
+#faction-form label .required-mark { color: #8C3A30; text-transform: none; }
+#faction-form input[type="text"],
+#faction-form input[type="number"],
+#faction-form select,
+#faction-form textarea {
+	background: rgba(7, 7, 7, 0.5);
+	border: 1px solid #343130;
+	border-radius: 0;
+	color: #dcd0c0;
+	font-size: 0.75rem;
+	padding: 7px 9px;
+	outline: none;
+	resize: vertical;
+	font-family: inherit;
+}
+#faction-form input:focus,
+#faction-form select:focus,
+#faction-form textarea:focus { border-color: #776d61; }
+#faction-form .desc-editor textarea {
+	background: transparent;
+	border: none;
+	min-height: 68px;
+}
+#faction-form .desc-editor textarea:focus { border: none; }
+#faction-form-error {
+	margin: 0;
+	font-size: 0.75em;
+	color: #C0564A;
+	min-height: 1em;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ПЕРЕКЛЮЧЕНИЕ ВИДОВ САЙДБАРА «КАРТА ХЕЙВЕНА» ⇄ «СЛАВА» — вариант 2a
+   («снос в сторону»): уходящий вид гаснет и уезжает в ту же сторону, откуда
+   приезжает новый; секции нового вида проявляются каскадом сверху вниз.
+   Заголовок участвует в том же движении (он — первая секция вида, --i: 0),
+   а его маленькая ссылка едет ровно на своё новое место — величину сноса
+   считает JS и кладёт в --view-shift (см. sidebar-view-swap в script.js).
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Уходящий вид на время перехода вынимается из потока и лежит поверх нового,
+   поэтому контейнеру нужна система координат. Паддинги у #sidebar-inner
+   20px/18px — inset у .sb-view-out ниже повторяет их, чтобы вынутый из
+   потока вид стоял точно там же, где стоял в потоке. */
+#sidebar-inner { position: relative; }
+
+/* Анимируются НЕ сами виды, а их прямые дети (секции) — иначе каскад
+   невозможен, а прозрачность целого вида даёт грязное наложение полупрозрачных
+   текстов друг на друга. */
+#normal-view > *,
+#glory-view  > * {
+	--view-shift: 16px;
+	--vs-dur: 620ms;
+	--vs-delay: calc(var(--i, 0) * 40ms);
+	transition:
+		opacity   var(--vs-dur) ease                        var(--vs-delay),
+		transform var(--vs-dur) cubic-bezier(.2, .7, .2, 1) var(--vs-delay);
+}
+
+/* Каскад: порядковый номер секции внутри вида. До 9 секций — лишние правила
+   безвредны, если секций меньше. */
+#normal-view > :nth-child(1), #glory-view > :nth-child(1) { --i: 0; }
+#normal-view > :nth-child(2), #glory-view > :nth-child(2) { --i: 1; }
+#normal-view > :nth-child(3), #glory-view > :nth-child(3) { --i: 2; }
+#normal-view > :nth-child(4), #glory-view > :nth-child(4) { --i: 3; }
+#normal-view > :nth-child(5), #glory-view > :nth-child(5) { --i: 4; }
+#normal-view > :nth-child(6), #glory-view > :nth-child(6) { --i: 5; }
+#normal-view > :nth-child(7), #glory-view > :nth-child(7) { --i: 6; }
+#normal-view > :nth-child(8), #glory-view > :nth-child(8) { --i: 7; }
+#normal-view > :nth-child(9), #glory-view > :nth-child(9) { --i: 8; }
+
+/* Уходящий вид: поверх нового, из потока, клики не перехватывает. Уезжает
+   быстрее, чем приезжает новый (250 против 620) и без каскада — иначе
+   переход ощущается вялым. */
+.sb-view-out {
+	position: absolute;
+	inset: 20px 18px;
+	z-index: 1;
+	pointer-events: none;
+}
+.sb-view-out > * {
+	opacity: 0;
+	transform: translateX(var(--view-shift));
+	--vs-dur: 250ms;
+	--vs-delay: 0ms;
+}
+
+/* Начальное состояние приезжающего вида — без перехода, чтобы он не «ехал»
+   в эту точку, а просто в ней оказался; класс снимается следующим кадром. */
+.sb-view-in > * {
+	opacity: 0;
+	transform: translateX(var(--view-shift));
+	transition: none;
+}
+
+/* Пока идёт переход, вид уже видим, но клики по нему ещё не нужны. */
+.sb-view-busy { pointer-events: none; }
+
+@media (prefers-reduced-motion: reduce) {
+	#normal-view > *,
+	#glory-view  > * { transition: none; }
 }
 
