@@ -178,7 +178,7 @@ button, input, select, textarea, optgroup, option {
 #location-list {
 	flex: 1;
 	min-height: 0;
-	overflow-y: visible;
+	overflow-y: auto;
 }
 
 /* Скроллбар */
@@ -1204,7 +1204,7 @@ h1, h2, h3 {
 
 
 .popup-content {
-    width: 342px;                  /* внутренняя ширина по макету (282:540); POPUP_DEFAULT_WIDTH в script.js */
+    width: 314px;                  /* фрейм 282:540 шириной 350px − padding 18×2; POPUP_DEFAULT_WIDTH в script.js */
     padding: 20px 18px;           /* py-[20px] px-[18px] у фрейма попапа */
     box-sizing: content-box;
     color: #dcd0c0;
@@ -1262,26 +1262,46 @@ h1, h2, h3 {
     background: linear-gradient(#3e3c3a, #3e3c3a) center / 100% 1px no-repeat;
 }
 
-/* Подвал: «ФРАКЦИЯ: …» слева, «ПРОВИНЦИЯ: …» справа. */
-.popup-footer {
+/* ─── Info-grid: «метка сверху / значение снизу» в 2 колонки ───────────────
+   Общий вид для «Фракция»/«Провинция» попапа локации (макет 282:540) и
+   «Локация(Провинция)»/«Ветка заданий» карточки задания (макет 401:456). */
+.popup-info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    width: 100%;
+}
+.popup-info-item {
     display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
-    padding-top: 4px;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+.popup-info-label {
     font-family: 'Beaufort for LoL', sans-serif;
     font-size: 12px;
     font-weight: 500;
     letter-spacing: 0.24px;
+    text-transform: uppercase;
     line-height: 1;
+    color: #9A9285;   /* parch-400 */
 }
-.popup-footer .popup-footer-item { text-box-trim: trim-both; text-box-edge: cap alphabetic; }
-/* «Фракция» / «Провинция» — всегда капсом; сами названия — как в данных
-   (первую букву поднимает cap() в JS), латунные, при наличии региона — ссылка. */
-.popup-footer .popup-footer-label { color: #9A9285; text-transform: uppercase; }   /* parch-400 */
-.popup-footer .popup-footer-val   { color: #96763E; }   /* brass-600 */
+.popup-info-val {
+    font-family: 'Beaufort for LoL', sans-serif;
+    font-size: 12px;
+    line-height: 1;
+    color: #96763E;   /* brass-600 */
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.popup-info-val a { color: inherit; }
 
-.popup-content .name-eng {
+/* .popup-content — попап локации/провинции; #quest-card/#branch-card — те же
+   классы для полей эта-имени/описания, чтобы шрифты/цвета совпадали 1:1
+   (макеты 401:456, 404:593 используют ровно ту же типографику, что 282:540). */
+.popup-content .name-eng,
+#quest-card .name-eng,
+#branch-card .name-eng {
     margin: 0;
     font-size: 12px;
     line-height: normal;
@@ -1294,7 +1314,9 @@ h1, h2, h3 {
     text-box-edge: cap alphabetic;
 }
 
-.popup-content .description {
+.popup-content .description,
+#quest-card .description,
+#branch-card .description {
     margin: 0;
     padding-bottom: 8px;            /* pb-[8px] у text-block/paragraph */
     font-size: 14px;
@@ -1304,8 +1326,12 @@ h1, h2, h3 {
     color: #CFC7B8;                  /* parch-200 */
     hyphens: auto;
 }
-.popup-content .description p { margin: 0 0 8px; }
-.popup-content .description p:last-child { margin-bottom: 0; }
+.popup-content .description p,
+#quest-card .description p,
+#branch-card .description p { margin: 0 0 8px; }
+.popup-content .description p:last-child,
+#quest-card .description p:last-child,
+#branch-card .description p:last-child { margin-bottom: 0; }
 
 /* Фракция и провинция стоят в один ряд (Group 79/64/65 в popup.txt), а не
    друг под другом — .info-row-group их выравнивает по горизонтали. */
@@ -2702,7 +2728,6 @@ a.desc-link:hover { color: #C9A24D; text-decoration: underline; } /* brass-500 *
 	text-align: left;
 	cursor: pointer;
 	font-family: 'El Messiri', sans-serif;
-	color: #6a655d;                /* ink-500 — обычное задание */
 }
 .popup-quest-title .quest-sq {
 	flex-shrink: 0;
@@ -2730,9 +2755,18 @@ a.desc-link:hover { color: #C9A24D; text-decoration: underline; } /* brass-500 *
 	text-box-trim: trim-both;
 	text-box-edge: cap alphabetic;
 }
-.popup-quest-title--active .popup-quest-name { font-weight: 600; color: #cfc7b8; }  /* SemiBold, parch-200 */
-.popup-quest-title--done   .popup-quest-name { text-decoration: line-through; }
+.popup-quest-title--done .popup-quest-name { text-decoration: line-through; }
 .popup-quest-title:hover .popup-quest-name { text-shadow: 0 0 4px rgba(227, 155, 39, 0.55); }
+
+/* Яркость строки — по группе статуса (как .journal-row-title--dim/--bright):
+   слух/завершено — тусклая пара (rest ink-500, hover parch-400), известно/
+   активно — светлая (rest parch-400, hover parch-200). Ромб статуса и
+   значение ветки (desc-link) сами несут свой цвет — их не трогаем. */
+.popup-quest-row--dim    .popup-quest-title { color: var(--ink-500, #6a655d); }
+.popup-quest-row--bright .popup-quest-title { color: var(--parch-400, #9a9285); }
+.popup-quest-row--dim    .popup-quest-title:hover { color: var(--parch-400, #9a9285); }
+.popup-quest-row--bright .popup-quest-title:hover { color: var(--parch-200, #cfc7b8); }
+.popup-quest-row--bright .popup-quest-name { font-weight: 600; }   /* SemiBold */
 
 .popup-quest-goal,
 .popup-quest-branch {
@@ -2741,9 +2775,11 @@ a.desc-link:hover { color: #C9A24D; text-decoration: underline; } /* brass-500 *
 	font-size: 12px;
 	line-height: normal;
 }
-.popup-quest-goal   { color: #cfc7b8; }   /* parch-200 */
-.popup-quest-branch { color: #9a9285; }
-.popup-quest-branch-label { font-style: italic; font-weight: 500; color: #9a9285; }
+.popup-quest-row--dim    .popup-quest-goal { color: var(--ink-500, #6a655d); }
+.popup-quest-row--bright .popup-quest-goal { color: var(--parch-200, #cfc7b8); }
+.popup-quest-branch-label { font-style: italic; font-weight: 500; }
+.popup-quest-row--dim    .popup-quest-branch-label { color: var(--ink-500, #6a655d); }
+.popup-quest-row--bright .popup-quest-branch-label { color: var(--parch-400, #9a9285); }
 
 /* ─── Точечное задание на карте (anchor_kind = 'point') ───────────────────
    L.icon → класс висит на самом <img.leaflet-marker-icon>. */
@@ -2752,32 +2788,51 @@ a.desc-link:hover { color: #C9A24D; text-decoration: underline; } /* brass-500 *
 }
 
 /* ─── Карточка задания (плавающая, поверх попапа) ─────────────────────────
-   Геометрия и стекло — как у попапа локации (настоящий border #EFE7D6). */
+   Геометрия/стекло/рамка — 1:1 с попапом локации (макеты 401:456, 404:593
+   используют тот же контейнер, что 282:540: px-[18px] py-[20px], фон
+   rgba(3,3,3,.83), blur(15px), shadow 0 0 6px 3px rgba(0,0,0,.5), ширина
+   фрейма 350px). Скролл — на -inner, а не на самом боксе, иначе оверлей
+   рамки (::before) уезжал бы вместе с прокруткой контента. */
 #quest-card,
 #branch-card {
 	position: fixed;
-	width: 300px;
+	width: 350px;
 	max-height: calc(100vh - 120px);
 	box-sizing: border-box;
-	background: rgba(20, 20, 20, 0.86);
-	border: 1px solid #EFE7D6;
-	backdrop-filter: blur(8px);
-	box-shadow: 0 0 13px rgba(0, 0, 0, 1);
-	padding: 14px 20px 17px;
-	overflow-y: auto;
+	display: flex;
+	flex-direction: column;
+	background: rgba(3, 3, 3, 0.83);
+	backdrop-filter: blur(15px);
+	box-shadow: 0 0 6px 3px rgba(0, 0, 0, 0.5);
+	padding: 20px 18px;
 	color: #DCD0C0;
 	z-index: 1100;
+}
+/* Рамка — тот же приём, что у .leaflet-popup-content-wrapper::before:
+   полупрозрачная линия отдельным слоем с mix-blend-mode, а не border на
+   самом боксе (иначе смешение задело бы и фон, и текст). */
+#quest-card::before,
+#branch-card::before {
+	content: '';
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	border: 1px solid #efe7d666;
+	mix-blend-mode: overlay;
 }
 #quest-card-inner,
 #branch-card-inner {
 	display: flex;
 	flex-direction: column;
+	gap: 8px;                 /* как .popup-text — секции идут через .popup-divider, остальное просто гэпом */
+	min-height: 0;             /* даёт overflow-y ниже реально сработать во flex-колонке */
+	overflow-y: auto;
+	scrollbar-width: none;      /* Firefox — прокрутка остаётся, полоса не рисуется */
+	-ms-overflow-style: none;   /* старый Edge/IE */
 }
-.branch-card-list {
-	display: flex;
-	flex-direction: column;
-	gap: 16px;
-	margin-top: 4px;
+#quest-card-inner::-webkit-scrollbar,
+#branch-card-inner::-webkit-scrollbar {
+	display: none;              /* Chrome/Safari/новый Edge */
 }
 .quest-card-head {
 	display: flex;
@@ -2787,68 +2842,62 @@ a.desc-link:hover { color: #C9A24D; text-decoration: underline; } /* brass-500 *
 }
 .quest-card-head h3 {
 	margin: 0;
+	min-width: 0;
 	font-family: 'El Messiri', sans-serif;
-	font-weight: 600;
+	font-weight: 500;          /* Medium — как .popup-content h1 */
 	font-size: 20px;
-	line-height: 1.1;
+	line-height: normal;
 	color: #EFE7D6;
+	mix-blend-mode: screen;    /* см. .popup-content h1 */
 }
-.quest-card-close {
-	border: none;
-	background: none;
-	padding: 0;
-	font-size: 12px;
-	line-height: 12px;
-	color: #6A655D;
-	cursor: pointer;
-	flex-shrink: 0;
-}
-.quest-card-close:hover { color: #D3B495; text-shadow: 0 0 1.5px rgba(227, 155, 39, 0.66); }
-.quest-card-eng {
-	margin: 12px 0 0;
-	font-size: 10px;
-	line-height: 14px;
-	font-weight: 600;
-	text-transform: uppercase;
-	color: #787167;
-}
-.quest-card-divider {
-	height: 1px;
-	background: #343130;
-	margin: 10px 0 12px;
-}
-.quest-card-desc {
-	font-size: 12px;
-	line-height: 16px;
-	color: #CFC7B8;
-}
-.quest-card-anchor {
-	margin-top: 12px;
-	padding: 11px 13px;
-	background: linear-gradient(90deg, rgba(62, 60, 58, 0.435) 0%, rgba(62, 60, 58, 0.155) 100%);
+/* Заголовок карточки задания — название + маленькая иконка статуса рядом
+   (макет 401:456, вместо текстовой строки статуса в подвале). Заголовок
+   карточки ветки — название слева + счётчик «выполнено/всего» справа. */
+.quest-card-title-row {
 	display: flex;
-	flex-direction: column;
-	gap: 7px;
+	align-items: center;
+	gap: 6px;
+	min-width: 0;
+	flex: 1 1 auto;
 }
-.quest-card-anchor-label {
-	font-size: 10px;
-	line-height: 14px;
-	color: #6A655D;
+.quest-card-title-row--branch {
+	justify-content: space-between;
+	gap: 10px;
 }
-.quest-card-anchor-val {
+.quest-card-title-row .quest-sq {
+	flex-shrink: 0;
+	width: 12px;
+	height: 12px;
+	margin: 0 0 3px;
+	transform: none;
+	box-shadow: none;
+	background: center / contain no-repeat;   /* см. .popup-quest-title .quest-sq */
+}
+.quest-card-title-row .quest-sq--rumor  { background-image: url("images/ui/quest-status-rumor.svg"); }
+.quest-card-title-row .quest-sq--known  { background-image: url("images/ui/quest-status-known.svg"); }
+.quest-card-title-row .quest-sq--active { background-image: url("images/ui/quest-status-active.svg"); }
+.quest-card-title-row .quest-sq--done   { background-image: url("images/ui/quest-status-done.svg"); }
+.quest-card-title-row .quest-sq--failed { background-image: url("images/ui/quest-status-failed.svg"); }
+/* Счётчик «выполнено/всего» в заголовке #branch-card (макет 404:593,
+   node «progress»): число выполненных — крупное и латунное, «/всего» —
+   мельче и тусклее. brass-500 нет среди CSS-переменных проекта (только
+   300/600) — используем как есть, по примеру inline-оттенков в РЕСКИН-блоке. */
+.quest-card-branch-count {
+	flex-shrink: 0;
+	font-family: 'Beaufort for LoL', sans-serif;
+	font-weight: 700;
+	font-size: 16px;
+	letter-spacing: 0.24px;
+	color: #c9a24d;   /* brass-500 */
+}
+.quest-card-branch-total {
+	font-weight: 400;
 	font-size: 12px;
-	line-height: 1;
-	color: #CFC7B8;
+	color: var(--parch-400, #9a9285);
 }
 .quest-card-foot {
 	display: flex;
 	align-items: center;
-	gap: 15px;
-	margin-top: 4px;
-}
-.quest-card-status {
-	font-size: 11px;
-	line-height: 14px;
 }
 .quest-card-edit {
 	margin-left: auto;
@@ -3142,17 +3191,19 @@ path.region-shape.quest-drop-target {
 #quest-journal-list .quest-sq--active, #branch-card .quest-sq--active { background-image: url("images/ui/quest-status-active.svg"); }
 #quest-journal-list .quest-sq--done,   #branch-card .quest-sq--done   { background-image: url("images/ui/quest-status-done.svg"); }
 #quest-journal-list .quest-sq--failed, #branch-card .quest-sq--failed { background-image: url("images/ui/quest-status-failed.svg"); }
+/* Список участников #branch-card теперь тоже строит questPopupRowHTML (макет
+   404:593) — его ромб живёт в .popup-quest-title и должен вести себя как в
+   обычном попапе (margin:0), а не как «журнальный» #branch-card .quest-sq
+   выше (margin-top:3px, из-за #id перебивал бы вложенный класс). */
+#branch-card .popup-quest-title .quest-sq { margin: 0; }
 
-/* ─── Ветки заданий: разворачиваемые группы прямо в журнале (node 367:257) ──
-   Заголовок ветки — шеврон (сворачивает/разворачивает список ниже) + название
-   (клик открывает #branch-card) + счётчик «выполнено/всего», посчитанный на
-   лету по статусам участников (у самой ветки статуса нет). Список участников
-   ниже — те же .journal-row, что в обычном журнале, просто с отступом слева
-   (макет: pl-[15px] pt-[4px] gap-[16px]). */
+/* ─── Ветки заданий: строка-заголовок в журнале (node 367:257) ─────────────
+   Только заголовок — без разворачивания: название (клик открывает
+   #branch-card, где и виден список заданий) + счётчик «выполнено/всего»,
+   посчитанный на лету по статусам участников (у самой ветки статуса нет). */
 .journal-branch {
 	display: flex;
 	flex-direction: column;
-	gap: 4px;
 	width: 100%;
 	margin-bottom: 4px;
 }
@@ -3161,21 +3212,6 @@ path.region-shape.quest-drop-target {
 	align-items: center;
 	gap: 6px;
 }
-.journal-branch-chevron {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: 8px;
-	height: 5px;
-	padding: 0;
-	border: 0;
-	background: none;
-	color: var(--parch-200);
-	cursor: pointer;
-	flex-shrink: 0;
-	transition: transform .15s ease;
-}
-.journal-branch.collapsed .journal-branch-chevron { transform: rotate(-90deg); }
 .journal-branch-title {
 	flex: 1;
 	min-width: 0;
@@ -3196,14 +3232,6 @@ path.region-shape.quest-drop-target {
 	font-size: 12px;
 	color: var(--brass-600);
 }
-.journal-branch-quests {
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-	padding-left: 15px;
-	padding-top: 4px;
-}
-.journal-branch.collapsed .journal-branch-quests { display: none; }
 .journal-branch-connector {
 	padding-left: 15px;
 	font-size: 11px;
