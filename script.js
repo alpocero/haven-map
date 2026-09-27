@@ -935,13 +935,19 @@ function visibleQuestsSorted(list) {
 }
 
 // Локации с вложенным заданием (anchor_kind='location'), пока включена
-// галочка «Задание»: маркер временно показывает иконку задания вместо своей
-// обычной. Если видимое задание ровно одно — клик сразу открывает его
-// карточку (как у точечного, popup у маркера на это время отвязан); если их
-// несколько — попап локации остаётся как есть (там уже есть список
-// «Задания»), меняется только иконка-подсказка. Проходим по ВСЕМ маркерам
-// (не только тем, что сейчас в questsByLocationId), чтобы корректно снять
-// подмену с локации, у которой задание успели перепривязать в другое место.
+// галочка «Задание»: маркер не просто меняет иконку, а по-настоящему
+// переезжает из своей обычной группы (cities/towns/… — см.
+// LOCATION_TYPE_TO_GROUP) в quests, то есть его ТИП временно становится
+// «задание» — соло-режим и обычное выключение других типов локаций теперь
+// корректно на него не влияют, им управляет только галочка «Задание» (см.
+// запрос пользователя: «не просто заменяется изображение, а именно тип
+// становится задание»). Если видимое задание ровно одно — клик сразу
+// открывает его карточку (как у точечного, popup у маркера на это время
+// отвязан); если их несколько — попап локации остаётся как есть (там уже
+// есть список «Задания»), меняется только иконка-подсказка. Проходим по ВСЕМ
+// маркерам (не только тем, что сейчас в questsByLocationId), чтобы корректно
+// снять подмену с локации, у которой задание успели перепривязать в другое
+// место.
 function updateLocationQuestOverrides() {
 	const questsLayerOn = map.hasLayer(quests);
 	for (const markerId in markersById) {
@@ -955,6 +961,14 @@ function updateLocationQuestOverrides() {
 		if (marker._questIconOn !== showQuestIcon) {
 			marker.setIcon(showQuestIcon ? questPointIcon() : getIcon(row.location_type));
 			marker._questIconOn = showQuestIcon;
+			const homeGroup = LOCATION_TYPE_TO_GROUP[row.location_type];
+			if (showQuestIcon) {
+				if (homeGroup) homeGroup.removeLayer(marker);
+				quests.addLayer(marker);
+			} else {
+				quests.removeLayer(marker);
+				if (homeGroup) homeGroup.addLayer(marker);
+			}
 		}
 		const openId = visible.length === 1 ? visible[0].id : null;
 		const wasOpenId = marker._questOpenId || null;
@@ -1444,7 +1458,12 @@ function openQuestCard(id) {
 		q.description ? `<div class="description">${renderDescription(q.description)}</div>` : '',
 		isAdmin ? `<div class="quest-card-foot"><button type="button" class="quest-card-edit" data-edit-quest="${id}">Редактировать</button></div>` : '',
 	].filter(Boolean);
-	questCardInnerEl.innerHTML = (q.engname ? `<p class="name-eng">${q.engname}</p>` : '')
+	// Ветка заданий вместо английского названия — только в карточке задания
+	// (не в попапе локации/провинции, там остаётся обычный engname).
+	const nameEngHTML = branch
+		? `<p class="name-eng" data-open-branch="${branch.id}" title="Открыть ветку заданий">${branch.runame ?? ''}</p>`
+		: (q.engname ? `<p class="name-eng">${q.engname}</p>` : '');
+	questCardInnerEl.innerHTML = nameEngHTML
 		+ sections.join('<div class="popup-divider"></div>');
 	positionQuestCard();
 	questCardEl.classList.remove('hidden');
