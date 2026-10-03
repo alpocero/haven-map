@@ -61,8 +61,39 @@
 }
 
 
-/* ─── ЛЕЙАУТ ─────────────────────────────────────────────────────────── */
+/* ─── ЦВЕТА — Figma «Haven Map (NEW)», Design Style → Цвета (2244:1471) ─── */
+:root {
+	--navy-950:      #0A0A0C; /* Sidebar Background */
+	--navy-900:      #111318; /* Popup Background */
+	--navy-800:      #191D29; /* Button Gradient */
+	--navy-700:      #212733; /* Button Line */
+	--navy-300:      #5B6A90; /* Known Quest */
 
+	--malachite-800: #1B2528; /* Popup Gradient */
+
+	--brass-900:     #31271E; /* Popup Line */
+	--brass-700:     #67471F;
+	--brass-600:     #79592D; /* Alert */
+	--brass-500:     #937341; /* Minor Elements */
+	--brass-400:     #A3844F; /* Alert */
+	--brass-300:     #C8AA6E; /* Highlight */
+	--brass-50:      #F0E6D2; /* Header 1 */
+
+	--chamomile-700: #4C493D; /* Text-3 */
+	--chamomile-500: #8C8469; /* Text-2 */
+	--chamomile-300: #C4B998; /* Text */
+
+	--olive-400:     #A09B8C; /* Technical */
+
+	--grass-600:     #43623C; /* Success */
+	--grass-400:     #608649; /* Success */
+
+	--blood-600:     #722E2E; /* Error */
+	--blood-400:     #9D3D3A; /* Error */
+}
+
+
+/* ─── СТРАНИЦА И КАРТА ─────────────────────────────────────────────────── */
 html {
 	font-size: 16px;
 }
@@ -73,387 +104,16 @@ html, body {
 	overflow: hidden;
 	font-family: 'Beaufort for LoL', sans-serif;
 }
-
-
 button, input, select, textarea, optgroup, option {
 	font-family: inherit;
 	font-size: inherit;
 }
 
 #map {
-	position: fixed;
-	top: 0; left: 0;
-	width: 100%;
-	height: 100%;
-	flex: 1;
-	height: 100%;
-	position: relative;
-}
-
-
-#sidebar-wrapper {
-	position: fixed;
-	top: 0; left: 0;
-	height: 100%;
-	z-index: 1000;
-	display: flex;
-	transition: transform 0.25s ease;
-}
-
-#sidebar-wrapper.collapsed {
-	transform: translateX(-100%);
-}
-
-#sidebar {
-	width: 320px;
-	height: 100%;
-	background: #030303d4;
-	backdrop-filter: blur(15px);
-	overflow-x: hidden;
-	flex-shrink: 0;
-	position: relative;
-	box-shadow: 0 0 6px rgba(0, 0, 0, 0.5);
-}
-
-#sidebar-inner {
 	position: relative;
 	width: 100%;
 	height: 100%;
-	overflow: hidden;
-	padding: 20px 18px;
-	box-sizing: border-box;
-	display: flex;
-	flex-direction: column;
 }
-
-
-#sidebar-resize-handle {
-	position: absolute;
-	top: 0; right: -3px;
-	width: 6px;
-	height: 100%;
-	cursor: col-resize;
-	z-index: 5;
-	touch-action: none;
-}
-
-
-#journal-split-handle {
-	position: absolute;
-	left: 0;
-	right: 0;
-	bottom: 0px;
-	height: 8px;
-	cursor: row-resize;
-	z-index: 6;
-	touch-action: none;
-}
-
-#quests-section:has(~ #provinces-section.collapsed) #journal-split-handle { display: none; }
-
-#normal-view {
-	display: flex;
-	flex-direction: column;
-	min-height: 0;
-	flex: 1;
-}
-
-#location-list {
-	flex: 1;
-	min-height: 0;
-	overflow-y: auto;
-	padding-top: 2px;
-}
-
-.icon-btn {
-	background: none;
-	border: none;
-	padding: 0;
-	margin: 0;
-	cursor: pointer;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	flex-shrink: 0;
-	color: #787167;
-	transition: color 0.14s, filter 0.14s;
-}
-.icon-btn:hover { opacity: 0.75; }
-.icon-btn svg { overflow: visible; display: block; }
-
-.icon-btn:has(.fx-icon):hover { opacity: 1; }
-
-
-#revert-default-btn:hover {
-	opacity: 1;
-	color: #C9A24D;
-	filter: url(#inner-gold) drop-shadow(0 0 4.5px rgba(201, 162, 77, 0.66));
-}
-#delete-marker-btn:hover {
-	opacity: 1;
-	color: #8C3A30;
-	filter: url(#inner-red) drop-shadow(0 0 4.5px rgba(201, 84, 61, 0.66));
-}
-
-/* ─── FX-ICON ─── */
-.fx-icon {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	flex-shrink: 0;
-	color: #787167;
-	transition: color .14s ease, filter .14s ease;
-}
-.fx-icon svg { display: block; width: 100%; height: 100%; }
-
-
-.fx-icon__layer {
-	position: absolute;
-	display: block;
-	pointer-events: none;
-	opacity: 0;
-	transition: opacity 0.15s ease;
-}
-.fx-icon__layer--default { opacity: 1; }
-
-.fx-icon--plus           { width: 10px; height: 10px; }
-.fx-icon--filter         { width: 10px; height: 10px; }
-.fx-icon--search         { width: 10px; height: 10px; }
-.fx-icon--sidebar-toggle { width: 12px; height: 10px; }
-
-
-.icon-btn:hover          .fx-icon--plus,
-.icon-btn:focus-visible  .fx-icon--plus,
-.icon-btn:hover          .fx-icon--sidebar-toggle,
-.icon-btn:focus-visible  .fx-icon--sidebar-toggle,
-.search-row:hover        .fx-icon--search,
-.search-row:focus-within .fx-icon--search,
-.filter-toggle-btn:hover .fx-icon--filter {
-	color: #B7AE9E;
-	filter: drop-shadow(0 0 2px rgba(207, 199, 184, 0.5));
-}
-
-.filter-toggle-btn.active .fx-icon--filter {
-	color: #E6CF95;
-	filter: drop-shadow(0 0 3px rgba(230, 207, 149, 0.6));
-}
-
-
-.fx-icon--title-caret { width: 8px; height: 5px; }
-.fx-icon--title-caret .fx-icon__layer--default { inset: -20% -12.5%; }
-.fx-icon--title-caret .fx-icon__layer--hover { inset: -80% -50%; }
-#map-title:hover .fx-icon--title-caret .fx-icon__layer--default { opacity: 0; }
-#map-title:hover .fx-icon--title-caret .fx-icon__layer--hover { opacity: 1; }
-
-
-.checkbox-fx {
-	position: relative;
-	display: inline-block;
-	flex-shrink: 0;
-	width: 10px;
-	height: 10px;
-}
-.checkbox-fx input[type="checkbox"] {
-	position: absolute;
-	inset: 0;
-	margin: 0;
-	opacity: 0;
-	cursor: pointer;
-	z-index: 1;
-}
-.checkbox-fx .fx-icon__layer--default { inset: -10%; }
-.checkbox-fx .fx-icon__layer--hover,
-.checkbox-fx .fx-icon__layer--checked { inset: -40%; }
-.checkbox-fx:hover .fx-icon__layer--default { opacity: 0; }
-.checkbox-fx:hover .fx-icon__layer--hover { opacity: 1; }
-.checkbox-fx:has(input:checked) .fx-icon__layer--default,
-.checkbox-fx:has(input:checked) .fx-icon__layer--hover { opacity: 0; }
-.checkbox-fx:has(input:checked) .fx-icon__layer--checked { opacity: 1; }
-
-
-/* ─── САЙДБАР ────────────────────────────────────────────────────────── */
-#map-title {
-	display: inline-flex;
-	gap: 4px;
-	align-items: flex-start;
-	font-size: 1em;
-}
-
-.map-title-text {
-	font-family: 'El Messiri', sans-serif;
-	font-size: 1.5em;
-	font-weight: 700;
-	color: #dcd0c0;
-	line-height: 1.2;
-	text-box-trim: trim-both;
-	text-box-edge: cap alphabetic;
-}
-
-
-.sidebar-divider {
-	flex-shrink: 0;
-	border: 0;
-	height: 1px;
-	margin: 0;
-	background: #343130;
-}
-
-#maplayers-section {
-	display: flex;
-	flex-direction: column;
-	gap: 12px;
-}
-
-/* ─── СЕКЦИИ САЙДБАРА ──────────────────────────────────────────────────── */
-
-#locations-section {
-	padding-bottom: 8px;
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-}
-
-#search-section {
-	padding: 8px 0;
-	display: flex;
-	flex-direction: column;
-	gap: 7px;
-}
-
-#provinces-section {
-	display: flex;
-	flex-direction: column;
-	gap: 12px;
-	flex: 1;
-	min-height: 0;
-}
-
-.sidebar-section-label {
-	font-size: 0.75em;
-	font-weight: 700;
-	text-transform: uppercase;
-	color: var(--ink-500);
-	margin-top: 0;
-	margin-bottom: 7px;
-	letter-spacing: 0.02em;
-	text-box-trim: trim-both;
-	text-box-edge: cap alphabetic;
-}
-
-
-.sidebar-section-label--toggle { cursor: pointer; }
-
-
-.sidebar-section-label-row {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	min-height: 10px;
-}
-.sidebar-section-label-row .sidebar-section-label { margin: 0; }
-
-/* ─── СВОРАЧИВАНИЕ СЕКЦИЙ (только главный вид) ─── */
-#normal-view .sb-section > .sidebar-section-label-row { cursor: pointer; }
-#quests-section-label,
-#provinces-section-label { cursor: auto; }
-
-#normal-view .sb-section.collapsed { flex: 0 0 auto; }
-#normal-view .sb-section.collapsed > :not(.sidebar-section-label-row) { display: none; }
-
-
-/* ─── ЧЕКБОКСЫ ───────────────────────────────────────────────────────── */
-.layer-checkbox {
-	display: flex;
-	align-items: center;
-	gap: 6px;
-	font-size: 0.875em;
-	color: #6a655d;
-	cursor: pointer;
-	user-select: none;
-}
-
-.layer-checkbox:has(input:checked) { color: #cfc7b8; }
-.layer-checkbox:hover { color: #dcd0c0; }
-
-.layer-checkbox-label {
-	text-box-trim: trim-both;
-	text-box-edge: cap alphabetic;
-}
-
-#map-layer-checkboxes {
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-}
-
-
-/* ─── ПУТЬ ───────────────────────────────────────────────────────────── */
-
-/* ─── КНОПКА ИЗМЕРЕНИЯ ─────────────────────────────────────────────────── */
-.leaflet-control-measure a::after {
-	-webkit-mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M3 21L21 3' stroke='%23000' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M3 21L7 21M3 21L3 17' stroke='%23000' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M21 3L17 3M21 3L21 7' stroke='%23000' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
-	mask-image:         url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M3 21L21 3' stroke='%23000' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M3 21L7 21M3 21L3 17' stroke='%23000' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M21 3L17 3M21 3L21 7' stroke='%23000' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
-	width: 18px;
-	height: 18px;
-	-webkit-mask-size: contain;
-	mask-size: contain;
-	-webkit-mask-repeat: no-repeat;
-	mask-repeat: no-repeat;
-	-webkit-mask-position: center;
-	mask-position: center;
-	content: '';
-	position: absolute;
-	inset: 0;
-	margin: auto;
-	background-color: #dcd0c0;
-}
-
-.leaflet-control-measure a.active {
-	background-color: #2a1f14cf !important;
-}
-
-.leaflet-control-measure a.active::after {
-	background-color: #977b61;
-}
-
-/* ─── ЛЕЙБЛ РЯДОМ С КУРСОРОМ (суммарное расстояние) ───────────────────── */
-.measure-cursor-label {
-	pointer-events: none;
-}
-
-.measure-total {
-	display: inline-block;
-	background: #0f0f0fcf;
-	backdrop-filter: blur(6px);
-	color: #ff9999;
-	padding: 2px 7px;
-	border-radius: 0;
-	font-size: 12px;
-	white-space: nowrap;
-	border: 1px solid rgba(255, 80, 80, 0.35);
-	pointer-events: none;
-}
-
-/* ─── ЛЕЙБЛ СЕГМЕНТА (по середине зафиксированной линии) ──────────────── */
-.measure-label {
-	background: #0f0f0fcf;
-	backdrop-filter: blur(6px);
-	color: #ff9999;
-	padding: 2px 7px;
-	border-radius: 0;
-	font-size: 12px;
-	white-space: nowrap;
-	border: 1px solid rgba(255, 80, 80, 0.25);
-	pointer-events: none;
-}
-
-.measure-label-total {
-	color: #ffcccc;
-	border-color: rgba(255, 80, 80, 0.5);
-	font-weight: 600;
-}
-
-
 .leaflet-container {
 	height: 100%;
 	width: 100%;
@@ -462,8 +122,16 @@ button, input, select, textarea, optgroup, option {
 	background-color: #111111;
 	font-size: 16px;
 }
+/* Подписей Leaflet, хвостиков и крестиков у попапов нет. */
+.leaflet-control-attribution,
+.leaflet-popup-tip,
+.leaflet-popup-close-button {
+	display: none;
+}
 
-/* ─── ПОДПИСЬ ЛОКАЦИИ ПОД ИКОНКОЙ ─── */
+/* ─── Подпись локации под иконкой ───
+   Видна с зума 0 при включённом слое «Названия локаций» (#map.show-location-names,
+   см. updateLayers); тогда же слой «Провинции» приглушается. */
 .leaflet-tooltip.location-name-label {
 	visibility: hidden;
 	opacity: 0 !important;
@@ -497,11 +165,9 @@ button, input, select, textarea, optgroup, option {
 	translate: 0 0;
 	transition: opacity .2s ease-out .15s, translate .2s ease-out .15s, visibility 0s;
 }
-
 .leaflet-zoom-anim .leaflet-tooltip.location-name-label {
 	transition: none;
 }
-
 
 .leaflet-provinces-pane {
 	transition: opacity .2s ease-out;
@@ -518,2564 +184,1736 @@ button, input, select, textarea, optgroup, option {
 	}
 }
 
-.leaflet-control-attribution,
-.leaflet-popup-tip,
-.leaflet-popup-close-button {
-	display: none;
-}
-
-.leaflet-popup-content-wrapper,
-.leaflet-popup-tip {
-	background: rgba(3, 3, 3, 0.83);
-	background-color: rgba(3, 3, 3, 0.83);
-	border-radius: 0px;
-	backdrop-filter: blur(15px);
-}
-
-.leaflet-popup-content-wrapper {
-	position: relative;
-	padding: 0px;
-	box-shadow: 0 0 6px 3px rgba(0, 0, 0, 0.5);
-}
-
-
-.leaflet-popup-content-wrapper::before {
-	content: '';
-	position: absolute;
-	inset: 0;
-	pointer-events: none;
-	border: 1px solid #efe7d666;
-	mix-blend-mode: overlay;
-}
-
-.leaflet-popup-content {
-	color: #dcd0c0;
-	margin: 0 !important;
-	width: auto !important;
-	font-size: 1em;
-}
-
-h1, h2, h3 {
-	margin: 0;
-	line-height: 1.3;
-	min-height: 1px;
-	font-weight: 400;
-}
-
-.leaflet-control-search .search-tooltip {
-	max-height: 625px;
-}
-
-.leaflet-control-layers-base,
-.leaflet-control-layers-separator {
-	display: none;
-}
-
-/* ─── SEARCH ──────────────────────────────────────────────────────────── */
-
-	.search-row {
-		display: flex;
-		align-items: center;
-		gap: 5px;
-	}
-
-
-	.search-field {
-		position: relative;
-		flex: 1;
-		min-width: 0;
-		display: flex;
-		align-items: center;
-	}
-
-	#sidebar-search {
-		flex: 1;
-		min-width: 0;
-		box-sizing: border-box;
-		background: none;
-		border: none;
-		border-radius: 0;
-		line-height: 1;
-		color: #cfc7b8;
-		font-size: .75em;
-		outline: none;
-		transition: color .15s ease;
-		position: relative;
-		top: -1px;
-	}
-	#sidebar-search:focus { color: #dcd0c0; }
-
-	.search-field .icon-btn {
-		position: absolute;
-		top: 50%;
-		right: 0px;
-		transform: translateY(-50%);
-		color: #787167;
-	}
-	.search-field .icon-btn:hover { opacity: 0.75; }
-
-	.filter-toggle-btn {
-		flex-shrink: 0;
-		color: #787167;
-	}
-	.filter-toggle-btn:hover { opacity: 0.75; }
-	.filter-toggle-btn.active { color: #977b61; }
-
-	#search-filter-panel,
-	#quest-filter-panel {
-		display: flex;
-		flex-direction: column;
-		gap: 12px;
-		padding: 8px 0;
-		background: none;
-		border: 0;
-		border-top: 1px solid #343130;
-		border-bottom: 1px solid #343130;
-	}
-
-	.filter-section { display: flex; flex-direction: column; gap: 8px; }
-
-	.filter-section-label-row {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-	}
-
-	.filter-section-label {
-		font-size: 10px;
-		font-weight: 500;
-		text-transform: uppercase;
-		letter-spacing: .2px;
-		color: var(--ink-500);
-		margin: 0;
-		text-box-trim: trim-both;
-		text-box-edge: cap alphabetic;
-	}
-
-	.filter-pill-row {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 5px;
-	}
-
-	.filter-pill {
-		display: inline-flex;
-		align-items: center;
-		background: none;
-		border: none;
-		border-radius: 0;
-		padding: 0;
-		cursor: pointer;
-		outline: none;
-	}
-
-
-	#filter-type-row {
-		align-items: flex-end;
-		gap: 11px;
-	}
-
-	#filter-trait-row, #filter-character-row, #quest-status-chips {
-		align-items: center;
-		gap: 12px;
-		padding-left: 1px;
-	}
-	#quest-status-chips { margin: 0; }
-
-	/* ─── ПЕРЕКЛЮЧАТЕЛИ ИКОНОК/ТЕКСТА ─── */
-	.icon-toggle {
-		position: relative;
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		cursor: pointer;
-		-webkit-user-select: none;
-		user-select: none;
-	}
-
-	button.icon-toggle { cursor: pointer; }
-	.icon-toggle.icon-toggle--16 { width: 16px; height: 16px; }
-	.icon-toggle.icon-toggle--18 { width: 18px; height: 18px; }
-	.icon-toggle.icon-toggle--text { width: auto; height: 16px; }
-
-	.icon-toggle .icon-toggle__icon {
-		position: relative;
-		z-index: 2;
-		width: 100%;
-		height: 100%;
-		object-fit: contain;
-		display: block;
-		pointer-events: none;
-		opacity: .55;
-		filter: saturate(.15);
-		transition: opacity .17s ease, filter .17s ease;
-	}
-	.icon-toggle:hover .icon-toggle__icon { opacity: .8; filter: saturate(.6); }
-	.icon-toggle.selected .icon-toggle__icon { opacity: 1; filter: saturate(1); }
-
-	.icon-toggle .icon-toggle__label {
-		position: relative;
-		z-index: 2;
-		font-family: 'Beaufort for LoL', Georgia, serif;
-		font-size: .75em;
-		line-height: normal;
-		text-transform: none;
-		white-space: nowrap;
-		color: #6a655d;
-		transition: color .17s ease;
-		text-box-trim: trim-both;
-		text-box-edge: cap alphabetic;
-	}
-	.icon-toggle:hover .icon-toggle__label { color: #9a9285; }
-	.icon-toggle.selected .icon-toggle__label { color: #e6cf95; }
-
-
-	.icon-toggle .icon-toggle__fx {
-		position: absolute;
-		left: -1px;
-		right: -1px;
-		bottom: -3px;
-		height: 21px;
-		z-index: 1;
-		pointer-events: none;
-		transform: scaleX(0);
-		transform-origin: var(--ft-origin, 50%) bottom;
-		transition: transform .16s cubic-bezier(.16, .84, .24, 1);
-	}
-	.icon-toggle--text .icon-toggle__fx { left: -2px; right: -2px; }
-	.icon-toggle:hover .icon-toggle__fx { transform: scaleX(1); }
-	.icon-toggle.selected .icon-toggle__fx {
-		transform: scaleX(1);
-		animation: iconToggleFxGrow .16s cubic-bezier(.16, .84, .24, 1);
-	}
-	@keyframes iconToggleFxGrow {
-		from { transform: scaleX(0); }
-		to   { transform: scaleX(1); }
-	}
-
-	.icon-toggle .icon-toggle__layer { position: absolute; inset: 0; opacity: 0; transition: opacity .17s ease; }
-	.icon-toggle:hover .icon-toggle__layer--hover { opacity: 1; }
-	.icon-toggle.selected .icon-toggle__layer--hover { opacity: 0; }
-
-	.icon-toggle.selected .icon-toggle__layer--selected {
-		opacity: 1;
-		animation: iconToggleSelFade .19s cubic-bezier(.16, .84, .24, 1);
-	}
-	@keyframes iconToggleSelFade {
-		from { opacity: 0; }
-		to   { opacity: 1; }
-	}
-
-	.icon-toggle .icon-toggle__grad { position: absolute; left: 0; right: 0; top: 0; bottom: 1px; }
-	.icon-toggle .icon-toggle__line { position: absolute; left: 0; right: 0; bottom: 0; height: 1px; }
-
-
-	.icon-toggle .icon-toggle__noise {
-		position: absolute;
-		inset: 0;
-		pointer-events: none;
-		mask-image: url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2264%22%20height=%2264%22%3E%3Cfilter%20id=%22n%22%3E%3CfeTurbulence%20type=%22fractalNoise%22%20baseFrequency=%220.9%22%20numOctaves=%223%22%20stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect%20width=%2264%22%20height=%2264%22%20filter=%22url(%23n)%22/%3E%3C/svg%3E");
-		-webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2264%22%20height=%2264%22%3E%3Cfilter%20id=%22n%22%3E%3CfeTurbulence%20type=%22fractalNoise%22%20baseFrequency=%220.9%22%20numOctaves=%223%22%20stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect%20width=%2264%22%20height=%2264%22%20filter=%22url(%23n)%22/%3E%3C/svg%3E");
-		mask-size: 64px 64px;
-		-webkit-mask-size: 64px 64px;
-	}
-
-	.icon-toggle .icon-toggle__layer--hover .icon-toggle__grad {
-		background: linear-gradient(0deg, rgba(122, 95, 42, .35) -22.41%, rgba(122, 95, 42, .021) 61.35%, rgba(122, 95, 42, 0) 101.30%);
-	}
-	.icon-toggle .icon-toggle__layer--hover .icon-toggle__noise { background-color: rgba(122, 95, 42, .06); }
-	.icon-toggle .icon-toggle__layer--hover .icon-toggle__line {
-		background: linear-gradient(0deg, rgb(77, 60, 26) 50%, rgb(122, 95, 42) 78.37%);
-		box-shadow: inset 0 0 .8px rgba(207, 199, 184, .76), inset 0 0 1px rgba(0, 0, 0, .55);
-	}
-
-	.icon-toggle .icon-toggle__layer--selected .icon-toggle__grad {
-		background: linear-gradient(0deg, rgba(150, 118, 62, .75) -22.41%, rgba(150, 118, 62, .045) 61.35%, rgba(150, 118, 62, 0) 101.30%);
-		transform: translateY(3px);
-		transition: transform .19s cubic-bezier(.16, .84, .24, 1);
-	}
-
-	.icon-toggle.selected .icon-toggle__layer--selected .icon-toggle__grad {
-		transform: translateY(0);
-		animation: iconToggleGradRise .19s cubic-bezier(.16, .84, .24, 1);
-	}
-	@keyframes iconToggleGradRise {
-		from { transform: translateY(3px); }
-		to   { transform: translateY(0); }
-	}
-	.icon-toggle .icon-toggle__layer--selected .icon-toggle__noise { background-color: rgba(150, 118, 62, .06); }
-	.icon-toggle .icon-toggle__layer--selected .icon-toggle__line {
-		background: rgb(201, 162, 77);
-		box-shadow: inset 0 0 .8px rgb(255, 245, 219);
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.icon-toggle .icon-toggle__fx,
-		.icon-toggle .icon-toggle__layer,
-		.icon-toggle .icon-toggle__layer--selected .icon-toggle__grad,
-		.icon-toggle .icon-toggle__icon,
-		.icon-toggle .icon-toggle__label { transition: none; animation: none; }
-	}
-
-	.icon-toggle-group { display: flex; align-items: center; }
-	.icon-toggle-group--18 { gap: 10px; }
-	.icon-toggle-group--16 { gap: 12px; }
-
-	.trait-mode-toggle {
-		display: flex;
-		align-items: center;
-		gap: 1px;
-	}
-	.trait-mode-btn {
-		background: none;
-		border: none;
-		color: #3e3c3a;
-		font-size: 12px;
-		text-align: right;
-		text-transform: lowercase;
-		padding: 5px 4px;
-		cursor: pointer;
-		transition: color 0.15s;
-		text-box-trim: trim-both;
-		text-box-edge: cap alphabetic;
-	}
-
-	.trait-mode-btn[data-mode="or"] { padding-right: 4px; }
-	.trait-mode-btn[data-mode="and"] { padding-left: 4px; padding-right: 4px; }
-	.trait-mode-btn[data-mode="exclude"] { padding-left: 4px; }
-	.trait-mode-btn:hover { color: #9a9285; }
-	.trait-mode-btn.selected {
-		color: var(--parch-400);
-		text-shadow: 0 0 4px rgba(106, 101, 93, 0.8);
-	}
-
-	#filter-reset-btn { align-self: flex-start; padding: 0; }
-
-
-	#sidebar-search::placeholder { font-style: italic; color: var(--ink-600); opacity: 1; }
-
-	/* ─── LOCATION LIST ─── */
-	.province-group { margin-bottom: 12px; }
-	.province-group:last-child { margin-bottom: 0; }
-
-	.province-header {
-		color: var(--parch-200);
-		cursor: pointer;
-		user-select: none;
-		display: flex;
-		align-items: center;
-		gap: 6px;
-	}
-
-	.province-header-text {
-		font-family: 'El Messiri', sans-serif;
-		font-size: 16px;
-		line-height: 1;
-		font-weight: 400;
-		text-box-trim: trim-both;
-		text-box-edge: cap alphabetic;
-	}
-
-
-	.province-group.collapsed .province-header {
-		gap: 7px;
-		padding: 0 2px;
-	}
-
-	.province-header::before {
-		content: '';
-		width: 8px;
-		height: 5px;
-		flex-shrink: 0;
-		background: url("images/ui/triangle.svg") center / 8px 5px no-repeat;
-		clip-path: none;
-		transition: transform 0.15s;
-	}
-
-	.province-group.collapsed .province-header::before {
-		transform: rotate(-90deg);
-	}
-
-	.province-body {
-		display: grid;
-		grid-template-columns: 8px 1fr;
-		column-gap: 6px;
-		margin-top: 6px;
-	}
-
-	.province-group.collapsed .province-body { display: none; }
-
-	.province-rail {
-		justify-self: center;
-		width: 1px;
-		background: #282726;
-	}
-
-	.location-items {
-		list-style: none;
-		margin: 0;
-		padding-left: 5px;
-	}
-
-	.location-item {
-		font-size: 14px;
-		line-height: 22px;
-		color: #9a9285;
-		cursor: pointer;
-		transition: color 0.12s;
-	}
-
-	.location-item:hover {
-		color: #dcd0c0;
-	}
-
-	.province-header.has-region .province-header-text:hover {
-		color: var(--brass-300);
-	}
-
-	/* ─── RESET VIEW BUTTON ───────────────────────────────────────────────── */
-
-	.leaflet-control-reset a {
-		font-size: 16px;
-		line-height: 26px !important;
-		text-decoration: none;
-		color: #333 !important;
-	}
-
-
-	/* ─── ОБЩИЕ СТИЛИ ДЛЯ ВСЕХ КОНТРОЛОВ ─────────────────────────────────── */
-	.leaflet-bar a {
-		background-color: #0f0f0fcf !important;
-		backdrop-filter: blur(8px);
-		color: transparent !important;
-		border-bottom-color: #2a2a3a !important;
-		transition: background-color 0.15s ease;
-		position: relative;
-	}
-
-	.leaflet-bar a:hover {
-		background-color: #1e1e2ecf !important;
-	}
-
-	/* ─── ОБЩИЙ СТИЛЬ ПСЕВДОЭЛЕМЕНТА ──────────────────────────────────────── */
-	.leaflet-control-zoom-in::after,
-	.leaflet-control-zoom-out::after,
-	.leaflet-control-reset a::after {
-		content: '';
-		position: absolute;
-		inset: 0;
-		margin: auto;
-		background-color: #dcd0c0;
-		-webkit-mask-size: contain;
-		mask-size: contain;
-		-webkit-mask-repeat: no-repeat;
-		mask-repeat: no-repeat;
-		-webkit-mask-position: center;
-		mask-position: center;
-	}
-
-	/* ─── ПЛЮС ────────────────────────────────────────────────────────────── */
-	.leaflet-control-zoom-in::after {
-		width: 18px;
-		height: 18px;
-		-webkit-mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6 12H18M12 6V18' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-		mask-image:         url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6 12H18M12 6V18' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-	}
-
-	/* ─── МИНУС ───────────────────────────────────────────────────────────── */
-	.leaflet-control-zoom-out::after {
-		width: 18px;
-		height: 18px;
-		-webkit-mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6 12L18 12' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-		mask-image:         url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6 12L18 12' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-	}
-
-	/* ─── ЦЕНТРИРОВАНИЕ ───────────────────────────────────────────────────── */
-	.leaflet-control-reset a::after {
-		width: 14px;
-		height: 14px;
-		-webkit-mask-image: url("data:image/svg+xml,%3Csvg fill='%23000' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M8,2H3A1,1,0,0,0,2,3V8A1,1,0,0,0,4,8V4H8A1,1,0,0,0,8,2ZM8,20H4V16a1,1,0,0,0-2,0v5a1,1,0,0,0,1,1H8a1,1,0,0,0,0-2ZM21,2H16a1,1,0,0,0,0,2h4V8a1,1,0,0,0,2,0V3A1,1,0,0,0,21,2Zm0,13a1,1,0,0,0-1,1v4H16a1,1,0,0,0,0,2h5a1,1,0,0,0,1-1V16A1,1,0,0,0,21,15Z'/%3E%3C/svg%3E");
-		mask-image:         url("data:image/svg+xml,%3Csvg fill='%23000' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M8,2H3A1,1,0,0,0,2,3V8A1,1,0,0,0,4,8V4H8A1,1,0,0,0,8,2ZM8,20H4V16a1,1,0,0,0-2,0v5a1,1,0,0,0,1,1H8a1,1,0,0,0,0-2ZM21,2H16a1,1,0,0,0,0,2h4V8a1,1,0,0,0,2,0V3A1,1,0,0,0,21,2Zm0,13a1,1,0,0,0-1,1v4H16a1,1,0,0,0,0,2h5a1,1,0,0,0,1-1V16A1,1,0,0,0,21,15Z'/%3E%3C/svg%3E");
-	}
-
-
-/* ─── ПОПАП ─── */
-.popup-content {
-	width: 314px;
-	padding: 20px 18px;
-	box-sizing: content-box;
-	color: #dcd0c0;
-	display: grid;
-	grid-template-areas: "stack";
-	overflow: hidden;
-
-	font-family: 'Beaufort for LoL', sans-serif;
-}
-
-.location-img,
-.popup-text {
-	grid-area: stack;
-}
-
-.location-img {
-	width: 100%;
-	height: auto;
-	align-self: start;
-	display: block;
-	-webkit-mask-image: linear-gradient(to right, transparent 15%, black 65%);
-	mask-image:         linear-gradient(to right, transparent 15%, black 65%);
-}
-
-.popup-text {
-	position: relative;
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-}
-
-.popup-content h1 {
-	margin: 0;
-	font-family: 'El Messiri';
-	font-weight: 500;
-	font-size: 20px;
-	line-height: normal;
-	color: #EFE7D6;
-	mix-blend-mode: screen;
-
-	text-box-trim: trim-both;
-	text-box-edge: cap alphabetic;
-}
-
-.popup-title--editable { cursor: pointer; transition: color .14s ease; }
-.popup-title--editable:hover { color: #E6CF95; }
-
-
-.popup-divider {
-	align-self: stretch;
-	height: 8px;
-	background: linear-gradient(#3e3c3a, #3e3c3a) center / 100% 1px no-repeat;
-}
-
-/* ─── Info-grid ─── */
-.popup-info-grid {
-	display: grid;
-	grid-template-columns: repeat(2, 1fr);
-	gap: 8px;
-	width: 100%;
-}
-.popup-info-item {
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-	min-width: 0;
-}
-.popup-info-label {
-	font-family: 'Beaufort for LoL', sans-serif;
-	font-size: 12px;
-	font-weight: 500;
-	letter-spacing: 0.24px;
-	text-transform: uppercase;
-	line-height: 1;
-	color: #9A9285;
-}
-.popup-info-val {
-	font-family: 'Beaufort for LoL', sans-serif;
-	font-size: 12px;
-	line-height: 1;
-	color: #96763E;
-	overflow: hidden;
-	text-overflow: ellipsis;
-}
-.popup-info-val a { color: inherit; }
-
-
-.popup-content .name-eng,
-#quest-card .name-eng,
-#branch-card .name-eng {
-	margin: 0;
-	font-size: 12px;
-	line-height: normal;
-	font-weight: 500;
-	letter-spacing: 0.24px;
-	text-transform: uppercase;
-	color: #9A9285;
-	mix-blend-mode: screen;
-	text-box-trim: trim-both;
-	text-box-edge: cap alphabetic;
-}
-
-.name-eng[data-open-branch] { cursor: pointer; transition: color .14s ease; }
-.name-eng[data-open-branch]:hover { color: var(--brass-300); }
-
-.popup-content .description,
-#quest-card .description,
-#branch-card .description {
-	margin: 0;
-	padding-bottom: 8px;
-	font-size: 14px;
-	font-weight: 200;
-	line-height: normal;
-	letter-spacing: 0.28px;
-	color: #CFC7B8;
-	hyphens: auto;
-}
-.popup-content .description p,
-#quest-card .description p,
-#branch-card .description p { margin: 0 0 8px; }
-.popup-content .description p:last-child,
-#quest-card .description p:last-child,
-#branch-card .description p:last-child { margin-bottom: 0; }
-
-
-.info-row-group {
-	display: flex;
-	align-items: center;
-	flex-wrap: wrap;
-	gap: 18px;
-	margin-top: 1px;
-}
-
-.info-row {
-	display: flex;
-	align-items: center;
-	gap: 2px;
-	margin-top: 1px;
-	font-size: 0.75em;
-	line-height: 1;
-	color: #9A9285;
-}
-
-.info-row-group .info-row { margin-top: 0; }
-
-.info-icon {
-	margin-left: -2px;
-	width: 14px;
-	height: 14px;
-	object-fit: contain;
-	flex-shrink: 0;
-	filter: drop-shadow(0px 0px 1.2px rgba(0, 0, 0, 0.22));
-}
-
-
-.title-row {
-	display: flex;
-	align-items: center;
-	gap: 6px;
-	flex-wrap: wrap;
-}
-
-.traits {
-	display: flex;
-	align-items: center;
-	gap: 4px;
-	flex-shrink: 0;
-}
-
-.trait {
-	position: relative;
-	display: flex;
-	align-items: center;
-	cursor: default;
-}
-
-.trait img {
-	width: 16px;
-	height: 16px;
-	object-fit: contain;
-	display: block;
-}
-
-
-.layer-icon-row {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: flex-end;
-	gap: 11px;
-}
-
-.layer-icon-btn {
-	background: none;
-	border: none;
-	padding: 0;
-	line-height: 0;
-}
-
-
-button.layer-icon-btn { cursor: pointer; }
-
-.trait-tooltip {
-	position: fixed;
-	display: none;
-	box-sizing: border-box;
-	max-width: 270px;
-	background: #0a0a0aba;
-	backdrop-filter: blur(8px);
-	color: #aca294;
-	font-size: 0.75em;
-	white-space: normal;
-	padding: 7px 10px;
-	pointer-events: auto;
-	z-index: 9999;
-	box-shadow: 0 3px 14px rgba(0, 0, 0, 0.4);
-}
-
-
-.leaflet-control-layers-expanded {
-	padding: 6px 10px 6px 6px;
-	color: #dcd0c0;
-	background: #0a0a0ac4;
-	background-color: #0a0a0ac4;
-	border-radius: 0px;
-	backdrop-filter: blur(8px);
-}
-
-.leaflet-touch .leaflet-control-layers, .leaflet-touch .leaflet-bar {
-	border: none;
-}
-
-
-/* ─── БЛОК ЦИТАТЫ ─── */
-.description blockquote {
-	position: relative;
-	margin: 8px 0;
-	padding: 12px;
-	background: linear-gradient(90deg, rgba(62, 60, 58, 0.44) 0%, rgba(62, 60, 58, 0.16) 100%);
-	font-style: italic;
-	font-size: 14px;
-	line-height: normal;
-	letter-spacing: 0.28px;
-	color: #9A9285;
-}
-.description blockquote p { margin: 0 0 8px; }
-.description blockquote p:last-child { margin-bottom: 0; }
-
-.description blockquote::before,
-.description blockquote::after {
-	content: '';
-	position: absolute;
-	inset: 0;
-	pointer-events: none;
-	box-sizing: border-box;
-	border: 10px solid transparent;
-	border-image-source: url(images/frame.svg);
-	border-image-slice: 10;
-	border-image-width: 10px;
-	border-image-repeat: stretch;
-}
-
-.description blockquote::before { opacity: 0.45; }
-
-.description blockquote::after {
-	mask-image: url(images/static.png);
-	mask-mode: luminance;
-	mask-position: center;
-	-webkit-mask-image: url(images/static.png);
-	-webkit-mask-position: center;
-}
-
-/* ─── ПОПАП РЕГИОНА (фракция/провинция) ────────────────────────────────── */
-
-
+/* ─── Регионы политической карты (script.js, makeRegionLayer) ───
+   Области ловят наведение и клики всей заливкой (даже прозрачной); фракции
+   под провинциями — только подложка. */
 .region-shape {
 	pointer-events: fill !important;
 }
-
-
 .region-inert {
 	pointer-events: none !important;
 }
 
 
-/* ─── АДМИНКА (вход + редактирование маркеров) ─────────────────────────── */
-
-.hidden { display: none !important; }
-
-
-.admin-only { display: none !important; }
-body.is-admin #add-marker-btn.admin-only { display: flex !important; }
-body.is-admin #add-quest-btn.admin-only { display: flex !important; }
-body.is-admin #add-faction-btn.admin-only { display: flex !important; }
-
-.sidebar-header-row {
-	display: flex;
-	align-items: flex-end;
-	justify-content: space-between;
-	gap: 8px;
-	padding-top: 8px;
+/* ═══ КОМПОНЕНТЫ НОВОГО ДИЗАЙНА — Figma «Haven Map (NEW)», Design Style ═══
+   Выбрано/включено — .selected,
+   раскрыто — .is-open. Состояния иконок — фильтрами/прозрачностью в CSS,
+   по одной картинке на иконку (значения — из свойств узлов макета).
+   Все смены состояний — одна анимация: --duration / --easing.
+   Исключение — «прокрутка» стрелки «Перейти к заданию»: тайминг как у Riot
+   (universe.leagueoflegends.com) — --arrow-duration. */
+:root {
+	--duration: .2s;
+	--easing: ease;
+	--arrow-duration: .44s;
+}
+@media (prefers-reduced-motion: reduce) {
+	:root { --duration: 0s; --arrow-duration: 0s; }
+}
+/* Обводка бокса чекбокса — градиент; градиенты не анимируются, поэтому цвет
+   обводки смешивается по числу 0→1, а анимируется само число. */
+@property --box-hover {
+	syntax: '<number>';
+	inherits: true;
+	initial-value: 0;
 }
 
-/* ─── ИКОНКА ВХОДА/ВЫХОДА ─── */
-.leaflet-control-admin a {
-	position: relative;
+/* ─── Типографика (Шрифты, 2251:854) ───
+   «Line height 99.99%» в макете = естественная высота строки шрифта
+   (H1 24px → 38px), поэтому line-height: normal, а не 1. */
+.h1, .h2, .h3, .h4, .h5, .text, .quote { margin: 0; }
+.h1 { font: 700 24px/normal 'El Messiri', sans-serif; letter-spacing: .24px; color: var(--brass-50); }
+.h2 { font: 500 20px/normal 'El Messiri', sans-serif; letter-spacing: .2px;  color: var(--brass-50); }
+.h3 { font: 500 16px/normal 'El Messiri', sans-serif; letter-spacing: .32px; color: var(--brass-50); }
+.h4 {
+	font: 500 12px/normal 'Beaufort for LoL', sans-serif;
+	letter-spacing: .24px;
+	text-transform: uppercase;
+	color: var(--olive-400);
+}
+.h4--bold { font-weight: 700; }
+.h5 { font: 500 14px/normal 'Beaufort for LoL', sans-serif; letter-spacing: .28px; color: var(--brass-50); }
+.text { font: 400 14px/18px 'Beaufort for LoL', sans-serif; letter-spacing: .14px; color: var(--chamomile-300); }
+.text p { margin: 0 0 8px; }
+.text p:last-child { margin-bottom: 0; }
+.quote {
+	font: italic 400 14px/18px 'Beaufort for LoL', sans-serif;
+	letter-spacing: .14px;
+	color: color-mix(in srgb, var(--chamomile-300) 60%, transparent);
 }
 
-.leaflet-control-admin a::after {
-	content: '';
-	position: absolute;
-	inset: 0;
-	margin: auto;
-	width: 16px;
-	height: 16px;
-	background-color: #dcd0c0;
-	-webkit-mask-size: contain;
-	mask-size: contain;
-	-webkit-mask-repeat: no-repeat;
-	mask-repeat: no-repeat;
-	-webkit-mask-position: center;
-	mask-position: center;
-	-webkit-mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 18 18' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M8.97834 18V16.875H16.1826C16.3558 16.875 16.5145 16.8029 16.6587 16.6587C16.8029 16.5145 16.875 16.3558 16.875 16.1826V1.81744C16.875 1.64419 16.8029 1.48547 16.6587 1.34128C16.5145 1.19709 16.3558 1.125 16.1826 1.125H8.97834V0H16.1826C16.7004 0 17.1328 0.173438 17.4797 0.520312C17.8266 0.867187 18 1.29956 18 1.81744V16.1826C18 16.7004 17.8266 17.1328 17.4797 17.4797C17.1328 17.8266 16.7004 18 16.1826 18H8.97834ZM8.17791 12.9808L7.38816 12.1717L9.99731 9.5625H0V8.4375H9.99731L7.38816 5.82834L8.17791 5.01919L12.1587 9L8.17791 12.9808Z' fill='%23000'/%3E%3C/svg%3E");
-	mask-image:         url("data:image/svg+xml,%3Csvg viewBox='0 0 18 18' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M8.97834 18V16.875H16.1826C16.3558 16.875 16.5145 16.8029 16.6587 16.6587C16.8029 16.5145 16.875 16.3558 16.875 16.1826V1.81744C16.875 1.64419 16.8029 1.48547 16.6587 1.34128C16.5145 1.19709 16.3558 1.125 16.1826 1.125H8.97834V0H16.1826C16.7004 0 17.1328 0.173438 17.4797 0.520312C17.8266 0.867187 18 1.29956 18 1.81744V16.1826C18 16.7004 17.8266 17.1328 17.4797 17.4797C17.1328 17.8266 16.7004 18 16.1826 18H8.97834ZM8.17791 12.9808L7.38816 12.1717L9.99731 9.5625H0V8.4375H9.99731L7.38816 5.82834L8.17791 5.01919L12.1587 9L8.17791 12.9808Z' fill='%23000'/%3E%3C/svg%3E");
-}
-
-body.is-admin .leaflet-control-admin a::after {
-	background-color: #977b61;
-	-webkit-mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 18 18' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1.81744 18C1.29956 18 0.867187 17.8266 0.520312 17.4797C0.173438 17.1328 0 16.7004 0 16.1826V1.81744C0 1.29956 0.173438 0.867187 0.520312 0.520312C0.867187 0.173438 1.29956 0 1.81744 0H9.02166V1.125H1.81744C1.64419 1.125 1.48547 1.19709 1.34128 1.34128C1.19709 1.48547 1.125 1.64419 1.125 1.81744V16.1826C1.125 16.3558 1.19709 16.5145 1.34128 16.6587C1.48547 16.8029 1.64419 16.875 1.81744 16.875H9.02166V18H1.81744ZM14.0192 12.9808L13.2294 12.1717L15.8386 9.5625H5.84128V8.4375H15.8386L13.2294 5.82834L14.0192 5.01919L18 9L14.0192 12.9808Z' fill='%23000'/%3E%3C/svg%3E");
-	mask-image:         url("data:image/svg+xml,%3Csvg viewBox='0 0 18 18' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1.81744 18C1.29956 18 0.867187 17.8266 0.520312 17.4797C0.173438 17.1328 0 16.7004 0 16.1826V1.81744C0 1.29956 0.173438 0.867187 0.520312 0.520312C0.867187 0.173438 1.29956 0 1.81744 0H9.02166V1.125H1.81744C1.64419 1.125 1.48547 1.19709 1.34128 1.34128C1.19709 1.48547 1.125 1.64419 1.125 1.81744V16.1826C1.125 16.3558 1.19709 16.5145 1.34128 16.6587C1.48547 16.8029 1.64419 16.875 1.81744 16.875H9.02166V18H1.81744ZM14.0192 12.9808L13.2294 12.1717L15.8386 9.5625H5.84128V8.4375H15.8386L13.2294 5.82834L14.0192 5.01919L18 9L14.0192 12.9808Z' fill='%23000'/%3E%3C/svg%3E");
-}
-
-/* ─── ИКОНКА СВОРАЧИВАНИЯ САЙДБАРА (Leaflet-контрол, topleft) ───────────── */
-.leaflet-control-sidebar-toggle a {
-	position: relative;
-}
-
-.leaflet-control-sidebar-toggle a::after {
-	content: '';
-	position: absolute;
-	inset: 0;
-	margin: auto;
-	width: 12px;
-	height: 11px;
-	background-color: #dcd0c0;
-	-webkit-mask-size: contain;
-	mask-size: contain;
-	-webkit-mask-repeat: no-repeat;
-	mask-repeat: no-repeat;
-	-webkit-mask-position: center;
-	mask-position: center;
-	-webkit-mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 12 11' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M10.5 0C11.3284 0 12 0.671573 12 1.5V9.5C12 10.3284 11.3284 11 10.5 11H1.5C0.671573 11 0 10.3284 0 9.5V1.5C1.28852e-07 0.671573 0.671573 0 1.5 0H10.5ZM4.5 10H10.5C10.7761 10 11 9.77614 11 9.5V1.5C11 1.22386 10.7761 1 10.5 1H4.5V10ZM1.5 1C1.22386 1 1 1.22386 1 1.5V9.5C1 9.77614 1.22386 10 1.5 10H3.5V1H1.5Z' fill='%23000'/%3E%3C/svg%3E");
-	mask-image:         url("data:image/svg+xml,%3Csvg viewBox='0 0 12 11' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M10.5 0C11.3284 0 12 0.671573 12 1.5V9.5C12 10.3284 11.3284 11 10.5 11H1.5C0.671573 11 0 10.3284 0 9.5V1.5C1.28852e-07 0.671573 0.671573 0 1.5 0H10.5ZM4.5 10H10.5C10.7761 10 11 9.77614 11 9.5V1.5C11 1.22386 10.7761 1 10.5 1H4.5V10ZM1.5 1C1.22386 1 1 1.22386 1 1.5V9.5C1 9.77614 1.22386 10 1.5 10H3.5V1H1.5Z' fill='%23000'/%3E%3C/svg%3E");
-}
-
-/* ─── ВСПЛЫВАЮЩАЯ ПАНЕЛЬ (вход / статус) ─────────────────────────────────── */
-#login-popover {
-	position: fixed;
-	top: 56px;
-	right: 10px;
-	z-index: 1000;
-	width: 230px;
-	background: #0a0a0ac4;
-	backdrop-filter: blur(8px);
-	padding: 14px;
-	box-shadow: 0 3px 14px rgba(0, 0, 0, 0.4);
-}
-
-#login-form {
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-}
-
-#login-form input {
-	background: #070707d4;
-	border: 1px solid #343130;
-	border-radius: 0;
-	color: #dcd0c0;
-	font-size: 0.85em;
-	padding: 7px 9px;
-	outline: none;
-}
-
-#login-form input:focus { border-color: #776d61; }
-
-#login-error {
-	color: #8C3A30;
-	font-size: 0.78em;
-	margin: 0;
-	min-height: 1em;
-}
-
-
-/* ─── КНОПКИ (ступенчатая «талия») ─── */
-.admin-outline-btn, .admin-danger-btn, #login-form button {
-	all: unset;
-	box-sizing: border-box;
-	position: relative;
-	height: 27px;
-	padding: 1px;
-	display: inline-flex;
-	cursor: pointer;
-}
-
-.admin-outline-btn .btn__base, .admin-outline-btn .btn__line,
-.admin-danger-btn .btn__base, .admin-danger-btn .btn__line,
-#login-form button .btn__base, #login-form button .btn__line {
-	position: absolute;
-	inset: 0;
-	background: #776d61;
-	clip-path: polygon(0 0, 100% 0, 100% calc(50% - 3.4px), calc(100% - 2.5px) 50%,
-		100% calc(50% + 3.4px), 100% 100%, 0 100%,
-		0 calc(50% + 3.4px), 2.5px 50%, 0 calc(50% - 3.4px));
-}
-
-.admin-outline-btn .btn__base, .admin-danger-btn .btn__base, #login-form button .btn__base {
-	opacity: 0.45;
-}
-
-.admin-outline-btn .btn__line, .admin-danger-btn .btn__line, #login-form button .btn__line {
-	mask-image: url(images/static.png);
-	mask-mode: luminance;
-	mask-position: center;
-	-webkit-mask-image: url(images/static.png);
-	-webkit-mask-position: center;
-}
-
-.admin-outline-btn .btn__fill, .admin-danger-btn .btn__fill, #login-form button .btn__fill {
-	position: relative;
+/* ─── Кнопки (Кнопки, 2225:3167) ───
+   Высота всех кнопок — 24px: базовая 7+7, с иконкой 14 — 4+4, с иконкой
+   16 (Город/Поселение/Форт) — 3+3 (в значениях макета у кнопок с иконкой
+   было 22px — выровнено по тексту макета). */
+.btn {
 	display: inline-flex;
 	align-items: center;
-	padding: 0 17px;
-	background: #0a0a0a;
-	color: #998c7c;
-	font-size: 0.875em;
-	letter-spacing: 0.02em;
-	clip-path: polygon(0 0, 100% 0, 100% calc(50% - 3px), calc(100% - 2.5px) 50%,
-		100% calc(50% + 3px), 100% 100%, 0 100%,
-		0 calc(50% + 3px), 2.5px 50%, 0 calc(50% - 3px));
-	transition: background 0.14s, color 0.14s, filter 0.14s;
-}
-
-.admin-outline-btn:hover .btn__fill, #login-form button:hover .btn__fill {
-	background: radial-gradient(ellipse 44px 13.5px at 50% 50%, #C9A24D 13%, #96763E 100%);
-	color: #070707;
-	box-shadow: inset 0 0 2px rgba(230, 207, 149, 0.67);
-	filter: drop-shadow(0 0 5.5px rgba(201, 162, 77, 0.5));
-}
-
-.admin-danger-btn:hover .btn__fill {
-	background: radial-gradient(ellipse 44px 13.5px at 50% 50%, #E6604E 13%, #8C3A30 100%);
-	color: #070707;
-	box-shadow: inset 0 0 2px rgba(230, 96, 78, 0.5);
-	filter: drop-shadow(0 0 5.5px rgba(140, 58, 48, 0.5));
-}
-
-/* ─── ОКНО СРАВНЕНИЯ (откат локации к умолчанию) ─────────────────────────── */
-#revert-overlay {
-	position: fixed;
-	inset: 0;
-	z-index: 2000;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	background: rgba(0, 0, 0, 0.55);
-}
-
-#revert-dialog {
-	width: min(700px, 90vw);
-	max-height: 85vh;
-	overflow-y: auto;
-	background: #0a0a0af0;
-	backdrop-filter: blur(8px);
-	padding: 22px 24px;
-	box-shadow: 0 3px 20px rgba(0, 0, 0, 0.5);
-	color: #dcd0c0;
-}
-
-#revert-dialog h3 {
-	font-family: 'El Messiri', sans-serif;
-	font-weight: 600;
-	margin: 0 0 8px;
-}
-
-
-#revert-compare-headers {
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	gap: 16px;
-	margin-top: 16px;
-}
-
-#revert-compare-headers span {
-	font-size: 0.78em;
-	text-transform: uppercase;
-	color: #787167;
-	font-weight: 600;
-}
-
-
-#revert-compare {
-	font-size: 0.85em;
-}
-
-.revert-field { margin-top: 10px; }
-.revert-field:first-child { margin-top: 8px; }
-
-.revert-field-label {
-	color: #787167;
-	font-size: 0.78em;
-	margin-bottom: 1px;
-}
-
-.revert-field-values {
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	gap: 16px;
-	align-items: stretch;
-}
-
-.revert-value {
-	color: #b8a898;
-	word-break: break-word;
-}
-
-.revert-value.diff { color: #dcd0c0; background: #3a2f22; padding: 1px 4px; }
-
-/* ─── БОЛЬШОЕ ОКНО РЕДАКТИРОВАНИЯ ОПИСАНИЯ (тот же стиль, что #revert-dialog) ── */
-#desc-expand-overlay,
-#branch-edit-overlay {
-	position: fixed;
-	inset: 0;
-	z-index: 2000;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	background: #0303035e;
-	backdrop-filter: blur(8px);
-}
-
-#desc-expand-dialog,
-#branch-edit-dialog {
-	width: min(700px, 90vw);
-	max-height: 85vh;
-	background: #0a0a0af0;
-	backdrop-filter: blur(8px);
-	padding: 22px 24px;
-	box-shadow: 0 3px 20px rgba(0, 0, 0, 0.5);
-	color: #dcd0c0;
-	display: flex;
-	flex-direction: column;
-	gap: 14px;
-}
-
-#desc-expand-dialog h3,
-#branch-edit-dialog h3 {
-	font-family: 'El Messiri', sans-serif;
-	font-weight: 600;
-	margin: 0;
-}
-
-#desc-expand-dialog .form-buttons,
-#branch-edit-dialog .form-buttons {
-	flex-shrink: 0;
-	justify-content: flex-end;
-}
-
-
-#branch-edit-dialog label {
-	display: flex;
-	flex-direction: column;
-	gap: 4px;
-	font-size: 0.72em;
-	font-weight: 500;
-	color: #787167;
-	text-transform: uppercase;
-}
-#branch-edit-dialog .form-field label { display: block; }
-#branch-edit-dialog input[type="text"] {
-	background: rgba(7, 7, 7, 0.5);
-	border: 1px solid #343130;
-	border-radius: 0;
-	color: #dcd0c0;
-	font-size: 0.75rem;
-	padding: 7px 9px;
-	outline: none;
-	font-family: inherit;
-}
-#branch-edit-dialog input:focus { border-color: #776d61; }
-#branch-edit-dialog .desc-editor textarea {
-	background: transparent;
-	border: none;
-	min-height: 68px;
-}
-#branch-edit-dialog .desc-editor textarea:focus { border: none; }
-#branch-edit-error {
-	margin: 0;
-	font-size: 0.75em;
-	color: #C0564A;
-	min-height: 1em;
-}
-
-#branch-unlink-btn { margin-right: auto; }
-
-.admin-back-btn {
-	background: none;
-	border: none;
-	color: #998c7c;
-	font-size: 0.75em;
-	cursor: pointer;
-	padding: 0 0 10px;
-}
-
-.admin-back-btn:hover { color: #dcd0c0; }
-
-
-.edit-footer-row {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: 8px;
-	padding-top: 10px;
-	flex-shrink: 0;
-}
-
-.edit-footer-icons {
-	display: flex;
-	align-items: center;
-	gap: 14px;
-}
-
-.admin-hint {
-	color: #787167;
-	font-size: 0.76em;
-	margin: 0 0 4px;
-	line-height: 1.4;
-}
-
-/* ─── ФОРМА РЕДАКТИРОВАНИЯ МАРКЕРА ───────────────────────────────────────── */
-#edit-marker-view {
-	display: flex;
-	flex-direction: column;
-	min-height: 0;
-	flex: 1;
-}
-
-#edit-marker-view h3 {
-	font-family: 'El Messiri', sans-serif;
-	font-size: 1.5em;
-	color: #dcd0c0;
-	font-weight: 700;
-	line-height: 1.2;
-	margin: 0;
-	text-box-trim: trim-both;
-	text-box-edge: cap alphabetic;
-}
-
-#marker-form {
-	flex: 1;
-	overflow-y: auto;
-	display: flex;
-	flex-direction: column;
-	gap: 10px;
-	padding: 0 10px 10px 0;
-}
-
-#marker-form::-webkit-scrollbar       { width: 4px; }
-#marker-form::-webkit-scrollbar-track { background: transparent; }
-#marker-form::-webkit-scrollbar-thumb { background: #3d3531; border-radius: 0px; }
-
-#marker-form label {
-	display: flex;
-	flex-direction: column;
-	gap: 4px;
-	font-size: 0.75em;
-	font-weight: 700;
-	letter-spacing: 0.02em;
-	color: #787167;
-	text-transform: uppercase;
-}
-
-
-.form-field {
-	display: flex;
-	flex-direction: column;
-	gap: 4px;
-}
-
-#marker-form label .required-mark { color: #8C3A30; text-transform: none; }
-
-#marker-form input[type="text"],
-#marker-form input[type="number"],
-#marker-form select,
-.desc-editor textarea,
-#system-trait-new-input {
-	background: rgba(7, 7, 7, 0.5);
-	border: 1px solid #343130;
-	border-radius: 0;
-	color: #dcd0c0;
-	font-size: 0.75rem;
-	padding: 7px 9px;
-	outline: none;
-	resize: vertical;
-}
-
-#f-description-expand {
-	background: transparent;
-	border: none;
-	border-radius: 0;
-	color: #dcd0c0;
-	height: 50vh;
-	max-height: 60vh;
-	padding: 7px 9px;
-	outline: none;
-	font-size: 1rem;
-	resize: none;
-}
-
-#marker-form input:focus,
-#marker-form select:focus,
-.desc-editor textarea:focus {
-	border-color: #776d61;
-}
-
-
-#marker-form input.field-input.auto-filled {
-	color: var(--ink-500, #6a655d);
-	border-color: #2e2b26;
-	font-style: italic;
-}
-
-.coord-row { display: flex; gap: 6px; }
-.coord-row input { width: 50%; }
-
-/* ─── ЕДИНЫЙ КОМПОНЕНТ ПОЛЕЙ ФОРМЫ ─── */
-.field-wrap { position: relative; }
-.field-select-native { display: none; }
-
-#marker-form input.field-input,
-#quest-form input.field-input,
-#branch-edit-dialog input.field-input,
-.field-select-trigger {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: 8px;
-	width: 100%;
-	box-sizing: border-box;
-	background: rgba(3, 3, 3, 0.83);
-	border: 1px solid #2e2b26;
-	border-radius: 0;
-	padding: 8px 10px 10px;
-	font-family: 'Beaufort for LoL', sans-serif;
-	font-size: 12px;
-	line-height: normal;
-	color: var(--ink-500, #6a655d);
-	outline: none;
-}
-.field-select-trigger { cursor: pointer; }
-.field-select-trigger:focus-visible { border-color: #4b4740; }
-#marker-form input.field-input::placeholder,
-#quest-form input.field-input::placeholder,
-#branch-edit-dialog input.field-input::placeholder { color: var(--ink-500, #6a655d); }
-
-
-#marker-form input.field-input:focus,
-#quest-form input.field-input:focus,
-#branch-edit-dialog input.field-input:focus,
-#marker-form input.field-input:not(:placeholder-shown),
-#quest-form input.field-input:not(:placeholder-shown),
-#branch-edit-dialog input.field-input:not(:placeholder-shown),
-.field-select-trigger.open {
-	border-color: #4b4740;
-}
-#marker-form input.field-input:not(:placeholder-shown),
-#quest-form input.field-input:not(:placeholder-shown),
-#branch-edit-dialog input.field-input:not(:placeholder-shown) {
-	color: var(--parch-200, #cfc7b8);
-}
-
-.field-select-label {
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-.field-select-chevron {
-	flex-shrink: 0;
-	color: var(--ink-500, #6a655d);
-	transition: transform .12s ease;
-}
-.field-select-trigger.open .field-select-chevron { transform: scaleY(-1); }
-
-.field-options {
-	position: fixed;
-	z-index: 2000;
-	background: rgba(3, 3, 3, 0.83);
-	backdrop-filter: blur(8px);
-	border: 1px solid #2e2b26;
-	border-top: 0;
-	max-height: 240px;
-	overflow-y: auto;
-	padding-top: 4px;
-	box-sizing: border-box;
-}
-.field-options::-webkit-scrollbar       { width: 4px; }
-.field-options::-webkit-scrollbar-track { background: transparent; }
-.field-options::-webkit-scrollbar-thumb { background: #3d3531; }
-
-.field-option {
-	padding: 8px 10px 10px;
-	font-family: 'Beaufort for LoL', sans-serif;
-	font-size: 12px;
-	color: var(--parch-400, #9a9285);
-	cursor: pointer;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-}
-.field-option:hover,
-.field-option.active {
-	background: rgba(106, 101, 93, 0.25);
-	color: var(--parch-200, #cfc7b8);
-}
-.field-options-empty {
-	padding: 8px 10px 10px;
-	font-size: 12px;
-	color: var(--ink-500, #6a655d);
-}
-
-
-/* ─── ФОРМА ЗАДАНИЯ (по образцу формы маркера) ────────────────────────────── */
-#edit-quest-view {
-	display: flex;
-	flex-direction: column;
-	min-height: 0;
-	flex: 1;
-}
-#edit-quest-view h3 {
-	font-family: 'El Messiri', sans-serif;
-	font-size: 1.5em;
-	color: #dcd0c0;
-	font-weight: 700;
-	line-height: 1.2;
-	margin: 0;
-	text-box-trim: trim-both;
-	text-box-edge: cap alphabetic;
-}
-#quest-form {
-	flex: 1;
-	overflow-y: auto;
-	display: flex;
-	flex-direction: column;
-	gap: 10px;
-	padding: 0 10px 10px 0;
-}
-#quest-form::-webkit-scrollbar       { width: 4px; }
-#quest-form::-webkit-scrollbar-track { background: transparent; }
-#quest-form::-webkit-scrollbar-thumb { background: #3d3531; }
-
-#quest-form label {
-	display: flex;
-	flex-direction: column;
-	gap: 4px;
-	font-size: 0.75em;
-	font-weight: 700;
-	letter-spacing: 0.02em;
-	color: #787167;
-	text-transform: uppercase;
-}
-#quest-form .form-field label { display: block; }
-#quest-form label .required-mark { color: #8C3A30; text-transform: none; }
-
-#quest-form input[type="text"],
-#quest-form input[type="number"],
-#quest-form select,
-#quest-form textarea {
-	background: rgba(7, 7, 7, 0.5);
-	border: 1px solid #343130;
-	border-radius: 0;
-	color: #dcd0c0;
-	font-size: 0.75rem;
-	padding: 7px 9px;
-	outline: none;
-	resize: vertical;
-	font-family: inherit;
-}
-#quest-form input:focus,
-#quest-form select:focus,
-#quest-form textarea:focus { border-color: #776d61; }
-
-
-#quest-form .desc-editor textarea {
-	background: transparent;
-	border: none;
-	min-height: 68px;
-}
-#quest-form .desc-editor textarea:focus { border: none; }
-#q-short-description { min-height: 38px; }
-
-
-#quest-form fieldset {
-	border: 0;
-	padding: 0;
-	margin: 0;
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-}
-#quest-form legend {
-	padding: 0;
-	color: #787167;
-	text-transform: uppercase;
-	font-size: 0.75em;
-	font-weight: 700;
-	letter-spacing: 0.02em;
-}
-#q-anchor-mode { gap: 10px 12px; padding-left: 1px; }
-.q-anchor-field { display: flex; flex-direction: column; gap: 6px; }
-.q-anchor-hint {
-	margin: 0;
-	font-size: 0.75em;
-	color: #6A655D;
-}
-#quest-form-error {
-	margin: 0;
-	font-size: 0.75em;
-	color: #C0564A;
-	min-height: 1em;
-}
-
-
-.label-help-icon {
-	display: inline-flex;
-	top: -5px;
-	cursor: help;
-}
-.label-help-icon svg { display: block; }
-
-#f-traits {
-	border: none;
-	padding: 0;
-	display: flex;
-	flex-direction: column;
-	gap: 4px;
-}
-
-#f-traits legend {
-	font-size: 0.75em;
-	font-weight: 700;
-	letter-spacing: 0.02em;
-	color: #787167;
-	text-transform: uppercase;
-	padding: 0;
-}
-
-
-#traits-icons,
-#system-traits-chips,
-#q-characters-row {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: 12px;
-	padding-left: 1px;
-}
-
-
-#f-system-traits {
-	border: none;
-	padding: 0;
-	display: flex;
-	flex-direction: column;
-	gap: 4px;
-}
-
-#f-system-traits legend {
-	font-size: 0.75em;
-	font-weight: 700;
-	letter-spacing: 0.02em;
-	color: #787167;
-	text-transform: uppercase;
-	padding: 0;
-}
-
-
-#system-traits-chips:empty { display: none; }
-
-.system-trait-add-row {
-	display: flex;
 	gap: 6px;
-}
-
-
-#system-trait-new-input {
-	flex: 1;
-	min-width: 0;
-}
-
-#system-trait-add-btn {
-	flex-shrink: 0;
-	color: #787167;
-}
-#system-trait-add-btn:hover { opacity: 0.75; }
-
-.form-buttons {
-	display: flex;
-	gap: 8px;
-	align-items: center;
-}
-
-.form-buttons .admin-danger-btn { flex: 1; }
-
-#form-error {
-	color: #8C3A30;
-	font-size: 0.8em;
-	margin: 0;
-	min-height: 1em;
-}
-
-
-.admin-draft-icon {
-	filter: drop-shadow(0 0 4px #977b61) saturate(0) brightness(2);
-}
-
-
-.admin-editing-hidden {
-	display: none !important;
-}
-
-/* ─── ПАНЕЛЬ ФОРМАТИРОВАНИЯ ОПИСАНИЯ (+ ССЫЛКИ НА ЛОКАЦИИ/ПРОВИНЦИИ/ФРАКЦИИ) ── */
-.desc-editor {
-	display: flex;
-	flex-direction: column;
-	background: rgba(7, 7, 7, 0.5);
-	border: 1px solid #343130;
-	border-radius: 0;
-	overflow: hidden;
-}
-.desc-editor:focus-within { border-color: #776d61; }
-
-.desc-toolbar {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 2px;
-	padding: 4px;
-	border-bottom: 1px solid #343130;
-	flex-shrink: 0;
-}
-
-.desc-toolbar .sep {
-	width: 1px;
-	height: 16px;
-	background: #343130;
-	margin: 0 3px;
-	flex-shrink: 0;
-}
-
-.toolbar-btn {
-	flex-shrink: 0;
-	width: 24px;
-	height: 24px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	background: none;
-	border: none;
-	border-radius: 0;
-	color: #dcd0c0;
-	cursor: pointer;
-	font-size: 12px;
-	line-height: 1;
-}
-.toolbar-btn:hover { background: #ffffff14; }
-.toolbar-btn:active { background: #ffffff22; }
-.toolbar-btn svg { color: inherit; }
-
-
-#f-description {
-	resize: vertical;
-	min-height: 60px;
-	height: 78px;
-	max-height: 320px;
-	background: transparent;
-	border: none;
-	border-radius: 0;
-	padding: 8px 9px;
-}
-#f-description:focus { border-color: transparent; }
-
-#f-description::-webkit-scrollbar,
-#f-description-expand::-webkit-scrollbar       { width: 4px; }
-#f-description::-webkit-scrollbar-track,
-#f-description-expand::-webkit-scrollbar-track { background: transparent; }
-#f-description::-webkit-scrollbar-thumb,
-#f-description-expand::-webkit-scrollbar-thumb { background: #3d3531; border-radius: 0px; }
-
-#link-picker {
-	position: fixed;
-	z-index: 3000;
-	width: 280px;
-	background: #0a0a0af0;
-	backdrop-filter: blur(8px);
-	border: 1px solid #776d61;
-	border-radius: 0;
-	box-shadow: 0 3px 14px rgba(0, 0, 0, 0.4);
-}
-
-#link-picker-search {
-	width: 100%;
 	box-sizing: border-box;
-	background: #070707d4;
-	border: none;
-	border-bottom: 1px solid #343130;
-	color: #dcd0c0;
-	font-size: 0.85em;
-	padding: 8px 10px;
-	outline: none;
+	margin: 0;
+	padding: 7px 6px;
+	background: var(--navy-900);
+	border: 1px solid var(--brass-900);
+	border-radius: 0;
+	font: 400 12px/1 'Beaufort for LoL', sans-serif;
+	letter-spacing: .24px;
+	color: var(--chamomile-300);
+	white-space: nowrap;
+	opacity: .5;
+	cursor: pointer;
 }
+.btn.selected { opacity: 1; color: var(--chamomile-500); }
+.btn--icon    { padding: 4px 6px 4px 4px; }
+.btn--icon-lg { padding: 3px 6px 3px 4px; }
 
-#link-picker-results {
-	max-height: 260px;
-	overflow-y: auto;
-	padding: 5px;
+.btn__label,
+.btn__count {
+	text-box-trim: trim-both;
+	text-box-edge: cap alphabetic;
 }
+.btn__count { color: color-mix(in srgb, var(--olive-400) 80%, transparent); }
 
-#link-picker-results::-webkit-scrollbar       { width: 4px; }
-#link-picker-results::-webkit-scrollbar-track { background: transparent; }
-#link-picker-results::-webkit-scrollbar-thumb { background: #3d3531; border-radius: 0px; }
-
-.link-picker-group-label {
-	font-size: 0.68em;
-	text-transform: uppercase;
-	letter-spacing: 0.05em;
-	color: #787167;
-	padding: 7px 7px 2px;
+.btn__icon {
+	position: relative;
+	flex-shrink: 0;
+	width: 14px;
+	height: 14px;
 }
+.btn--icon-lg .btn__icon { width: 16px; height: 16px; }
+.btn__icon img { position: absolute; left: 0; top: 0; }
+.btn__icon .btn__raster { width: 100%; height: 100%; object-fit: cover; }
+/* Неактивная растровая иконка: в макете фильтр картинки «saturation −0.48,
+   exposure −0.06» — CSS-эквивалент подобран по пикселям экспорта. */
+.btn:not(.selected) .btn__raster { filter: saturate(.44) brightness(.92); }
 
-.link-picker-item {
-	display: flex;
+.btn--add:hover { opacity: 1; color: var(--chamomile-500); }
+.btn--add:not(:hover) .btn__icon img { opacity: .5; }
+
+/* ─── Иконка статуса задания (14×14, SVG выходит за слот — сдвиги из макета) ─── */
+.status-icon {
+	position: relative;
+	flex-shrink: 0;
+	width: 14px;
+	height: 14px;
+}
+.status-icon img { position: absolute; }
+.status-icon--rumor img { left: -1px; top: 0; }
+.status-icon--known img { left: 0;    top: -1px; }
+.status-icon--done  img { left: -1px; top: -.5px; }
+/* Неактивная иконка статуса: в макете — те же градиенты с приглушённой
+   насыщенностью, яркость у каждого статуса своя (подобрано по пикселям). */
+.btn:not(.selected) .status-icon--rumor img { filter: brightness(.8); }
+.btn:not(.selected) .status-icon--known img { filter: saturate(.45) brightness(1.09); }
+.btn:not(.selected) .status-icon--done  img { filter: saturate(.45) brightness(1.05); }
+
+/* ─── Шеврон (Заголовок раздела / Заголовок провинции) ───
+   В макете — один и тот же треугольник 2×4 цвета текста во всех состояниях.
+   Ориентир — середина буквы «з»: слот высотой в эту букву стоит на базовой
+   линии текста (родитель — align-items: baseline), треугольник по центру
+   слота и поворачивается вокруг своего центра — положение одинаково в обоих
+   состояниях. Заголовок раздела набран капсом («З») — 1cap, заголовок
+   провинции строчными («з») — 1ex. */
+.chevron {
+	position: relative; /* без потоковых детей — базовая линия слота = его низ */
+	flex-shrink: 0;
+	width: 4px;
+	height: 1cap;
+}
+.chevron::before {
+	content: '';
+	position: absolute;
+	inset: 0;
+	margin: auto;
+	width: 2px;
+	height: 4px;
+	background: currentColor;
+	clip-path: polygon(0 0, 100% 50%, 0 100%);
+}
+.is-open > .chevron::before { transform: rotate(90deg); }
+
+/* ─── Заголовок раздела (Разное, 2222:1002) ─── */
+.section-label {
+	display: inline-flex;
 	align-items: baseline;
-	gap: 6px;
-	padding: 5px 7px;
-	border-radius: 0;
-	font-size: 0.85em;
-	color: #998c7c;
+	gap: 4px;
+	font: 700 12px/normal 'Beaufort for LoL', sans-serif;
+	letter-spacing: .24px;
+	text-transform: uppercase;
+	color: color-mix(in srgb, var(--olive-400) 60%, transparent);
 	cursor: pointer;
 }
+.section-label:hover   { color: color-mix(in srgb, var(--olive-400) 80%, transparent); }
+.section-label.is-open { color: color-mix(in srgb, var(--brass-300) 80%, transparent); }
 
-.link-picker-item:hover { background: #272421; color: #dcd0c0; }
-
-.link-picker-item .lp-sub {
-	color: #787167;
-	font-size: 0.9em;
-}
-
-.link-picker-empty {
-	padding: 10px 7px;
-	font-size: 0.8em;
-	color: #787167;
-}
-
-
-a.desc-link {
-	color: #96763E;
-	text-decoration: none;
-	text-underline-offset: 2px;
+/* ─── Заголовок провинции (Разное, 2222:1054) ─── */
+.province-header {
+	display: inline-flex;
+	align-items: baseline;
+	gap: 4px;
+	font: 500 16px/normal 'El Messiri', sans-serif;
+	letter-spacing: .32px;
+	color: var(--chamomile-500);
 	cursor: pointer;
 }
+/* Раскрыт — яркий, шеврон вниз; свёрнут — тусклый, шеврон вправо
+   (в макете шевроны у вариантов перепутаны — поправлено по словам автора). */
+.province-header.is-open { color: var(--chamomile-300); }
+.province-header .chevron { height: 1ex; }
 
-a.desc-link:hover { color: #C9A24D; text-decoration: underline; }
-
-.desc-link-icon {
-	width: 12px;
-	height: 12px;
-	object-fit: contain;
-	vertical-align: -2px;
-	margin-right: 1px;
+/* ─── Переход к заданию (Разное, 2222:1176) ─── */
+.quest-link {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	font: 500 10px/normal 'Beaufort for LoL', sans-serif;
+	text-transform: uppercase;
+	color: var(--brass-500);
+	cursor: pointer;
 }
-
-
-/* ═══ ЗАДАНИЯ (КВЕСТЫ) ═══ */
-
-/* ─── Секция «Журнал заданий» в сайдбаре ─── */
-#quests-section {
-	padding-bottom: 8px;
-	display: flex;
-	flex-direction: column;
-	min-height: 0;
-	gap: 8px;
+/* Стрелка — встроенный SVG из макета (fill: currentColor), две копии: обычная
+   и «наведённая». При наведении меняется только стрелка (текст остаётся
+   brass-500) — «прокрутка» как на universe.leagueoflegends.com: обычная
+   уезжает вправо и гаснет, наведённая въезжает слева с задержкой в полперехода;
+   когда курсор уходит — наоборот. */
+.quest-link__arrow {
 	position: relative;
-}
-#quests-section-label {
-	margin-bottom: 0;
-	gap: 12px;
-	display: flex;
-	flex-direction: row;
-	flex-wrap: wrap;
-	align-items: center;
-}
-
-
-.quests-total-count {
-	font-weight: 400;
-	font-size: 10px;
-}
-
-.quests-total-count:empty { display: none; }
-
-
-.section-label-actions {
-	display: flex;
-	align-items: center;
-	gap: 9px;
 	flex-shrink: 0;
+	width: 14px;
+	height: 6px;
 }
+.quest-link__arrow svg {
+	position: absolute;
+	left: 0;
+	top: 0;
+	display: block;
+	fill: currentColor;
+	transition-property: opacity, transform;
+	transition-duration: var(--arrow-duration);
+	transition-timing-function: var(--easing);
+}
+.quest-link__arrow-rest  { transition-delay: calc(var(--arrow-duration) / 2); }
+.quest-link__arrow-hover { color: var(--chamomile-500); opacity: 0; transform: translateX(-180%); }
+.quest-link:hover .quest-link__arrow-rest  { opacity: 0; transform: translateX(180%); transition-delay: 0s; }
+.quest-link:hover .quest-link__arrow-hover { opacity: 1; transform: none; transition-delay: calc(var(--arrow-duration) / 2); }
 
-
-#quest-journal-list {
+/* ─── Чекбокс «Слои карты» (Разное, 2251:160) ─── */
+.checkbox {
 	display: flex;
-	flex-direction: column;
-	gap: 8px;
-	margin-top: 4px;
-	max-height: 26vh;
-	overflow-y: auto;
-	overflow-x: hidden;
-}
-
-.quest-journal-empty {
-	font-size: 0.75em;
-	color: #3E3C3A;
-}
-
-.journal-row {
-	display: grid;
-	grid-template-columns: auto 1fr auto;
-	grid-template-areas:
-		"sq title grip"
-		"loc loc loc";
-	column-gap: 4px;
-	row-gap: 4px;
-	align-items: end;
-	align-content: center;
-	padding: 0;
-	border: 0;
+	align-items: center;
+	gap: 6px;
+	font: 400 14px/18px 'Beaufort for LoL', sans-serif;
+	color: color-mix(in srgb, var(--chamomile-700) 80%, transparent);
 	cursor: pointer;
-	transition: background-color .12s linear;
 }
-.journal-row:hover { background: rgba(52, 49, 48, 0.35); }
-.journal-row.selected { background: rgba(52, 49, 48, 0.35); }
-
-.journal-row-main { display: contents; }
-.journal-row-title {
-	grid-area: title;
-	min-width: 0;
-	font-size: 0.75em;
-	font-weight: 500;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
+.checkbox:hover   { color: color-mix(in srgb, var(--chamomile-500) 80%, transparent); }
+.checkbox.selected { color: color-mix(in srgb, var(--chamomile-300) 80%, transparent); }
+/* Бокс 10×10: рамка (.checkbox__frame) и отмеченное состояние (SVG из
+   макета) лежат друг на друге и сменяются прозрачностью.
+   Рамка (2251:141 / 2251:152): обводка 1px внутрь — градиент сверху вниз
+   (.8 → .4), внутренняя тень rgba(240,230,210,.41) 0 .4 blur .2 и две
+   внешние (#000 blur 1.5, rgba(0,0,0,.5) blur 3). Внутренняя тень у кольца
+   обводки светит по верхней кромке верхней стороны (::before) и по верхней
+   кромке нижней (::after). */
+.checkbox__box {
+	position: relative;
+	flex-shrink: 0;
+	width: 10px;
+	height: 10px;
 }
-
-.journal-row-title--dim    { color: var(--ink-500); }
-.journal-row-title--bright { color: var(--parch-400); }
-.journal-row:hover .journal-row-title--dim    { color: var(--parch-400); }
-.journal-row:hover .journal-row-title--bright { color: var(--parch-200); }
-.journal-row-anchor {
-	grid-area: loc;
-	padding-left: 14px;
-	font-size: 12px;
-	line-height: 1;
-	color: var(--ink-500);
-	white-space: nowrap;
-	overflow: visible;
-	text-overflow: ellipsis;
+.checkbox__frame {
+	/* chamomile-700 → при наведении #68583D (вне палитры, так в макете) */
+	--box-line: color-mix(in srgb, #68583D calc(var(--box-hover) * 100%), var(--chamomile-700));
+	position: absolute;
+	inset: 0;
+	border: 1px solid;
+	border-image: linear-gradient(
+		color-mix(in srgb, var(--box-line) 80%, transparent),
+		color-mix(in srgb, var(--box-line) 40%, transparent)) 1;
+	filter: drop-shadow(0 0 .75px #000) drop-shadow(0 0 1.5px rgb(0 0 0 / 50%));
 }
+.checkbox:hover { --box-hover: 1; }
+.checkbox__frame::before,
+.checkbox__frame::after {
+	content: '';
+	position: absolute;
+	pointer-events: none;
+}
+.checkbox__frame::before { inset: -1px; box-shadow: inset 0 .4px .2px rgb(240 230 210 / 41%); }
+.checkbox__frame::after  { inset: 0;    box-shadow: 0 .4px .2px rgb(240 230 210 / 41%); }
+.checkbox__box img { position: absolute; left: -3px; top: -3px; opacity: 0; }
+.checkbox.selected .checkbox__frame { opacity: 0; }
+.checkbox.selected .checkbox__box img { opacity: 1; }
 
-.quest-sq {
-	grid-area: sq;
-	align-self: center;
+/* ─── Системные кнопки-ромбы (Кнопки → Системные, 2227:3900) ───
+   Вариант «focus» из макета — при наведении, нажатии (:active) и фокусе
+   с клавиатуры (Tab). Ромб — CSS:
+   заливка navy-950 по clip-path (он же даёт зону клика ромбом — в «кресте»
+   квадраты перекрываются), обводка 1px внутрь — повёрнутый квадрат (::after),
+   градиент focus — ::before. Иконка — компонент 18px; неактивна — .5. */
+.sys-btn {
+	position: relative;
 	display: block;
 	flex-shrink: 0;
-	margin: 0;
-	width: 8.5px;
-	height: 8.5px;
-	transform: rotate(45deg);
-}
-
-/* ─── БЛОК ЗАДАНИЙ В ПОПАПЕ ─── */
-.popup-quests:empty { display: none; }
-.popup-quests {
-	display: flex;
-	flex-direction: column;
-	gap: 16px;
+	width: 38px;
+	height: 38px;
 	margin: 0;
 	padding: 0;
 	border: 0;
-}
-.popup-quests-head {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	margin: 0;
-}
-.popup-quests-label {
-	display: inline-flex;
-	gap: 12px;
-	font-family: 'Beaufort for LoL', sans-serif;
-	font-size: 12px;
-	font-weight: 500;
-	letter-spacing: 0.24px;
-	text-transform: uppercase;
-	line-height: normal;
-	color: #9A9285;
-	text-box-trim: trim-both;
-	text-box-edge: cap alphabetic;
-}
-.popup-quests-count { font-weight: 400; }
-.popup-quest-add {
-	flex-shrink: 0;
-	display: inline-flex;
-	width: 10px;
-	height: 10px;
-	border: 0;
-	background: none;
-	padding: 0;
-	color: #9A9285;
+	background: var(--navy-950);
 	cursor: pointer;
+	clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
 }
-.popup-quest-add svg { display: block; width: 100%; height: 100%; }
-.popup-quest-add:hover { color: #E6CF95; }
-.popup-quests-empty {
-	font-size: 11px;
-	color: #787167;
-}
-
-.popup-quests-list {
-	display: flex;
-	flex-direction: column;
-	gap: 20px;
-}
-.popup-quest-row {
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
-	padding: 0;
-	border: 0;
-}
-
-.popup-quest-header {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: 8px;
-}
-
-.popup-quest-header .quest-drag {
-	align-self: center;
-	margin: 0;
-	padding: 0;
-}
-.popup-quest-header .quest-drag img {
-	width: 8.5px;
-	height: 12px;
-}
-.popup-quest-title {
-	display: inline-flex;
-	align-items: center;
-	gap: 8px;
-	min-width: 0;
-	border: 0;
-	background: none;
-	padding: 0;
-	text-align: left;
-	cursor: pointer;
-	font-family: 'El Messiri', sans-serif;
-}
-.popup-quest-title .quest-sq {
-	flex-shrink: 0;
-	width: 10px;
-	height: 10px;
-	margin: 0;
-	transform: none;
-	box-shadow: none;
-	background: center / contain no-repeat;
-}
-.popup-quest-title .quest-sq--rumor  { background-image: url("images/ui/quest-status-rumor.svg"); }
-.popup-quest-title .quest-sq--known  { background-image: url("images/ui/quest-status-known.svg"); }
-.popup-quest-title .quest-sq--active { background-image: url("images/ui/quest-status-active.svg"); }
-.popup-quest-title .quest-sq--done   { background-image: url("images/ui/quest-status-done.svg"); }
-.popup-quest-title .quest-sq--failed { background-image: url("images/ui/quest-status-failed.svg"); }
-.popup-quest-name {
-	font-size: 14px;
-	font-weight: 500;
-	letter-spacing: 0.28px;
-	line-height: normal;
-	color: inherit;
-	text-box-trim: trim-both;
-	text-box-edge: cap alphabetic;
-}
-.popup-quest-title--done .popup-quest-name { text-decoration: line-through; }
-.popup-quest-title:hover .popup-quest-name { text-shadow: 0 0 4px rgba(227, 155, 39, 0.55); }
-
-
-.popup-quest-row--dim    .popup-quest-title { color: var(--ink-500, #6a655d); }
-.popup-quest-row--bright .popup-quest-title { color: var(--parch-400, #9a9285); }
-.popup-quest-row--dim    .popup-quest-title:hover { color: var(--parch-400, #9a9285); }
-.popup-quest-row--bright .popup-quest-title:hover { color: var(--parch-200, #cfc7b8); }
-.popup-quest-row--bright .popup-quest-name { font-weight: 600; }
-
-.popup-quest-goal,
-.popup-quest-branch {
-	padding-left: 18px;
-	font-family: 'Beaufort for LoL', sans-serif;
-	font-size: 12px;
-	line-height: normal;
-}
-.popup-quest-row--dim    .popup-quest-goal { color: var(--ink-500, #6a655d); }
-.popup-quest-row--bright .popup-quest-goal { color: var(--parch-200, #cfc7b8); }
-.popup-quest-branch-label { font-style: italic; font-weight: 500; }
-.popup-quest-row--dim    .popup-quest-branch-label { color: var(--ink-500, #6a655d); }
-.popup-quest-row--bright .popup-quest-branch-label { color: var(--parch-400, #9a9285); }
-
-/* ─── Точечное задание на карте ─── */
-.quest-point-icon {
-	filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8));
-}
-
-/* ─── Карточка задания (плавающая, поверх попапа) ─── */
-#quest-card,
-#branch-card {
-	position: fixed;
-	width: 350px;
-	max-height: calc(100vh - 120px);
-	box-sizing: border-box;
-	display: flex;
-	flex-direction: column;
-	background: rgba(3, 3, 3, 0.83);
-	backdrop-filter: blur(15px);
-	box-shadow: 0 0 6px 3px rgba(0, 0, 0, 0.5);
-	padding: 20px 18px;
-	color: #DCD0C0;
-	z-index: 1100;
-}
-
-#quest-card::before,
-#branch-card::before {
+.sys-btn::before,
+.sys-btn::after {
 	content: '';
 	position: absolute;
-	inset: 0;
 	pointer-events: none;
-	border: 1px solid #efe7d666;
-	mix-blend-mode: overlay;
 }
-#quest-card-inner,
-#branch-card-inner {
+/* Радиальный градиент макета: эллипс с полуосями 70.2 × 23.6, центр (26, 40),
+   ось повёрнута на 16.6°; navy-800 → navy-950 к 74.8%. */
+.sys-btn::before {
+	left: -54px;
+	top: -40px;
+	width: 160px;
+	height: 160px;
+	background: radial-gradient(ellipse 70.2px 23.6px at 50% 50%, var(--navy-800) 0, var(--navy-950) 74.8%);
+	transform: rotate(16.6deg);
+	opacity: 0;
+}
+/* 26.87 = 38 / √2 */
+.sys-btn::after {
+	left: 5.565px;
+	top: 5.565px;
+	width: 26.87px;
+	height: 26.87px;
+	box-sizing: border-box;
+	border: 1px solid color-mix(in srgb, var(--navy-800) 85%, transparent);
+	transform: rotate(45deg);
+}
+.sys-btn:is(:hover, :active, :focus-visible)::before { opacity: 1; }
+.sys-btn:is(:hover, :active, :focus-visible)::after { border-color: var(--navy-700); }
+
+.sys-btn img { position: absolute; opacity: .5; }
+.sys-btn:is(:hover, :active, :focus-visible) img { opacity: 1; }
+/* Сдвиги SVG иконки внутри ромба — из экспорта макета */
+.sys-btn--collapse img { left: 10px;     top: 10px; }
+.sys-btn--fit      img { left: 7.5858px; top: 7.5858px; }
+.sys-btn--plus     img { left: 9px;      top: 9px; }
+.sys-btn--minus    img { left: 9px;      top: 10px; }
+.sys-btn--measure  img { left: 7.5px;    top: 10px; }
+.sys-btn--login    img { left: 8px;      top: 9px; }
+.sys-btn--logout   img { left: 10px;     top: 9px; }
+
+.map-nav { position: relative; width: 80px; height: 80px; }
+.map-nav .sys-btn { position: absolute; }
+.map-nav .sys-btn--plus    { left: 21px; top: 0; }
+.map-nav .sys-btn--minus   { left: 21px; top: 42px; }
+.map-nav .sys-btn--fit     { left: 0;    top: 21px; }
+.map-nav .sys-btn--measure { left: 42px; top: 21px; }
+
+.sys-btn.selected::before { opacity: 1; }
+.sys-btn.selected::after { border-color: var(--navy-700); }
+.sys-btn.selected img { opacity: 1; }
+
+
+/* ═══ САЙДБАР И ПОПАПЫ — Figma «Haven Map (NEW)», Prototype (2222:458) ═══
+   Разметка — index.html, логика — script.js. Разделитель #151412 — из макета
+   (в палитре его нет). */
+
+/* ─── Свечение раскрытых карточек (ветка, фракция) ───
+   Радиальный градиент макета: malachite-800 → navy-900 к 74.8%, эллипс
+   172 × 110 с центром (≈65% ширины, −10px), ось повёрнута на −15.6°. */
+.glow { position: relative; isolation: isolate; overflow: hidden; }
+.glow::before {
+	content: '';
+	position: absolute;
+	z-index: -1;
+	left: calc(65.4% - 200px);
+	top: -210px;
+	width: 400px;
+	height: 400px;
+	background: radial-gradient(ellipse 172px 110px at 50% 50%, var(--malachite-800) 0, var(--navy-900) 74.8%);
+	transform: rotate(-15.6deg);
+	opacity: 0;
+	pointer-events: none;
+}
+.is-open > .glow::before { opacity: 1; }
+
+/* ─── Сайдбар «Хейвен» (2222:698) ─── */
+.sidebar {
+	position: fixed;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	z-index: 1000;
+	width: 360px;
+	display: flex;
+	flex-direction: column;
+	filter: drop-shadow(0 0 3px rgb(0 0 0 / 50%));
+}
+.sidebar.is-collapsed { transform: translateX(-100%); }
+
+/* Шапка: вырез справа под ромб сворачивания («Header Row — Figure»).
+   Высота ровно 90px, как в макете: при дробной высоте между шапкой и
+   разделами на экранах с масштабом просвечивала карта. */
+.sidebar__head {
+	flex-shrink: 0;
+	box-sizing: border-box;
+	height: 90px;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-end;
+	gap: 14px;
+	padding: 28px 18px 24px;
+	background: var(--navy-950);
+	clip-path: polygon(0 0, 100% 0, 100% 17px, calc(100% - 28px) 45px, 100% 73px, 100% 100%, 0 100%);
+}
+.sidebar__title,
+.sidebar__year {
+	text-box-trim: trim-both;
+	text-box-edge: cap alphabetic;
+}
+.sidebar__year {
+	margin: 0;
+	font: 400 12px/normal 'Beaufort for LoL', sans-serif;
+	color: color-mix(in srgb, var(--olive-400) 60%, transparent);
+}
+/* Ромб сворачивания — по центру правого края шапки; в свёрнутом виде
+   выезжает к левому краю экрана, стрелка разворачивается. */
+.sidebar__collapse {
+	position: absolute;
+	top: 26px;
+	left: calc(100% - 19px);
+	z-index: 3;
+}
+.sidebar.is-collapsed .sidebar__collapse { transform: translateX(27px); }
+.sidebar.is-collapsed .sidebar__collapse img { transform: scaleX(-1); }
+
+/* Снизу — место под строку поиска (она оверлеем, см. .sidebar__search). */
+.sidebar__body {
+	flex: 1 1 auto;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+	padding-bottom: 50px;
+	background: var(--navy-950);
+}
+/* Пустое место под разделами. Его верхняя граница — нижний разделитель
+   последнего раздела (Славы) в свёрнутом виде. Раскрытой Славе своя линия
+   под содержимым не нужна — снизу её закрывает линия поиска; граница гаснет
+   в тайминге раскрытия. */
+.sidebar__spacer {
+	flex: 1 1 0;
+	border-top: 1px solid #151412;
+}
+.sb-section.is-open + .sidebar__spacer { border-top-color: transparent; }
+
+/* ─── Раздел сайдбара — аккордеон: открыт всегда один ───
+   Разделитель 1px — только сверху у каждого раздела (снизу последнего —
+   верхняя граница .sidebar__spacer, над поиском — его линия). Высота
+   раздела 32px, как в макете. */
+.sb-section {
+	flex: 0 0 auto;
+	box-sizing: border-box; /* явная высота на время анимации — с отступами */
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+	padding: 11px 18px 12px;
+	border-top: 1px solid #151412;
+}
+.sb-section.is-open { flex-shrink: 1; }
+/* Раскрытие/сворачивание — анимация высоты самого раздела в пикселях
+   (openSection в script.js): на время неё у раздела явная высота, флекс
+   его не сжимает, а тело сворачиваемого раздела остаётся раскрытым
+   (.is-closing) — содержимое не сдвигается, раздел обрезает его снизу. */
+.sb-section { transition: height var(--duration) var(--easing); }
+.sb-section.is-animating { flex-shrink: 0; overflow: clip; }
+.sb-section__head {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 8px;
+	cursor: pointer;
+	user-select: none;
+}
+.sb-section__head .section-label { flex: 1; }
+.sb-section__head .section-label > span:last-child,
+.sb-section__count {
+	text-box-trim: trim-both;
+	text-box-edge: cap alphabetic;
+}
+.sb-section__count {
+	font: 400 10px/normal 'Beaufort for LoL', sans-serif;
+	color: color-mix(in srgb, var(--olive-400) 60%, transparent);
+	white-space: nowrap;
+}
+/* Отступ 8px под заголовком — снаружи прокручиваемой области, чтобы
+   содержимое при прокрутке не подъезжало вплотную к заголовку. */
+.sb-section__body {
+	flex: 1 1 auto;
+	min-height: 0;
+	display: grid;
+	grid-template-rows: 0fr;
+	margin-top: 0;
+}
+.sb-section:is(.is-open, .is-closing) .sb-section__body { grid-template-rows: 1fr; margin-top: 8px; }
+/* Полоса прокрутки — посередине правого отступа раздела, в 6px от края
+   сайдбара (2276:263): область прокрутки заходит в отступ на 12px, место
+   под полосу зарезервировано всегда (scrollbar-gutter) — содержимое не
+   сужается, когда полоса появляется. */
+.sb-section__inner {
+	min-height: 0;
+	overflow: hidden;
+	margin-right: -12px;
+	padding-right: 6px;
+	scrollbar-gutter: stable;
+}
+/* Полоса прокрутки появляется, когда раздел раскрылся до конца. */
+.sb-section.is-open:not(.is-animating) .sb-section__inner { overflow-y: auto; }
+
+/* Полоса прокрутки: прямоугольник 6px без стрелок, brass-900 30%, при
+   наведении — 60%. scrollbar-width/-color здесь не задавать: в Chrome
+   они отключают ::-webkit-scrollbar (и возвращают стрелки). */
+:is(.sb-section__inner, .edit__body, .options__list, .textarea, .editor__area, .popup .leaflet-popup-content, .dialog__body, .compare__value)::-webkit-scrollbar { width: 6px; background: transparent; }
+:is(.sb-section__inner, .edit__body, .options__list, .textarea, .editor__area, .popup .leaflet-popup-content, .dialog__body, .compare__value)::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--brass-900) 30%, transparent); }
+:is(.sb-section__inner, .edit__body, .options__list, .textarea, .editor__area, .popup .leaflet-popup-content, .dialog__body, .compare__value)::-webkit-scrollbar-thumb:hover { background: color-mix(in srgb, var(--brass-900) 60%, transparent); }
+@supports not selector(::-webkit-scrollbar) {
+	:is(.sb-section__inner, .edit__body, .options__list, .textarea, .editor__area, .popup .leaflet-popup-content, .dialog__body, .compare__value) {
+		scrollbar-width: thin;
+		scrollbar-color: color-mix(in srgb, var(--brass-900) 30%, transparent) transparent;
+	}
+}
+
+.btn-row { display: flex; flex-wrap: wrap; gap: 4px; }
+.checkbox-list { display: flex; flex-direction: column; gap: 2px; }
+
+/* ─── Поиск внизу сайдбара + раскрывающиеся фильтры (2222:1530) ───
+   Оверлей поверх содержимого сайдбара: фильтры раскрываются вверх, не
+   сжимая разделы. Пока фильтры открыты, остальной сайдбар неактивен и
+   затемнён на 50% navy-950 (.sidebar__scrim, повторяет вырез шапки). */
+.sidebar__search {
+	position: absolute;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	z-index: 2;
+	background: var(--navy-950);
+	backdrop-filter: blur(2.5px);
+}
+/* Верхняя линия поиска (и раскрытых фильтров) — на 1px выше блока: когда
+   пустого места над поиском нет, она совпадает с нижней линией последнего
+   раздела — видна одна линия, а не две. */
+.sidebar__search::before {
+	content: '';
+	position: absolute;
+	top: -1px;
+	right: 0;
+	left: 0;
+	height: 1px;
+	background: #151412;
+}
+.sidebar__scrim {
+	position: absolute;
+	inset: 0;
+	z-index: 1;
+	background: color-mix(in srgb, var(--navy-950) 50%, transparent);
+	clip-path: polygon(0 0, 100% 0, 100% 17px, calc(100% - 28px) 45px, 100% 73px, 100% 100%, 0 100%);
+	opacity: 0;
+	pointer-events: none;
+}
+.sidebar.is-searching .sidebar__scrim { opacity: 1; pointer-events: auto; }
+.search-filters {
+	display: grid;
+	grid-template-rows: 0fr;
+}
+.sidebar__search.is-open .search-filters { grid-template-rows: 1fr; }
+.search-filters__inner { min-height: 0; overflow: hidden; }
+.search-group {
 	display: flex;
 	flex-direction: column;
 	gap: 8px;
-	min-height: 0;
-	overflow-y: auto;
-	scrollbar-width: none;
-	-ms-overflow-style: none;
+	padding: 12px 18px;
 }
-#quest-card-inner::-webkit-scrollbar,
-#branch-card-inner::-webkit-scrollbar {
-	display: none;
-}
-.quest-card-head {
+.search-group + .search-group { border-top: 1px solid #151412; }
+.search-group__head {
 	display: flex;
-	align-items: flex-start;
+	align-items: baseline;
 	justify-content: space-between;
-	gap: 10px;
+	gap: 8px;
 }
-.quest-card-head h3 {
-	margin: 0;
-	min-width: 0;
-	font-family: 'El Messiri', sans-serif;
-	font-weight: 500;
-	font-size: 20px;
-	line-height: normal;
-	color: #EFE7D6;
-	mix-blend-mode: screen;
-}
-
-.quest-card-title-row {
-	display: flex;
-	align-items: center;
-	gap: 6px;
-	min-width: 0;
-	flex: 1 1 auto;
-}
-.quest-card-title-row--branch {
-	justify-content: space-between;
-	gap: 10px;
-}
-.quest-card-title-row .quest-sq {
-	flex-shrink: 0;
-	width: 12px;
-	height: 12px;
-	margin: 0 0 3px;
-	transform: none;
-	box-shadow: none;
-	background: center / contain no-repeat;
-}
-.quest-card-title-row .quest-sq--rumor  { background-image: url("images/ui/quest-status-rumor.svg"); }
-.quest-card-title-row .quest-sq--known  { background-image: url("images/ui/quest-status-known.svg"); }
-.quest-card-title-row .quest-sq--active { background-image: url("images/ui/quest-status-active.svg"); }
-.quest-card-title-row .quest-sq--done   { background-image: url("images/ui/quest-status-done.svg"); }
-.quest-card-title-row .quest-sq--failed { background-image: url("images/ui/quest-status-failed.svg"); }
-
-.quest-card-branch-count {
-	flex-shrink: 0;
-	font-family: 'Beaufort for LoL', sans-serif;
-	font-weight: 700;
-	font-size: 16px;
-	letter-spacing: 0.24px;
-	color: #c9a24d;
-}
-.quest-card-branch-total {
-	font-weight: 400;
-	font-size: 12px;
-	color: var(--parch-400, #9a9285);
-}
-.quest-card-foot {
-	display: flex;
-	align-items: center;
-}
-.quest-card-edit {
-	margin-left: auto;
-	border: none;
+/* Текстовые кнопки шапки группы (в макете их нет, вид — как в прежнем
+   дизайне): режим сочетания «или / и / искл.» справа и «сбросить» сразу
+   после подписи. Поле нажатия шире текста (padding), раскладку это не
+   меняет (margin). */
+.mode__btn,
+.search-group__reset {
+	display: inline-flex;
+	margin: -6px -4px;
+	padding: 6px 4px;
+	border: 0;
 	background: none;
-	padding: 0;
-	font-size: 11px;
-	color: #998C7C;
+	font: 400 12px/normal 'Beaufort for LoL', sans-serif;
+	color: color-mix(in srgb, var(--olive-400) 50%, transparent);
 	cursor: pointer;
 }
-.quest-card-edit:hover { color: #D3B495; text-shadow: 0 0 1.5px rgba(227, 155, 39, 0.66); }
-
-
-/* ─── Drag-and-drop привязки задания (только админ) ───────────────────────── */
-.quest-drag {
-	grid-area: grip;
-	flex-shrink: 0;
-	align-self: center;
-	padding: 2px 3px;
-	margin: 0px 8px;
-	color: #6A655D;
-	cursor: grab;
-	touch-action: none;
-	display: inline-flex;
-}
-.quest-drag:hover { color: #998C7C; }
-.quest-drag svg,
-.quest-drag img { display: block; }
-
-.quest-drag:hover img { filter: brightness(1.35); }
-
-
-.journal-row .quest-drag {
-	align-self: flex-start;
+.mode__btn > span,
+.search-group__reset > span { text-box-trim: trim-both; text-box-edge: cap alphabetic; }
+.mode__btn:is(:hover, :focus-visible),
+.search-group__reset:is(:hover, :focus-visible) { color: var(--chamomile-500); }
+.mode__btn.selected { color: var(--chamomile-300); }
+/* −2px сверху: строчные 12px чуть выше капса подписи 10px — без этого
+   шапка группы была бы на 1.3px выше, чем у «Типа локации». */
+.mode { display: flex; gap: 8px; margin-top: -2px; }
+.search-group__title { display: flex; align-items: baseline; gap: 8px; }
+/* «сбросить» видна, пока в группе что-то выбрано (место под неё есть всегда). */
+.search-group__reset { margin-top: -8px; opacity: 0; visibility: hidden; }
+.search-group.has-selection .search-group__reset { opacity: 1; visibility: visible; }
+.search-group__label {
 	margin: 0;
-	padding-right: 1px;
+	font: 700 10px/normal 'Beaufort for LoL', sans-serif;
+	letter-spacing: .2px;
+	text-transform: uppercase;
+	color: color-mix(in srgb, var(--olive-400) 60%, transparent);
+	text-box-trim: trim-both;
+	text-box-edge: cap alphabetic;
 }
-#quest-journal-list.has-scrollbar .journal-row .quest-drag {
-	margin-right: 10px;
+.search-row {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+	padding: 16px 18px;
+	cursor: text;
+}
+.search-row__icon {
+	position: relative;
+	flex-shrink: 0;
+	width: 18px;
+	height: 18px;
+}
+.search-row__icon img { position: absolute; left: -1px; top: -1px; opacity: .5; }
+.sidebar__search.is-open .search-row__icon img { opacity: 1; }
+.search-row__input {
+	flex: 1;
+	min-width: 0;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	outline: 0;
+	background: none;
+	font: 400 12px/normal 'Beaufort for LoL', sans-serif;
+	color: var(--chamomile-300);
+}
+/* Очистить поиск (×, путь — из прежнего дизайна): виден, пока поиск открыт
+   или в нём что-то задано; место под него есть всегда — поле не прыгает.
+   Знак 8px в поле нажатия 18px; правый край знака — по линии счётчиков. */
+.search-row__clear {
+	flex-shrink: 0;
+	display: grid;
+	place-items: center;
+	width: 18px;
+	height: 18px;
+	margin: 0 -5px 0 0;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: color-mix(in srgb, var(--olive-400) 60%, transparent);
+	cursor: pointer;
+	opacity: 0;
+	visibility: hidden;
+}
+.sidebar__search:is(.is-open, .has-query) .search-row__clear { opacity: 1; visibility: visible; }
+.search-row__clear:is(:hover, :focus-visible) { color: var(--chamomile-300); }
+.search-row__clear svg { display: block; fill: currentColor; }
+.search-row__input::placeholder {
+	color: color-mix(in srgb, var(--olive-400) 60%, transparent);
+	opacity: 1;
 }
 
-#quest-journal-list.has-scrollbar .journal-branch-count {
-	margin-right: 10px;
+/* ─── Журнал заданий (2222:729) ─── */
+.journal { display: flex; flex-direction: column; gap: 8px; padding-top: 2px; }
+.journal__list { display: flex; flex-direction: column; gap: 10px; padding: 2px 0; }
+.empty {
+	margin: 0;
+	font: 400 14px/18px 'Beaufort for LoL', sans-serif;
+	color: color-mix(in srgb, var(--olive-400) 60%, transparent);
 }
 
-body.quest-dragging,
-body.quest-dragging * { cursor: grabbing !important; }
+/* Прогресс «выполнено/всего» (quests_done-count, 2222:1322) */
+.progress {
+	flex-shrink: 0;
+	font: 400 12px/normal 'Beaufort for LoL', sans-serif;
+	color: color-mix(in srgb, var(--olive-400) 60%, transparent);
+	white-space: nowrap;
+	text-box-trim: trim-both;
+	text-box-edge: cap alphabetic;
+}
+.progress b { font-size: 16px; font-weight: 700; color: var(--brass-500); }
 
-.quest-drag-ghost {
+/* Ветка заданий (Quest Chain, 2222:1219): свёрнута — рамка справа 4px;
+   раскрыта — свечение в шапке, вкладки «или»-групп, чипы-задания и одно
+   открытое задание. */
+.chain {
+	display: flex;
+	flex-direction: column;
+	background: var(--navy-900);
+	border: 1px solid var(--brass-900);
+	border-right-width: 4px;
+}
+/* Раскрытие: рамка 4 → 1px, а отступ шапки справа 12 → 15px в том же
+   тайминге — сумма постоянна, текст и счётчик не сдвигаются; свечение
+   шапки проявляется одновременно (.glow), тело — 0fr → 1fr. */
+.chain.is-open { border-right-width: 1px; }
+.chain__head {
+	display: flex;
+	flex-direction: column;
+	padding: 8px 12px;
+	cursor: pointer;
+}
+.chain.is-open .chain__head { padding-right: 15px; }
+.chain__body { display: grid; grid-template-rows: 0fr; }
+.chain.is-open .chain__body { grid-template-rows: 1fr; }
+.chain__body-inner { min-height: 0; overflow: hidden; }
+.chain__row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+}
+.chain__title {
+	margin: 0;
+	font: 700 16px/normal 'El Messiri', sans-serif;
+	letter-spacing: .32px;
+	color: var(--brass-50);
+}
+.chain__desc {
+	margin: 0;
+	font: 400 14px/18px 'Beaufort for LoL', sans-serif;
+	color: var(--chamomile-300);
+	display: -webkit-box;
+	-webkit-line-clamp: 3;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+.chain__tabs,
+.chain__chips {
+	padding: 12px;
+	border-top: 1px solid color-mix(in srgb, var(--brass-900) 50%, transparent);
+}
+.chain__tabs { display: flex; gap: 4px; }
+.chain__chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.chain__chips .btn.is-closed .btn__label { text-decoration: line-through; }
+
+/* Вкладка «или»-группы (Option 1/2, 2222:1302) */
+.chain-tab {
+	flex: 1 1 0;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin: 0;
+	padding: 8px 6px;
+	border: 1px solid color-mix(in srgb, var(--brass-900) 50%, transparent);
+	background: transparent;
+	text-align: left;
+	cursor: pointer;
+}
+.chain-tab__title,
+.chain-tab__sub {
+	text-box-trim: trim-both;
+	text-box-edge: cap alphabetic;
+}
+.chain-tab__title {
+	font: 500 14px/normal 'Beaufort for LoL', sans-serif;
+	color: color-mix(in srgb, var(--olive-400) 80%, transparent);
+}
+.chain-tab__sub {
+	font: 400 12px/normal 'Beaufort for LoL', sans-serif;
+	color: color-mix(in srgb, var(--olive-400) 50%, transparent);
+}
+.chain-tab:hover { background: color-mix(in srgb, var(--brass-500) 10%, transparent); border-color: transparent; }
+.chain-tab:hover .chain-tab__title { color: rgb(168 151 115 / 90%); } /* вне палитры, так в макете */
+.chain-tab:hover .chain-tab__sub { color: rgb(168 151 115 / 50%); }
+.chain-tab.selected { background: color-mix(in srgb, var(--brass-500) 20%, transparent); border-color: transparent; }
+.chain-tab.selected .chain-tab__title { color: var(--brass-300); }
+.chain-tab.selected .chain-tab__sub { color: color-mix(in srgb, var(--brass-300) 60%, transparent); }
+
+/* ─── Карточка задания (журнал, ветка, попап локации) ─── */
+.quest-card {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 6px;
+	padding: 12px;
+	background: var(--navy-900);
+	border: 1px solid var(--brass-900);
+}
+/* Перетаскивание задания (админ): зона захвата — правые 40px карточки, без
+   ручки, только курсор (ширина — DRAG_ZONE в script.js). */
+.quest-card[data-drag-quest] { position: relative; }
+.quest-card[data-drag-quest]::after {
+	content: '';
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	width: 40px;
+	cursor: grab;
+}
+body.dragging,
+body.dragging * { cursor: grabbing !important; user-select: none; }
+/* У курсора — название задания и что произойдёт, если отпустить. */
+.drag-ghost {
 	position: fixed;
 	left: 0;
 	top: 0;
-	will-change: transform;
-	z-index: 1200;
-	pointer-events: none;
-	display: flex;
+	z-index: 3000;
+	display: grid;
+	grid-template-columns: 16px auto;
 	align-items: center;
-	gap: 7px;
-	padding: 5px 9px;
-	background: rgba(18, 18, 18, 0.95);
-	box-shadow: inset 0 0 0 1px #343130, 0 0 6px 0 rgba(0, 0, 0, 0.35);
-	font-family: 'El Messiri', sans-serif;
-	font-size: 12px;
-	color: #EFE7D6;
+	gap: 4px 6px;
+	padding: 6px 8px;
+	background: var(--navy-950);
+	border: 1px solid var(--brass-900);
+	filter: drop-shadow(0 2px 6px rgb(0 0 0 / 50%));
+	font: 400 12px/16px 'Beaufort for LoL', sans-serif;
+	color: var(--chamomile-300);
 	white-space: nowrap;
+	pointer-events: none;
 }
-.quest-drag-ghost.over-target { box-shadow: inset 0 0 0 1px #96763E, 0 0 6px 0 rgba(0, 0, 0, 0.25); }
-.quest-drag-ghost img { display: block; }
-
-
-.leaflet-marker-icon.quest-drop-target {
-	outline: 1px solid #80684D;
-	outline-offset: 3px;
-	box-shadow: 0 0 6px 2px rgba(142, 85, 19, 0.5);
-	filter: drop-shadow(0 0 6px rgba(227, 155, 39, 0.9));
-}
-.leaflet-popup.quest-drop-target .leaflet-popup-content-wrapper {
-	box-shadow: 0 0 13px rgba(0, 0, 0, 1), inset 0 0 0 1px #96763E, inset 0 0 6px 2px rgba(142, 85, 19, 0.35);
-}
-
-path.region-shape.quest-drop-target {
-	fill: #96763E !important;
-	fill-opacity: .38 !important;
-	stroke: #E39B27 !important;
-	stroke-width: 2 !important;
-	stroke-opacity: 1 !important;
-}
-
-#quest-drag-hint {
+.drag-ghost img { width: 16px; height: 16px; }
+/* Над пустым местом карты — иконка задания там, где оно встанет. */
+.drag-pin {
 	position: fixed;
-	left: 50%;
-	bottom: 22px;
-	transform: translateX(-50%);
-	z-index: 1200;
+	left: 0;
+	top: 0;
+	z-index: 2999;
+	width: 24px;
+	height: 24px;
 	pointer-events: none;
-	padding: 4px 10px;
-	background: rgba(6, 6, 6, 0.92);
-	box-shadow: inset 0 0 0 1px #96763E;
-	font-family: 'El Messiri', sans-serif;
-	font-size: 12px;
-	color: #DCD0C0;
-	white-space: nowrap;
 }
-
-
-/* ═══ РЕСКИН — Figma «Sidebar — Карта Хейвена (admin)», node 254:1525 ═══ */
-:root {
-	--ink-600:   #3e3c3a;
-	--ink-500:   #6a655d;
-	--parch-400: #9a9285;
-	--parch-200: #cfc7b8;
-	--brass-300: #e6cf95;
-	--brass-600: #96763e;
-}
-
-
-#normal-view,
-#edit-marker-view,
-#edit-quest-view,
-#glory-view,
-#edit-faction-view { gap: 16px; }
-
-#glory-title { display: inline-flex; gap: 4px; align-items: flex-start; font-size: 1em; }
-.map-title-slava {
-	font-family: 'El Messiri', sans-serif;
-	font-size: .75em;
-	font-weight: 700;
-	line-height: 1.2;
-	color: var(--ink-600);
-	text-box-trim: trim-both;
-	text-box-edge: cap alphabetic;
-	cursor: pointer;
-	transition: color .14s ease;
-}
-.map-title-slava:hover { color: var(--parch-400); }
-
-
-#quest-status-chips .icon-toggle--text { gap: 4px; }
-#quest-status-chips .quest-status-chip__sq {
-	position: relative;
-	z-index: 2;
-	flex-shrink: 0;
-	align-self: flex-end;
-	margin-bottom: 3px;
-	width: 10px;
-	height: 10px;
-	background: center / contain no-repeat;
-}
-#quest-status-chips .quest-status-chip__sq--rumor  { background-image: url("images/ui/quest-status-rumor.svg"); }
-#quest-status-chips .quest-status-chip__sq--known  { background-image: url("images/ui/quest-status-known.svg"); }
-#quest-status-chips .quest-status-chip__sq--active { background-image: url("images/ui/quest-status-active.svg"); }
-#quest-status-chips .quest-status-chip__sq--done   { background-image: url("images/ui/quest-status-done.svg"); }
-
-
-#quest-status-chips .icon-toggle.selected .quest-status-chip__sq {
-	filter: drop-shadow(0 0 3px rgb(0 0 0 / 50%))
-			drop-shadow(0 0 0.5px rgb(0 0 0));
-}
-
-#quest-status-chips .icon-toggle:not(:hover):not(.selected) .quest-status-chip__sq {
-	filter: drop-shadow(0 0 3px rgb(0 0 0 / 50%));
-}
-
-#quest-status-chips .icon-toggle:hover .quest-status-chip__sq {
-	filter: drop-shadow(0 0 3px rgb(0 0 0 / 50%))
-			drop-shadow(0 0 0.5px rgb(0 0 0 / 50%));
-}
-
-
-#quest-journal-list .quest-sq,
-#branch-card .quest-sq {
-	width: 10px;
-	height: 10px;
-	transform: none;
-	background: center / contain no-repeat;
-	box-shadow: none;
-	margin-top: 3px;
-}
-#quest-journal-list .quest-sq--rumor,  #branch-card .quest-sq--rumor  { background-image: url("images/ui/quest-status-rumor.svg"); }
-#quest-journal-list .quest-sq--known,  #branch-card .quest-sq--known  { background-image: url("images/ui/quest-status-known.svg"); }
-#quest-journal-list .quest-sq--active, #branch-card .quest-sq--active { background-image: url("images/ui/quest-status-active.svg"); }
-#quest-journal-list .quest-sq--done,   #branch-card .quest-sq--done   { background-image: url("images/ui/quest-status-done.svg"); }
-#quest-journal-list .quest-sq--failed, #branch-card .quest-sq--failed { background-image: url("images/ui/quest-status-failed.svg"); }
-
-#branch-card .popup-quest-title .quest-sq { margin: 0; }
-
-/* ─── Ветки заданий: строка-заголовок в журнале ─── */
-.journal-branch {
-	display: flex;
-	flex-direction: column;
-	width: 100%;
-	margin-bottom: 4px;
-}
-.journal-branch-header {
-	display: flex;
-	align-items: center;
-	gap: 6px;
-}
-.journal-branch-title {
-	flex: 1;
-	min-width: 0;
-	font-family: 'El Messiri', sans-serif;
-	font-weight: 500;
-	font-size: 16px;
-	line-height: 1;
-	color: var(--parch-200);
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	cursor: pointer;
-}
-.journal-branch-title:hover { color: var(--brass-300); }
-.journal-branch-count {
-	flex-shrink: 0;
-	font-family: 'Beaufort for LoL', sans-serif;
-	font-size: 12px;
-	color: var(--brass-600);
-}
-.journal-branch-connector {
-	padding-left: 15px;
-	font-size: 11px;
-	font-style: italic;
-	text-transform: lowercase;
-	color: var(--ink-500);
-}
-
-#quest-journal-list::-webkit-scrollbar,
-#location-list::-webkit-scrollbar { width: 9px; background: transparent; }
-
-
-#quest-journal-list::-webkit-scrollbar-track,
-#location-list::-webkit-scrollbar-track,
-#quest-journal-list::-webkit-scrollbar-track-piece,
-#location-list::-webkit-scrollbar-track-piece { background: transparent; }
-
-#quest-journal-list::-webkit-scrollbar-thumb,
-#location-list::-webkit-scrollbar-thumb {
-	background: none;
-	border: 0;
-	border-radius: 0;
-	min-height: 24px;
-	border-image: url("images/ui/scrollbar-thumb.svg") 2 fill / 2px stretch;
-}
-
-/* ═══ САЙДБАР «СЛАВА» ═══ */
-#glory-view {
-	display: flex;
-	flex-direction: column;
-	min-height: 0;
-	flex: 1;
-}
-#glory-intro {
-	margin: 0;
-	font-size: 12px;
-	line-height: normal;
-	color: var(--parch-200);
-}
-.glory-add-row {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	background: none;
-	border: 0;
-	padding: 0;
-	font-size: 12px;
-	color: var(--ink-500);
-	cursor: pointer;
-	transition: color .14s ease;
-}
-.glory-add-row:hover { color: var(--parch-400); }
-.glory-add-row .fx-icon--plus { color: inherit; }
-
-
-.quest-branch-chip {
-	display: inline-block;
-	font-size: 12px;
-	color: var(--parch-200, #cfc7b8);
-	cursor: pointer;
-	transition: color .14s ease;
-}
-.quest-branch-chip:hover { color: var(--brass-300); }
-
-#factions-list {
-	flex: 1;
-	min-height: 0;
-	overflow-y: auto;
-	display: flex;
-	flex-direction: column;
-	gap: 20px;
-}
-#factions-list::-webkit-scrollbar       { width: 4px; }
-#factions-list::-webkit-scrollbar-track { background: transparent; }
-#factions-list::-webkit-scrollbar-thumb { background: #3d3531; }
-.factions-empty { font-size: .75em; color: #3E3C3A; margin: 0; }
-
-.faction-card {
-	display: flex;
-	flex-direction: column;
-	gap: 12px;
-	padding: 8px 6px 8px 4px;
-	width: 100%;
-	box-sizing: border-box;
-	outline: none;
-}
-
-.faction-card--expandable {
-	position: relative;
-	cursor: pointer;
-}
-.faction-card--expandable::before,
-.faction-card--expandable::after {
+.drag-pin[hidden] { display: none; }
+.drag-ghost__hint { grid-column: 2; color: color-mix(in srgb, var(--olive-400) 60%, transparent); }
+.drag-ghost.is-valid { border-color: var(--brass-600); }
+.drag-ghost.is-valid .drag-ghost__hint { color: var(--brass-300); }
+/* Цель, на которую упадёт задание: метка, область, сайдбар. */
+.leaflet-marker-icon.drop-target { filter: drop-shadow(0 0 3px var(--brass-300)) drop-shadow(0 0 1px var(--brass-50)); }
+path.region-shape.drop-target { fill: var(--brass-500) !important; fill-opacity: .35 !important; }
+.sidebar.drop-target::after {
 	content: '';
 	position: absolute;
 	inset: 0;
-	z-index: -1;
-	opacity: 0;
-	transition: opacity .3s ease;
+	z-index: 5;
+	box-shadow: inset 0 0 0 1px var(--brass-600);
 	pointer-events: none;
 }
-.faction-card--expandable::before {
-	background: linear-gradient(270deg,
-		rgba(122, 95, 42, .35) 5.069%,
-		rgba(122, 95, 42, .021) 59.631%,
-		rgba(122, 95, 42, 0) 94.931%);
+.chain .quest-card {
+	border: 0;
+	border-top: 1px solid color-mix(in srgb, var(--brass-900) 50%, transparent);
 }
-.faction-card--expandable::after {
-	background: linear-gradient(270deg,
-		rgba(150, 118, 62, .55) 5.069%,
-		rgba(150, 118, 62, .045) 59.631%,
-		rgba(150, 118, 62, 0) 94.931%);
+.quest-card__title {
+	margin: 0;
+	font: 500 14px/normal 'Beaufort for LoL', sans-serif;
+	letter-spacing: .28px;
+	color: color-mix(in srgb, var(--brass-50) 90%, transparent);
 }
-.faction-card--expandable:hover::before,
-.faction-card--expandable:focus-visible::before {
-	opacity: 1;
+.chain .quest-card__title { color: var(--brass-50); }
+.quest-card__desc {
+	align-self: stretch;
+	margin: 0;
+	font: 400 14px/18px 'Beaufort for LoL', sans-serif;
+	color: var(--chamomile-300);
 }
-.faction-card--expandable.faction-card--expanded::before {
-	opacity: 0;
+.quest-card.is-closed .quest-card__title { text-decoration: line-through; }
+.quest-card.is-closed .quest-card__desc,
+.quest-card.is-closed .quest-link { opacity: .5; }
+
+/* Строка статуса: «ИЗВЕСТНО • Место» */
+.quest-status {
+	margin: 0;
+	font: 700 10px/normal 'Beaufort for LoL', sans-serif;
+	letter-spacing: .24px;
+	text-transform: uppercase;
+	text-box-trim: trim-both;
+	text-box-edge: cap alphabetic;
 }
-.faction-card--expandable.faction-card--expanded::after {
-	opacity: 1;
+.quest-status__place {
+	font-size: 12px;
+	font-weight: 400;
+	text-transform: none;
+	color: color-mix(in srgb, var(--olive-400) 50%, transparent);
 }
-.faction-card-header {
+.quest-status--rumor  .quest-status__word { color: var(--chamomile-500); }
+.quest-status--known  .quest-status__word { color: var(--navy-300); }
+.quest-status--done   .quest-status__word { color: var(--grass-600); }
+.quest-status--failed .quest-status__word { color: var(--blood-600); }
+
+/* «Последствия» задания (quest_done-update / quest_failed-update, 2222:1257 /
+   2222:1250): блок цитаты, но шрифт прямой; полоса — цвет статуса (как слово
+   статуса), текст — chamomile-300 + 25% цвета статуса (так подписан слой в
+   макете). Не приглушается у завершённых — в отличие от описания. */
+.outcome {
+	--status: var(--navy-300);
+	align-self: stretch;
+	margin: 0;
+	padding: 4px 0 4px 8px;
+	border-left: 2px solid var(--status);
+	font: 400 14px/18px 'Beaufort for LoL', sans-serif;
+	color: color-mix(in srgb, var(--chamomile-300), var(--status) 25%);
+}
+.outcome--rumor  { --status: var(--chamomile-500); }
+.outcome--done   { --status: var(--grass-600); }
+.outcome--failed { --status: var(--blood-600); }
+.pop__outcome { padding: 4px 18px 12px; }
+
+/* ─── Провинции (Location List, 2222:748) ─── */
+.provinces { display: flex; flex-direction: column; gap: 16px; padding-top: 8px; }
+.province { display: flex; flex-direction: column; }
+.province__rows {
+	display: grid;
+	grid-template-rows: 0fr;
+}
+.province.is-open .province__rows { grid-template-rows: 1fr; }
+.province__rows-inner { min-height: 0; overflow: hidden; }
+/* Снизу у списка 4px под свисающие буквы последней строки (р, у, д) —
+   иначе их срезает overflow раскрытия; следующая провинция поднимается
+   на те же 4px (в том же тайминге), расстояние остаётся как в макете. */
+.province__list {
 	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	padding: 8px 0 4px 20px;
+}
+.province.is-open + .province { margin-top: -4px; }
+.location-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	cursor: pointer;
+}
+.location-row__main {
+	display: flex;
+	align-items: center;
 	gap: 6px;
-	align-items: flex-start;
-	width: 100%;
+	min-width: 0;
+}
+.location-row__icon {
+	flex-shrink: 0;
+	width: 14px;
+	height: 14px;
+	object-fit: cover;
+}
+.location-row__name {
+	font: 400 14px/normal 'Beaufort for LoL', sans-serif;
+	color: color-mix(in srgb, var(--olive-400) 90%, transparent);
+	text-box-trim: trim-both;
+	text-box-edge: cap alphabetic;
 }
 
-.faction-card-name--editable { cursor: pointer; }
-.faction-card-name--editable:hover { color: var(--brass-300); }
-.faction-card-icon {
-	width: 16px;
-	height: 16px;
-	flex-shrink: 0;
-	object-fit: cover;
-	margin-top: 2px;
+/* ─── Слава — карточка фракции (2247:528) ───
+   Цвет репутации: дружественная — grass, нейтральная — brass, враждебная — blood. */
+.factions { display: flex; flex-direction: column; gap: 8px; }
+.faction {
+	--rep-text: var(--brass-400);
+	--rep-bar: var(--brass-600);
+	display: flex;
+	flex-direction: column;
+	background: var(--navy-900);
+	border: 1px solid var(--brass-900);
 }
-.faction-card-row {
+.faction--positive { --rep-text: var(--grass-400); --rep-bar: var(--grass-600); }
+.faction--negative { --rep-text: var(--blood-400); --rep-bar: var(--blood-600); }
+/* Сворачивается/раскрывается только по шапке (как ветка) — текст описания
+   можно выделять и копировать. */
+.faction__head { display: flex; flex-direction: column; gap: 12px; padding: 12px; cursor: pointer; }
+.faction__top { display: flex; align-items: center; gap: 8px; }
+.faction__emblem { flex-shrink: 0; width: 32px; height: 32px; object-fit: cover; }
+.faction__titles {
 	flex: 1;
 	min-width: 0;
+	height: 42px;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+.faction__name-row {
 	display: flex;
 	align-items: flex-start;
 	justify-content: space-between;
 	gap: 8px;
+	margin-bottom: -4px;
 }
-.faction-card-name-col {
+.faction__name {
 	display: flex;
-	flex-direction: column;
-	gap: 0px;
-}
-.faction-card-name {
-	margin: 0;
-	font-family: 'El Messiri', sans-serif;
-	font-weight: 500;
-	font-size: 16px;
-	line-height: normal;
-	color: var(--parch-200);
-	transition: color .14s ease;
-}
-.faction-card-title {
-	margin: 0;
-	font-family: 'Beaufort for LoL', sans-serif;
-	font-style: italic;
-	font-size: 12px;
-	line-height: normal;
-}
-.faction-card-score {
-	flex-shrink: 0;
-	margin: 0;
-	white-space: nowrap;
-	font-family: 'Beaufort for LoL', sans-serif;
-}
-.faction-card-score-val { font-weight: 700; font-size: 16px; }
-.faction-card-score-max { font-size: 12px; color: var(--parch-400); }
-
-.faction-card-loyalty {
-	display: flex;
-	gap: 8px;
 	align-items: center;
-	margin-left: 22px;
+	gap: 4px;
+	margin: 0;
+	font: 700 16px/normal 'El Messiri', sans-serif;
+	letter-spacing: .32px;
+	color: var(--brass-50);
 }
-.faction-loyalty-pip {
-	width: 16px;
-	height: 16px;
-	flex-shrink: 0;
-	background: center / contain no-repeat;
-	background-image: url("images/ui/loyalty-empty.svg");
+.faction__name img { display: block; }
+.faction:not(.is-open) .faction__edit { display: none; }
+.faction__score {
+	font: 400 12px/normal 'Beaufort for LoL', sans-serif;
+	color: color-mix(in srgb, var(--olive-400) 60%, transparent);
+	white-space: nowrap;
 }
-.faction-loyalty-pip--positive { background-image: url("images/ui/loyalty-high.png"); }
-.faction-loyalty-pip--negative { background-image: url("images/ui/loyalty-low.png"); }
-.faction-loyalty-pip--neutral  { background-image: url("images/ui/loyalty-neutral.png"); }
-
-
-.faction-card-desc {
-	background: linear-gradient(90deg, rgba(3, 3, 3, .5) 0%, rgba(3, 3, 3, 0) 100%);
-	padding: 14px;
-	font-size: 12px;
-	line-height: normal;
-	color: var(--parch-400);
+.faction__score b { font-size: 16px; font-weight: 700; color: var(--rep-text); }
+.faction__title {
+	margin: 0;
+	font: 500 12px/normal 'Beaufort for LoL', sans-serif;
+	letter-spacing: .24px;
+	color: var(--rep-text);
 }
-.faction-card-desc .description p { margin: 0 0 8px; }
-.faction-card-desc .description p:last-child { margin-bottom: 0; }
-.faction-card-effect {
-	margin: 8px 0 0;
-	font-weight: 700;
-	font-size: 12px;
-	line-height: normal;
+.faction__bars { display: flex; gap: 4px; }
+.faction__bar {
+	flex: 1 1 0;
+	height: 4px;
+	background: color-mix(in srgb, var(--olive-400) 15%, transparent);
 }
-
-
-#edit-faction-view {
+.faction__bar.is-on { background: color-mix(in srgb, var(--rep-bar) 50%, transparent); }
+.faction.is-open .faction__bar.is-on { background: var(--rep-bar); }
+.faction__body { display: grid; grid-template-rows: 0fr; }
+.faction.is-open .faction__body { grid-template-rows: 1fr; }
+.faction__body-inner { min-height: 0; overflow: hidden; }
+.faction__content {
 	display: flex;
 	flex-direction: column;
-	min-height: 0;
-	flex: 1;
+	gap: 12px;
+	padding: 12px;
+	border-top: 1px solid color-mix(in srgb, var(--brass-900) 50%, transparent);
+	font: 400 14px/18px 'Beaufort for LoL', sans-serif;
 }
-#edit-faction-view h3 {
-	font-family: 'El Messiri', sans-serif;
-	font-size: 1.5em;
-	color: #dcd0c0;
-	font-weight: 700;
-	line-height: 1.2;
+.faction__desc { color: color-mix(in srgb, var(--chamomile-300) 75%, transparent); }
+.faction__desc p { margin: 0 0 8px; }
+.faction__desc p:last-child { margin-bottom: 0; }
+.faction__effect {
+	padding: 2px 0 4px 8px;
+	border-left: 2px solid var(--rep-bar);
+	color: var(--chamomile-300);
+}
+
+/* ─── Попапы на карте (popup 2222:808, quest-popup 2254:1091) ───
+   Leaflet-попап с className «popup»; правила ниже перекрывают общие
+   .leaflet-popup-* сайта только внутри .popup. */
+.popup .leaflet-popup-content-wrapper {
+	position: relative;
+	z-index: 0;
+	overflow: hidden;
+	padding: 0;
+	border-radius: 0;
+	background: var(--navy-950);
+	backdrop-filter: none;
+	box-shadow: none;
+}
+.popup .leaflet-popup-content-wrapper::before { display: none; }
+.popup .leaflet-popup-content {
+	width: 340px !important;
+	margin: 0 !important;
+	font: 400 14px/18px 'Beaufort for LoL', sans-serif;
+	color: var(--chamomile-300);
+}
+.popup .leaflet-popup-content p { margin: 0; }
+/* Хвостика у попапов нет (убран по просьбе автора): попап висит над точкой
+   привязки (+ offset попапа — верх иконки) с зазором 12px. */
+.popup { margin-bottom: 12px; }
+.popup .leaflet-popup-tip-container { display: none; }
+
+.pop { position: relative; }
+/* Картинка локации фоном шапки: 20%, «luminosity», контраст +100%, маска — размытый круг
+   r = 200 с центром (243, −30) попапа (blur 27.5). Рамка 340×365 с маской
+   — отдельно, картинка внутри — отдельно: масштаб и сдвиг кадра меняют
+   картинку, а маска остаётся на месте. */
+:root { --pop-bg-mask: radial-gradient(circle at 219px -2px, #000 145px, rgb(0 0 0 / 84%) 172px, rgb(0 0 0 / 50%) 200px, rgb(0 0 0 / 16%) 228px, transparent 255px); }
+.pop__bg {
+	position: absolute;
+	z-index: -1;
+	left: 24px;
+	top: -28px;
+	width: 340px;
+	height: 365px;
+	overflow: hidden;
+	opacity: .2;
+	mix-blend-mode: luminosity;
+	pointer-events: none;
+	-webkit-mask-image: var(--pop-bg-mask);
+	mask-image: var(--pop-bg-mask);
+}
+/* Видимая область (выбирается в форме локации): точка картинки (--x, --y)
+   стоит на том же месте кадра, --zoom — масштаб вокруг неё. По умолчанию —
+   низ картинки по центру, как было. */
+.pop__bg img,
+.crop__replica img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	object-position: var(--x, 50%) var(--y, 100%);
+	transform-origin: var(--x, 50%) var(--y, 100%);
+	transform: scale(var(--zoom, 1));
+}
+/* Контраст +100% (фильтр картинки в макете: contrast 1) — у самой картинки
+   попапа; обзор в форме выбора области — без него, чтобы рамка совпадала с
+   картинкой под ней. */
+.pop__bg img { filter: contrast(2); }
+.pop__head { display: flex; flex-direction: column; padding: 12px 18px 14px; }
+.pop--quest .pop__head { padding-bottom: 8px; }
+.pop__title-row {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin-bottom: -4px;
+}
+.pop--quest .pop__title-row { margin-bottom: 0; }
+.pop__title {
 	margin: 0;
-	text-box-trim: trim-both;
-	text-box-edge: cap alphabetic;
+	font: 500 20px/normal 'El Messiri', sans-serif;
+	letter-spacing: .2px;
+	color: var(--brass-50);
 }
-#faction-form {
-	flex: 1;
-	overflow-y: auto;
+.pop__title-row img { flex-shrink: 0; width: 14px; height: 14px; object-fit: cover; }
+.pop__eng {
+	margin: 0;
+	font: 700 12px/normal 'Beaufort for LoL', sans-serif;
+	letter-spacing: .24px;
+	text-transform: uppercase;
+	color: color-mix(in srgb, var(--olive-400) 80%, transparent);
+}
+.pop__info {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 2px 12px;
+	padding: 6px 18px 10px;
+	border-block: 1px solid color-mix(in srgb, var(--brass-50) 5%, transparent);
+	font-size: 12px;
+	letter-spacing: .24px;
+}
+.pop__info-label {
+	grid-row: 1;
+	font-weight: 700;
+	line-height: normal;
+	text-transform: uppercase;
+	color: color-mix(in srgb, var(--olive-400) 60%, transparent);
+}
+.pop__info-value {
+	grid-row: 2;
+	font-weight: 500;
+	line-height: 12px;
+	color: var(--brass-500);
+}
+.pop__info-value[data-action] { cursor: pointer; }
+.pop__desc { padding: 8px 18px; }
+.pop__desc p + p { margin-top: 8px; }
+.pop__desc blockquote {
+	margin: 16px 0 4px;
+	padding: 4px 0 4px 8px;
+	border-left: 2px solid var(--brass-700);
+	font-style: italic;
+	color: color-mix(in srgb, var(--chamomile-300) 60%, transparent);
+}
+.pop__desc blockquote:first-child { margin-top: 0; }
+.pop__desc blockquote p + p { margin-top: 8px; }
+/* Ссылка в описании (попап, фракция): иконка того, куда ведёт, + название. */
+.desc-link { color: var(--brass-500); cursor: pointer; }
+.desc-link img { display: inline-block; width: 12px; height: 12px; margin-right: 3px; object-fit: contain; vertical-align: -1px; }
+.pop__quests {
 	display: flex;
 	flex-direction: column;
 	gap: 10px;
-	padding: 0 10px 10px 0;
+	padding: 12px 18px;
+	border-top: 1px solid #151412;
 }
-#faction-form::-webkit-scrollbar       { width: 4px; }
-#faction-form::-webkit-scrollbar-track { background: transparent; }
-#faction-form::-webkit-scrollbar-thumb { background: #3d3531; }
-#faction-form label {
+.pop__section-label {
+	margin: 0;
+	font: 700 12px/normal 'Beaufort for LoL', sans-serif;
+	letter-spacing: .24px;
+	text-transform: uppercase;
+	color: color-mix(in srgb, var(--olive-400) 60%, transparent);
+	text-box-trim: trim-both;
+	text-box-edge: cap alphabetic;
+}
+
+/* ─── Кнопки карты (вне сайдбара) ─── */
+.map-controls {
+	position: fixed;
+	right: 18px;
+	bottom: 18px;
+	z-index: 900;
+}
+.map-login {
+	position: fixed;
+	top: 18px;
+	right: 18px;
+	z-index: 900;
+}
+
+/* ─── Линейка (с прежнего сайта; в макете — только кнопка) ───
+   Линия — тёмная (navy-950) со светлым ореолом: латунная сливалась с
+   пергаментом карты, а так видна и на светлом, и на тёмном. Точки — brass-300,
+   подписи — плашки цвета попапа. Пока линейка включена, метки и регионы не
+   ловят клики — они уходят карте. */
+.leaflet-container.measuring { cursor: crosshair; }
+.measuring .leaflet-marker-icon { pointer-events: none; }
+.measuring .region-shape { pointer-events: none !important; }
+.measure-line { stroke: var(--navy-950); filter: drop-shadow(0 0 1.5px var(--brass-50)); }
+.measure-line--rubber { stroke-opacity: .7; }
+.measure-dot { stroke: var(--navy-950); fill: var(--brass-300); }
+.measure-label { pointer-events: none; }
+.measure-label > span {
+	display: inline-block;
+	padding: 3px 6px;
+	white-space: nowrap;
+	background: color-mix(in srgb, var(--navy-950) 90%, transparent);
+	font: 400 12px/16px 'Beaufort for LoL', sans-serif;
+	color: var(--chamomile-300);
+}
+.measure-label--total > span { font-weight: 700; color: var(--brass-300); }
+.measure-label--cursor > span { color: var(--brass-50); }
+
+/* ─── Вход для админа — под ромбом входа (в макете его нет) ───
+   Коробка — как у попапа; поля и кнопка — из форм админки. */
+.login {
+	position: fixed;
+	top: 64px;
+	right: 18px;
+	z-index: 1100;
+	box-sizing: border-box;
+	width: 240px;
 	display: flex;
 	flex-direction: column;
-	gap: 4px;
-	font-size: 0.72em;
-	font-weight: 500;
-	color: #787167;
-	text-transform: uppercase;
-}
-#faction-form .form-field label { display: block; }
-#faction-form label .required-mark { color: #8C3A30; text-transform: none; }
-#faction-form input[type="text"],
-#faction-form input[type="number"],
-#faction-form select,
-#faction-form textarea {
-	background: rgba(7, 7, 7, 0.5);
-	border: 1px solid #343130;
-	border-radius: 0;
-	color: #dcd0c0;
-	font-size: 0.75rem;
-	padding: 7px 9px;
-	outline: none;
-	resize: vertical;
-	font-family: inherit;
-}
-#faction-form input:focus,
-#faction-form select:focus,
-#faction-form textarea:focus { border-color: #776d61; }
-#faction-form .desc-editor textarea {
-	background: transparent;
-	border: none;
-	min-height: 68px;
-}
-#faction-form .desc-editor textarea:focus { border: none; }
-#faction-form-error {
+	gap: 8px;
 	margin: 0;
-	font-size: 0.75em;
-	color: #C0564A;
-	min-height: 1em;
+	padding: 16px;
+	background: var(--navy-950);
+	filter: drop-shadow(0 0 3px rgb(0 0 0 / 50%));
+}
+.login[hidden] { display: none; }
+.login__title {
+	margin: 0 0 4px;
+	font: 700 10px/normal 'Beaufort for LoL', sans-serif;
+	letter-spacing: .2px;
+	text-transform: uppercase;
+	color: color-mix(in srgb, var(--olive-400) 60%, transparent);
+	text-box-trim: trim-both;
+	text-box-edge: cap alphabetic;
+}
+.login__submit { align-self: flex-end; margin-top: 4px; }
+
+/* ═══ АДМИНКА — ФОРМЫ И САЙДБАР РЕДАКТИРОВАНИЯ ═══
+   В новом макете форм нет. Поля прежнего дизайна (field/select, field/input,
+   2222:667…693) привязаны к старой палитре — от них взяты только размеры
+   (поле 28px, отступ 10, текст 12, вариант списка 26, отступ списка 4), цвета —
+   ближайшие из новой: рамка brass-900 (была parch-700), в фокусе chamomile-700
+   (parch-600), текст chamomile-300 (parch-200), варианты olive-400 (parch-400),
+   подсказка — как в строке поиска. Поведение полей — script.js, «Поля форм и окна». */
+
+/* Сайдбар в режиме правки: вместо разделов и поиска — форма и низ с кнопками. */
+.edit {
+	display: none;
+	flex: 1 1 auto;
+	min-height: 0;
+	flex-direction: column;
+	background: var(--navy-950);
+	border-top: 1px solid #151412;
+}
+.sidebar.is-editing .edit { display: flex; }
+.sidebar.is-editing :is(.sidebar__body, .sidebar__search, .sidebar__scrim) { display: none; }
+/* Смена вида (разделы ↔ форма) — проявляется содержимое, фон сайдбара
+   непрозрачен всё время (иначе на миг просвечивала бы карта). */
+.edit > *,
+.sidebar__body > *,
+.sidebar__search > * { animation: fade var(--duration) var(--easing); }
+@keyframes fade { from { opacity: 0; } }
+/* Полоса прокрутки — как в разделах: в 6px от края, место под неё есть всегда. */
+.edit__body {
+	flex: 1 1 auto;
+	min-height: 0;
+	overflow-y: auto;
+	margin-right: 6px;
+	padding: 16px 6px 20px 18px;
+	scrollbar-gutter: stable;
+}
+.edit__foot {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	padding: 16px 18px;
+	border-top: 1px solid #151412;
+}
+.edit__spacer { flex: 1; }
+.btn[hidden] { display: none; }
+
+/* Поле с подписью; подпись — как у групп фильтров поиска. */
+.form { display: flex; flex-direction: column; gap: 16px; }
+.field {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	min-width: 0;
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+.field[hidden] { display: none; }
+.field__label {
+	margin: 0;
+	padding: 0;
+	font: 700 10px/normal 'Beaufort for LoL', sans-serif;
+	letter-spacing: .2px;
+	text-transform: uppercase;
+	color: color-mix(in srgb, var(--olive-400) 60%, transparent);
+	text-box-trim: trim-both;
+	text-box-edge: cap alphabetic;
+}
+.field__req { margin-left: 2px; color: var(--brass-400); }
+.field__hint,
+.form__error {
+	margin: 0;
+	font: 400 12px/16px 'Beaufort for LoL', sans-serif;
+	color: color-mix(in srgb, var(--olive-400) 50%, transparent);
+}
+.form__error { color: var(--blood-400); }
+.form__error:empty { display: none; }
+.field__pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.field__add { display: flex; gap: 4px; }
+.chip-row { display: flex; flex-wrap: wrap; gap: 4px; }
+.chip-row:empty { display: none; }
+
+/* Текстовое поле, многострочное поле, редактор описания — одна коробка. */
+.input,
+.textarea,
+.editor {
+	box-sizing: border-box;
+	width: 100%;
+	margin: 0;
+	border: 1px solid var(--brass-900);
+	border-radius: 0;
+	background: var(--navy-950);
+	font: 400 12px/16px 'Beaufort for LoL', sans-serif;
+	color: var(--chamomile-300);
+}
+.input { height: 28px; padding: 0 10px; outline: 0; }
+.textarea { display: block; min-height: 52px; padding: 6px 10px; outline: 0; resize: vertical; }
+.input::placeholder,
+.textarea::placeholder,
+.editor__area::placeholder { color: color-mix(in srgb, var(--olive-400) 60%, transparent); opacity: 1; }
+.input:is(:hover, :focus, .is-open),
+.textarea:is(:hover, :focus),
+.editor:is(:hover, :focus-within) { border-color: var(--chamomile-700); }
+.input[type="number"] { appearance: textfield; }
+.input[type="number"]::-webkit-inner-spin-button,
+.input[type="number"]::-webkit-outer-spin-button { display: none; }
+/* Квадратная кнопка рядом с полем (добавить особенность) — та же коробка. */
+.input-btn {
+	flex-shrink: 0;
+	display: grid;
+	place-items: center;
+	width: 28px;
+	height: 28px;
+	padding: 0;
+	border: 1px solid var(--brass-900);
+	background: var(--navy-900);
+	color: color-mix(in srgb, var(--olive-400) 60%, transparent);
+	cursor: pointer;
+}
+.input-btn:is(:hover, :focus-visible) { border-color: var(--chamomile-700); color: var(--chamomile-300); }
+.input-btn svg { display: block; fill: currentColor; }
+/* Растровый/цветной значок (карандаш ветки) — тусклее в покое, как svg-значки. */
+.input-btn img { display: block; opacity: .6; }
+.input-btn:is(:hover, :focus-visible) img { opacity: 1; }
+/* Кнопка-действие внутри поля («Восстановить по умолчанию») — по ширине текста. */
+.field > .btn { align-self: flex-start; }
+/* Название варианта ветки: слева — метка группы, справа — поле. */
+.or-title { display: grid; grid-template-columns: minmax(64px, max-content) 1fr; align-items: center; gap: 12px; }
+.or-title__key {
+	max-width: 140px;
+	overflow-wrap: anywhere;
+	font: 400 12px/16px 'Beaufort for LoL', sans-serif;
+	color: color-mix(in srgb, var(--olive-400) 60%, transparent);
 }
 
-/* ═══ ПЕРЕКЛЮЧЕНИЕ ВИДОВ САЙДБАРА «КАРТА ХЕЙВЕНА» ⇄ «СЛАВА» ═══ */
-
-#normal-view > *,
-#glory-view  > * {
-	--view-shift: 16px;
-	--vs-dur: 620ms;
-	--vs-delay: calc(var(--i, 0) * 40ms);
-	transition:
-		opacity   var(--vs-dur) ease                        var(--vs-delay),
-		transform var(--vs-dur) cubic-bezier(.2, .7, .2, 1) var(--vs-delay);
-}
-
-
-#normal-view > :nth-child(1), #glory-view > :nth-child(1) { --i: 0; }
-#normal-view > :nth-child(2), #glory-view > :nth-child(2) { --i: 1; }
-#normal-view > :nth-child(3), #glory-view > :nth-child(3) { --i: 2; }
-#normal-view > :nth-child(4), #glory-view > :nth-child(4) { --i: 3; }
-#normal-view > :nth-child(5), #glory-view > :nth-child(5) { --i: 4; }
-#normal-view > :nth-child(6), #glory-view > :nth-child(6) { --i: 5; }
-#normal-view > :nth-child(7), #glory-view > :nth-child(7) { --i: 6; }
-#normal-view > :nth-child(8), #glory-view > :nth-child(8) { --i: 7; }
-#normal-view > :nth-child(9), #glory-view > :nth-child(9) { --i: 8; }
-
-
-.sb-view-out {
+/* Выпадающий список: родной <select> остаётся внутри (значение формы),
+   на виду — кнопка-поле с шевроном; варианты — общая панель .options. */
+.select { position: relative; }
+.select__native {
 	position: absolute;
-	inset: 20px 18px;
-	z-index: 1;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	opacity: 0;
 	pointer-events: none;
 }
-.sb-view-out > * {
-	opacity: 0;
-	transform: translateX(var(--view-shift));
-	--vs-dur: 250ms;
-	--vs-delay: 0ms;
+.select__trigger {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	text-align: left;
+	white-space: nowrap;
+	cursor: pointer;
+}
+.select__chevron {
+	flex-shrink: 0;
+	width: 8px;
+	height: 4px;
+	background: currentColor;
+	clip-path: polygon(0 0, 100% 0, 50% 100%);
+	color: color-mix(in srgb, var(--olive-400) 60%, transparent);
+}
+.select__trigger:is(:hover, .is-open) .select__chevron { color: var(--chamomile-300); }
+.select__trigger.is-open .select__chevron { transform: rotate(180deg); }
+
+/* Панель вариантов — под полем, продолжает его рамку (сверху без линии). */
+.options {
+	position: fixed;
+	z-index: 2000;
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+	max-height: 216px;
+	background: var(--navy-950);
+	border: 1px solid var(--chamomile-700);
+	border-top-width: 0;
+	filter: drop-shadow(0 4px 6px rgb(0 0 0 / 50%));
+}
+.options--detached { border-top-width: 1px; max-height: 320px; }
+.options__search { flex-shrink: 0; width: auto; margin: 8px 8px 4px; }
+.options__list { min-height: 0; overflow-y: auto; padding: 4px 0; }
+.option {
+	display: flex;
+	align-items: baseline;
+	gap: 6px;
+	box-sizing: border-box;
+	min-height: 26px;
+	padding: 5px 10px;
+	font: 400 12px/16px 'Beaufort for LoL', sans-serif;
+	color: var(--olive-400);
+	cursor: pointer;
+}
+.option:is(:hover, .is-active) { background: color-mix(in srgb, var(--olive-400) 12%, transparent); color: var(--chamomile-300); }
+.option.is-current { color: var(--chamomile-300); }
+.option__sub { color: color-mix(in srgb, var(--olive-400) 50%, transparent); }
+.options__group {
+	padding: 10px 10px 6px;
+	font: 700 10px/normal 'Beaufort for LoL', sans-serif;
+	letter-spacing: .2px;
+	text-transform: uppercase;
+	color: color-mix(in srgb, var(--olive-400) 60%, transparent);
+}
+.options__empty {
+	padding: 5px 10px;
+	font: 400 12px/16px 'Beaufort for LoL', sans-serif;
+	color: color-mix(in srgb, var(--olive-400) 50%, transparent);
 }
 
-
-.sb-view-in > * {
-	opacity: 0;
-	transform: translateX(var(--view-shift));
-	transition: none;
+/* Редактор описания: панель форматирования + поле (иконки — с прежнего сайта). */
+.editor { display: flex; flex-direction: column; }
+.editor__toolbar {
+	display: flex;
+	align-items: center;
+	gap: 2px;
+	height: 28px;
+	padding: 0 5px;
+	border-bottom: 1px solid var(--brass-900);
+}
+.editor:is(:hover, :focus-within) .editor__toolbar { border-bottom-color: var(--chamomile-700); }
+.editor__btn {
+	display: grid;
+	place-items: center;
+	width: 22px;
+	height: 22px;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: color-mix(in srgb, var(--olive-400) 60%, transparent);
+	cursor: pointer;
+}
+.editor__btn:is(:hover, :focus-visible, .is-open) { color: var(--chamomile-300); }
+.editor__btn svg { display: block; fill: currentColor; }
+.editor__sep { width: 1px; height: 12px; margin: 0 4px; background: var(--brass-900); }
+.editor__area {
+	display: block;
+	box-sizing: border-box;
+	width: 100%;
+	min-height: 140px;
+	margin: 0;
+	padding: 8px 10px;
+	border: 0;
+	background: none;
+	font: inherit;
+	color: inherit;
+	outline: 0;
+	resize: vertical;
 }
 
+/* Очки славы — те же 10 делений, что в карточке фракции: клик ставит счёт
+   (повторный клик по последнему делению — на одно меньше), наведение
+   показывает, каким он станет. Цвет — по выбранной репутации. */
+.score {
+	--rep-text: var(--brass-400);
+	--rep-bar: var(--brass-600);
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+.score[data-rep="positive"] { --rep-text: var(--grass-400); --rep-bar: var(--grass-600); }
+.score[data-rep="negative"] { --rep-text: var(--blood-400); --rep-bar: var(--blood-600); }
+.score__bars { flex: 1; display: flex; gap: 4px; padding: 8px 0; cursor: pointer; }
+.score__bar { flex: 1 1 0; height: 4px; padding: 0; border: 0; background: color-mix(in srgb, var(--olive-400) 15%, transparent); cursor: pointer; }
+.score__bar.is-on { background: var(--rep-bar); }
+.score__bars:hover .score__bar { background: color-mix(in srgb, var(--olive-400) 15%, transparent); }
+.score__bars:hover .score__bar:is(:hover, :has(~ .score__bar:hover)) { background: color-mix(in srgb, var(--rep-bar) 70%, transparent); }
+.score__value {
+	font: 400 12px/normal 'Beaufort for LoL', sans-serif;
+	color: color-mix(in srgb, var(--olive-400) 60%, transparent);
+	white-space: nowrap;
+}
+.score__value b { font-size: 16px; font-weight: 700; color: var(--rep-text); }
 
-.sb-view-busy { pointer-events: none; }
+/* Кнопки форм: действие, главное действие (сохранить), удаление (два клика). */
+.btn--action { opacity: 1; color: var(--chamomile-500); }
+.btn--action:is(:hover, :focus-visible) { color: var(--chamomile-300); border-color: var(--chamomile-700); }
+.btn--primary { opacity: 1; color: var(--brass-50); background: var(--brass-900); border-color: var(--brass-700); }
+.btn--primary:is(:hover, :focus-visible) { color: var(--brass-50); background: var(--brass-700); border-color: var(--brass-600); }
+.btn--danger:is(:hover, :focus-visible, .is-confirming) { color: var(--blood-400); border-color: var(--blood-600); }
+.btn__icon .btn__svg { position: absolute; inset: 0; margin: auto; fill: currentColor; }
+/* Убрать системную особенность — крестик внутри кнопки-чипа. */
+.btn__remove { display: block; flex-shrink: 0; fill: currentColor; opacity: .6; }
+.btn:hover .btn__remove { opacity: 1; }
 
-@media (prefers-reduced-motion: reduce) {
-	#normal-view > *,
-	#glory-view  > * { transition: none; }
+/* ─── Картинка попапа: источник и видимая область (форма локации) ───
+   Обзор — вся картинка приглушённо; рамка — кадр фона попапа (340×365, тянется
+   мышью, колесо и ползунок — масштаб); внутри рамки ярко — ровно то, что
+   останется видно в попапе (та же маска и обрезка краем попапа). Ниже —
+   живой вид шапки попапа. */
+.crop { display: flex; flex-direction: column; gap: 8px; }
+.crop[hidden] { display: none; }
+.crop__overview {
+	position: relative;
+	align-self: center;
+	overflow: hidden;
+	background: var(--navy-900);
+	touch-action: none;
+	user-select: none;
+}
+.crop__image { display: block; width: 100%; height: 100%; opacity: .3; pointer-events: none; }
+.crop__window {
+	position: absolute;
+	outline: 1px solid color-mix(in srgb, var(--brass-300) 70%, transparent);
+	outline-offset: -1px;
+	cursor: grab;
+}
+.crop__window:active { cursor: grabbing; }
+.crop__replica {
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 340px;
+	height: 365px;
+	overflow: hidden;
+	transform-origin: 0 0;
+	pointer-events: none;
+	-webkit-mask-image: var(--pop-bg-mask);
+	mask-image: var(--pop-bg-mask);
+	clip-path: inset(28px 24px 0 0); /* что выше и правее попапа — не видно */
+}
+.crop__zoom { display: flex; align-items: center; gap: 12px; }
+.crop__zoom-label {
+	font: 400 12px/16px 'Beaufort for LoL', sans-serif;
+	color: color-mix(in srgb, var(--olive-400) 60%, transparent);
+}
+.range {
+	flex: 1;
+	height: 16px;
+	margin: 0;
+	background: none;
+	-webkit-appearance: none;
+	appearance: none;
+	cursor: pointer;
+}
+.range:focus { outline: 0; }
+.range::-webkit-slider-runnable-track { height: 4px; background: color-mix(in srgb, var(--olive-400) 15%, transparent); }
+.range::-webkit-slider-thumb { -webkit-appearance: none; width: 8px; height: 12px; margin-top: -4px; border: 0; background: var(--chamomile-500); }
+.range:is(:hover, :focus-visible)::-webkit-slider-thumb { background: var(--chamomile-300); }
+.range::-moz-range-track { height: 4px; background: color-mix(in srgb, var(--olive-400) 15%, transparent); }
+.range::-moz-range-thumb { width: 8px; height: 12px; border: 0; border-radius: 0; background: var(--chamomile-500); }
+.crop__preview {
+	position: relative;
+	height: 150px;
+	overflow: hidden;
+	border: 1px solid var(--brass-900);
+	background: var(--navy-950);
+	font: 400 14px/18px 'Beaufort for LoL', sans-serif;
+	color: var(--chamomile-300);
+	pointer-events: none;
+}
+.crop__preview p { margin: 0; }
+.crop__preview .pop { width: 340px; transform: scale(calc(322 / 340)); transform-origin: 0 0; }
+.field.is-dropping .input { border-color: var(--chamomile-700); }
+
+/* Герб фракции в форме — как в «Славе» (32×32). */
+.emblem-preview { display: block; width: 32px; height: 32px; object-fit: cover; }
+.emblem-preview[hidden] { display: none; }
+
+/* Пока идёт запись в базу — кнопки низа формы не нажимаются. */
+.btn:disabled { cursor: progress; }
+.btn--primary:disabled { opacity: .7; }
+
+/* Описание в большом окне — кнопка справа на панели форматирования. */
+.editor__btn--expand { margin-left: auto; }
+
+/* ─── Окно поверх страницы (script.js → forms.dialog) ───
+   В макете окон нет: коробка — как сайдбар и окно входа (navy-950, та же
+   тень), заголовок — как у попапа, низ — как у формы правки. Ниже панели
+   вариантов (.options), выше всего остального. */
+.dialog {
+	position: fixed;
+	inset: 0;
+	z-index: 1500;
+	display: grid;
+	place-items: center;
+	padding: 24px;
+	background: color-mix(in srgb, var(--navy-950) 60%, transparent);
+	opacity: 0;
+	transition: opacity var(--duration) var(--easing);
+}
+.dialog.is-open { opacity: 1; }
+.dialog.is-closing { pointer-events: none; }
+.dialog__box {
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+	width: min(440px, 100%);
+	max-height: calc(100vh - 48px);
+	background: var(--navy-950);
+	filter: drop-shadow(0 0 3px rgb(0 0 0 / 50%));
+	transform: translateY(8px);
+	transition: transform var(--duration) var(--easing);
+}
+.dialog.is-open .dialog__box { transform: none; }
+.dialog__box--wide { width: min(760px, 100%); }
+.dialog__title {
+	margin: 0;
+	padding: 20px 24px 0;
+	font: 500 20px/normal 'El Messiri', sans-serif;
+	letter-spacing: .2px;
+	color: var(--brass-50);
+}
+.dialog__body {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	min-height: 0;
+	overflow-y: auto;
+	padding: 16px 24px 20px;
+}
+.dialog__box--wide .editor__area { min-height: max(240px, calc(100vh - 260px)); resize: none; }
+.dialog__foot {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	padding: 16px 24px;
+	border-top: 1px solid #151412;
+}
+.dialog__spacer { flex: 1; }
+
+/* Сравнение «сейчас / по умолчанию» (восстановление локации): отличия — ярче
+   и с подложкой, совпадения приглушены. */
+.compare {
+	display: grid;
+	grid-template-columns: 88px 1fr 1fr;
+	font: 400 12px/16px 'Beaufort for LoL', sans-serif;
+	color: color-mix(in srgb, var(--chamomile-300) 50%, transparent);
+}
+.compare > * { min-width: 0; padding: 6px 8px; border-top: 1px solid #151412; }
+.compare > :nth-child(-n + 3) { border-top: 0; }
+.compare__label,
+.compare__head {
+	font: 700 10px/16px 'Beaufort for LoL', sans-serif;
+	letter-spacing: .2px;
+	text-transform: uppercase;
+	color: color-mix(in srgb, var(--olive-400) 60%, transparent);
+}
+.compare__label { padding-left: 0; }
+.compare__value { max-height: 160px; overflow-y: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
+.compare__value.is-diff { color: var(--chamomile-300); background: color-mix(in srgb, var(--olive-400) 8%, transparent); }
+
+/* Сообщение внизу карты (ошибка записи при перетаскивании задания и т. п.). */
+.toast {
+	position: fixed;
+	z-index: 1600;
+	bottom: 24px;
+	box-sizing: border-box;
+	max-width: min(440px, calc(100vw - 32px));
+	padding: 10px 14px;
+	background: var(--navy-950);
+	border-left: 2px solid var(--blood-600);
+	font: 400 12px/16px 'Beaufort for LoL', sans-serif;
+	color: var(--chamomile-300);
+	filter: drop-shadow(0 0 3px rgb(0 0 0 / 50%));
+	opacity: 0;
+	transform: translate(-50%, 8px);
+	pointer-events: none;
+	transition: opacity var(--duration) var(--easing), transform var(--duration) var(--easing);
+}
+.toast.is-shown { opacity: 1; transform: translate(-50%, 0); }
+
+/* Карандаш «редактировать» у заголовков попапов (только админ) — как у фракций. */
+.pop__title-row .pop__edit { flex-shrink: 0; display: block; width: 12px; height: 13px; cursor: pointer; }
+.pop__quests-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+
+
+/* ─── Анимация смены состояний — одна на все компоненты (кроме стрелки
+   «Перейти к заданию», у неё свой тайминг — см. .quest-link__arrow svg) ─── */
+.btn,
+.btn__icon img,
+.status-icon img,
+.section-label,
+.province-header,
+.chevron::before,
+.checkbox,
+.checkbox__frame,
+.checkbox__box img,
+.sys-btn img,
+.sys-btn::before,
+.sys-btn::after,
+.sidebar,
+.sidebar__collapse,
+.glow::before,
+.chain-tab,
+.chain-tab__title,
+.chain-tab__sub,
+.faction__bar,
+.search-row__icon img,
+.search-row__clear,
+.mode__btn,
+.search-group__reset,
+.search-filters,
+.province,
+.province__rows,
+.faction__body,
+.sidebar__scrim,
+.sidebar__spacer,
+.chain,
+.chain__head,
+.chain__body,
+.input,
+.textarea,
+.editor,
+.editor__toolbar,
+.editor__btn,
+.input-btn,
+.input-btn img,
+.select__chevron,
+.option,
+.score__bar,
+.btn__remove {
+	transition-property: color, background-color, border-color, opacity, filter, transform, grid-template-rows,
+		margin-top, padding-right, border-right-width, visibility, --box-hover;
+	transition-duration: var(--duration);
+	transition-timing-function: var(--easing);
 }
 
