@@ -1,0 +1,4 @@
+# Служебные папки (Claude Code, figma-to-code) — не для репозитория
+.agents/
+.claude/
+/supabase
