@@ -62,13 +62,26 @@
 				control = document.createElement('div');
 				control.className = 'visited-location-control';
 				const pop = popupContent.querySelector('.pop');
-				if (pop) pop.appendChild(control);
+				if (!pop) return;
+				pop.appendChild(control);
 			}
 
 			const visited = visitedMarkerIds.has(String(location.id));
-			control.innerHTML = `<button type="button" class="btn visited-location-button${visited ? ' selected' : ''}" data-action="toggle-visited-location" data-marker-id="${String(location.id)}">
-				<span class="btn__label">${visited ? 'Посещено' : 'Отметить посещённым'}</span>
-			</button>`;
+			let button = control.querySelector('button');
+			if (!button) {
+				button = document.createElement('button');
+				button.type = 'button';
+				button.dataset.action = 'toggle-visited-location';
+				button.className = 'btn visited-location-button';
+				button.innerHTML = '<span class="btn__label"></span>';
+				control.appendChild(button);
+			}
+
+			button.dataset.markerId = String(location.id);
+			button.classList.toggle('selected', visited);
+			const label = button.querySelector('.btn__label');
+			const text = visited ? 'Посещено' : 'Отметить посещённым';
+			if (label.textContent !== text) label.textContent = text;
 		});
 	}
 
@@ -78,30 +91,29 @@
 
 		const id = String(markerId);
 		const visited = visitedMarkerIds.has(id);
+		let error;
 
-		let result;
 		if (visited) {
-			result = await supabaseClient
+			({ error } = await supabaseClient
 				.from('location_visits')
 				.delete()
-				.eq('marker_id', id);
-			if (!result.error) visitedMarkerIds.delete(id);
+				.eq('marker_id', id));
+			if (!error) visitedMarkerIds.delete(id);
 		} else {
 			const { data: userData, error: userError } = await supabaseClient.auth.getUser();
 			if (userError || !userData?.user) {
 				visitToggleBusy = false;
 				return;
 			}
-
-			result = await supabaseClient
+			({ error } = await supabaseClient
 				.from('location_visits')
-				.insert({ user_id: userData.user.id, marker_id: id });
-			if (!result.error) visitedMarkerIds.add(id);
+				.insert({ user_id: userData.user.id, marker_id: id }));
+			if (!error) visitedMarkerIds.add(id);
 		}
 
 		visitToggleBusy = false;
-		if (result.error) {
-			console.error('Could not update visited location:', result.error);
+		if (error) {
+			console.error('Could not update visited location:', error);
 			return;
 		}
 
@@ -112,7 +124,8 @@
 	document.addEventListener('click', event => {
 		const button = event.target.closest('[data-action="toggle-visited-location"]');
 		if (!button) return;
-		event.preventPropagation();
+		event.preventDefault();
+		event.stopPropagation();
 		toggleVisitedLocation(button.dataset.markerId);
 	});
 
@@ -126,6 +139,6 @@
 	}
 
 	loadVisitedLocations();
-	map.on('zoomend', syncVisitedMarkerStyles);
+	if (typeof map !== 'undefined') map.on('zoomend', syncVisitedMarkerStyles);
 	setTimeout(syncVisitedMarkerStyles, 100);
 })();
