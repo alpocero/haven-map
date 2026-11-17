@@ -11,6 +11,7 @@
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400..700&display=swap" rel="stylesheet">
 	<link rel="stylesheet" href="style.css"/>
+	<link rel="stylesheet" href="visited-locations.css"/>
 
 	<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 	<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -20,9 +21,8 @@
 </head>
 <body>
 
-<!-- Контур стрелки «Перейти к заданию» (пути из макета) — один раз, копии через <use>. -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
-	<symbol id="arrow" viewBox="0 0 14 6"><path d="M2.72827 3.99374C3.28049 3.99374 3.72815 3.5515 3.72815 3.00598C3.72815 2.46045 3.28049 2.01821 2.72827 2.01821C2.17606 2.01821 1.7284 2.46045 1.7284 3.00598C1.7284 3.5515 2.17606 3.99374 2.72827 3.99374Z"/><path d="M14.0005 3.0072L10.7319 6.00916L10.2241 5.47107L12.3882 3.48474H7.31201V2.54041H12.3999L10.2241 0.542358L10.7319 0.00427246L14.0005 3.0072Z"/></symbol>
+	<symbol id="arrow" viewBox="0 0 14 6"><path d="M2.72827 3.99374C3.28049 3.99374 3.72815 3.5515 3.72815 3.00598C3.72815 2.46045 3.28049 2.01821 2.72827 2.01821C2.17606 2.01821 1.7284 2.46045 1.7284 3.00598C1.7284 3.5515 2.17606 3.99374 2.72827 3.99374ZM2.72827 3.99374C3.28049 3.99374 3.72815 3.5515 3.72815 3.00598C3.72815 2.46045 3.28049 2.01821 2.72827 2.01821C2.17606 2.01821 1.7284 2.46045 1.7284 3.00598C1.7284 3.5515 2.17606 3.99374 2.72827 3.99374Z"/></symbol>
 </svg>
 
 <div id="map"></div>
@@ -59,7 +59,6 @@
 		<div class="sidebar__spacer"></div>
 	</div>
 
-	<!-- Режим правки (админ): форма вместо разделов и поиска; поля строит script.js. -->
 	<div class="edit" id="edit">
 		<form class="edit__body" id="edit-form" novalidate autocomplete="off"></form>
 		<div class="edit__foot">
@@ -87,7 +86,6 @@
 <div class="map-nav map-controls" id="map-nav"></div>
 <button type="button" class="sys-btn sys-btn--login map-login" id="login" title="Войти"><img src="images/ui/sys/login.svg" alt=""></button>
 
-<!-- Вход для админа — под ромбом входа. -->
 <form class="login" id="login-form" hidden autocomplete="on">
 	<p class="login__title">Вход для администратора</p>
 	<input type="email" class="input" name="email" placeholder="Почта" autocomplete="username" required>
@@ -97,5 +95,6 @@
 </form>
 
 <script src="script.js"></script>
+<script src="visited-locations.js"></script>
 </body>
 </html>

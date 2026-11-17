@@ -1,0 +1,15 @@
+.leaflet-marker-icon.visited-location-icon {
+	opacity: .6 !important;
+	transition: opacity var(--duration, .2s) var(--easing, ease);
+}
+
+.visited-location-control {
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	padding: 8px 18px 12px;
+}
+
+.visited-location-control .btn {
+	opacity: 1;
+}

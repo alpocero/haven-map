@@ -1,1 +1,1 @@
-'use strict';
+-- Placeholder removed
