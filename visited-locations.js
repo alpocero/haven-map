@@ -73,9 +73,7 @@
 				button.type = 'button';
 				button.dataset.action = 'toggle-visited-location';
 				button.className = 'btn visited-location-button';
-				const label = document.createElement('span');
-				label.className = 'btn__label';
-				button.appendChild(label);
+				button.innerHTML = '<span class="btn__label"></span>';
 				control.appendChild(button);
 			}
 
@@ -94,6 +92,7 @@
 		const id = String(markerId);
 		const visited = visitedMarkerIds.has(id);
 		let error;
+
 		if (visited) {
 			({ error } = await supabaseClient
 				.from('location_visits')
@@ -130,16 +129,16 @@
 		toggleVisitedLocation(button.dataset.markerId);
 	});
 
-	// Only update popup controls when needed. Replacing innerHTML on every
-	// observer callback caused an endless mutation loop and froze the page.
 	const observer = new MutationObserver(() => syncVisitedPopupButtons());
 	observer.observe(document.body, { childList: true, subtree: true });
 
-	supabaseClient.auth.onAuthStateChange(() => {
-		setTimeout(loadVisitedLocations, 0);
-	});
+	if (typeof supabaseClient !== 'undefined') {
+		supabaseClient.auth.onAuthStateChange(() => {
+			setTimeout(loadVisitedLocations, 0);
+		});
+	}
 
 	loadVisitedLocations();
-	map.on('zoomend', syncVisitedMarkerStyles);
+	if (typeof map !== 'undefined') map.on('zoomend', syncVisitedMarkerStyles);
 	setTimeout(syncVisitedMarkerStyles, 100);
 })();
