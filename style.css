@@ -165,6 +165,11 @@ button, input, select, textarea, optgroup, option {
 	translate: 0 0;
 	transition: opacity .2s ease-out .15s, translate .2s ease-out .15s, visibility 0s;
 }
+/* Подпись «посещённой» локации — та же непрозрачность, что у иконки (.6).
+   Класс ставится в updateMarkers (script.js) на сам тултип. */
+#map.show-location-names .leaflet-tooltip.location-name-label.visited-location-label {
+	opacity: .6 !important;
+}
 .leaflet-zoom-anim .leaflet-tooltip.location-name-label {
 	transition: none;
 }
@@ -182,6 +187,12 @@ button, input, select, textarea, optgroup, option {
 	.leaflet-provinces-pane {
 		transition: none;
 	}
+}
+
+/* Метки локаций: приглушение «посещённых» до 0.6 (script.js → updateMarkers,
+   m.setOpacity) — та же анимация, что у остальных смен состояний. */
+.leaflet-marker-icon {
+	transition: opacity var(--duration) var(--easing);
 }
 
 /* ─── Регионы политической карты (script.js, makeRegionLayer) ───
@@ -1334,6 +1345,12 @@ path.region-shape.drop-target { fill: var(--brass-500) !important; fill-opacity:
 	color: color-mix(in srgb, var(--olive-400) 60%, transparent);
 	text-box-trim: trim-both;
 	text-box-edge: cap alphabetic;
+}
+
+/* Кнопка «Отметить посещённым / Посещено» в попапе локации (админ). */
+.pop__visited {
+	display: flex;
+	padding: 8px 18px 12px;
 }
 
 /* ─── Кнопки карты (вне сайдбара) ─── */

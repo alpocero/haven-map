@@ -396,6 +396,11 @@ function updateMarkers() {
 		if (m._asQuest !== asQuest) { m.setIcon(makeIcon(asQuest ? 'quest' : row.location_type)); m._asQuest = asQuest; }
 		const show = state.typesOn.has(group) && locationPasses(row) && row.id !== editing('marker');
 		if (show !== map.hasLayer(m)) show ? m.addTo(map) : m.remove();
+		// «Посещённая» локация приглушается для всех (иконка + подпись под ней).
+		const visited = !!row.visited;
+		m.setOpacity(visited ? 0.6 : 1);
+		const tip = m.getTooltip()?.getElement();
+		if (tip) tip.classList.toggle('visited-location-label', visited);
 	}
 	for (const [id, m] of questPointLayers) {
 		const q = quests.find(x => x.id === id);
@@ -497,6 +502,8 @@ function locationPopupHTML(row, { preview = false } = {}) {
 		.map(t => `<img src="images/icons/${t}.png" alt="" title="${esc(TRAITS.find(x => x.key === t).label)}">`).join('');
 	const qs = preview ? [] : (questsByLocation.get(row.id) || []).filter(questVisibleBase).sort(byName);
 	const addQuest = state.isAdmin && !preview ? addButtonHTML('Новое задание', 'new-quest', `location:${row.id}`) : '';
+	const visitedBtn = state.isAdmin && !preview
+		? `<div class="pop__visited"><button type="button" class="btn${row.visited ? ' selected' : ''}" data-action="toggle-visited" data-id="${row.id}"><span class="btn__label">${row.visited ? 'Посещено' : 'Отметить посещённым'}</span></button></div>` : '';
 	return `<div class="pop">`
 		+ popBgHTML(row)
 		+ `<div class="pop__head"><div class="pop__title-row"><h2 class="pop__title">${esc(row.runame)}</h2>${preview ? '' : popEditHTML('edit-marker', row.id, 'Редактировать локацию')}${traits}</div>`
@@ -507,6 +514,7 @@ function locationPopupHTML(row, { preview = false } = {}) {
 			row.province && { label: 'Провинция', value: row.province, action: 'open-province', id: row.province },
 		])
 		+ (row.description ? `<div class="pop__desc">${renderDescription(row.description)}</div>` : '')
+		+ visitedBtn
 		+ questsBlockHTML(qs, addQuest)
 		+ `</div>`;
 }
@@ -836,7 +844,7 @@ function renderJournal() {
 	const counts = { rumor: 0, known: 0, done: 0 };
 	quests.filter(questPasses).forEach(q => { const g = statusGroup(q.status); if (g in counts) counts[g]++; });
 	const statuses = (state.isAdmin ? ['rumor'] : []).concat(['known', 'done']);
-	const listHTML = entries.length ? entries.map(e => e.html()).join('') : '<p class="empty">Ничего не найдено</p>';
+	const listHTML = entries.length ? entries.map(e => e.html()).join('') : emptyHTML();
 	// Кнопки статусов — на месте, если их набор тот же (иначе не видна анимация
 	// выбора); список перерисовывается.
 	const row = sectionEls.journal.querySelector('.journal > .btn-row');
@@ -876,7 +884,7 @@ function renderProvinces() {
 			+ `<div class="province-header${open ? ' is-open' : ''}" data-action="province" data-key="${esc(name)}"><span class="chevron"></span><span>${esc(name)}</span></div>`
 			+ `<div class="province__rows"><div class="province__rows-inner"><div class="province__list">${rows}</div></div></div>`
 			+ `</div>`;
-	}).join('')}</div>` : '<p class="empty">Ничего не найдено</p>');
+	}).join('')}</div>` : emptyHTML());
 	setCount('provinces', String(names.length));
 }
 
@@ -908,7 +916,7 @@ function factionHTML(f) {
 function renderFactions() {
 	const list = factions.filter(factionPasses).sort((a, b) => REP_ORDER[factionRep(a)] - REP_ORDER[factionRep(b)] || byName(a, b));
 	const add = state.isAdmin ? `<div class="btn-row">${addButtonHTML('Новая фракция', 'new-faction')}</div>` : '';
-	setContent('factions', `<div class="factions">${add}${list.length ? list.map(factionHTML).join('') : '<p class="empty">Ничего не найдено</p>'}</div>`);
+	setContent('factions', `<div class="factions">${add}${list.length ? list.map(factionHTML).join('') : emptyHTML()}</div>`);
 	setCount('factions', String(list.length));
 }
 
@@ -2325,6 +2333,26 @@ async function applyQuestDrop(q, drop) {
 	map.closePopup();
 	await load();
 }
+
+// ─── «Посещено» (админ): общий флаг группы на локации ───
+// Один флаг markers.visited на всю кампанию (не per-user): читают все,
+// пишет только админ. Приглушение метки — m.setOpacity в updateMarkers.
+async function toggleVisited(id) {
+	const row = markerById.get(id);
+	if (!row || !state.isAdmin) return;
+	const res = await runWrite(db('markers').update({ visited: !row.visited }).eq('id', id));
+	if (!res.ok) { showToast(`Не удалось обновить «посещено»: ${res.message}`); return; }
+	row.visited = !!res.row.visited;
+	updateMarkers();
+	// Кнопка в открытом попапе — на месте, без перерисовки (как прочие переключатели).
+	const popup = map.getPopup();
+	if (popup?.isOpen() && popupPlace?.kind === 'location' && popupPlace.id === row.id) {
+		const btn = popup.getElement()?.querySelector('[data-action="toggle-visited"]');
+		btn?.classList.toggle('selected', row.visited);
+		const label = btn?.querySelector('.btn__label');
+		if (label) label.textContent = row.visited ? 'Посещено' : 'Отметить посещённым';
+	}
+}
 // Захват — на погружении: попапы Leaflet гасят всплытие нажатий.
 document.addEventListener('pointerdown', e => {
 	const card = e.target.closest('[data-drag-quest]');
@@ -2392,6 +2420,8 @@ document.addEventListener('click', e => {
 			else focusRegion(refId);
 		} break;
 		case 'focus-region': focusRegion(id); break;
+		case 'toggle-visited': toggleVisited(id); break;
+		case 'retry-load': load(); break;
 		// ─── админка (см. «Админка: формы правки») ───
 		case 'new-marker': openEditor('marker'); break;
 		case 'new-quest': {
@@ -2574,6 +2604,44 @@ supabaseClient.auth.onAuthStateChange((_event, session) => {
 });
 
 // ─── Загрузка данных ──────────────────────────────────────────────────────
+// status: 'loading' — данные ещё не пришли, 'ready' — всё ок, 'error' — сбой.
+const loadState = { status: 'loading', error: '' };
+let dataLoaded = false;    // была ли хоть одна успешная загрузка (или кэш)
+const LOAD_TIMEOUT_MS = 20000; // дольше — считаем сеть/базу зависшими и даём повторить
+const CACHE_KEY = 'haven-map:data:v1';
+
+// Пустое состояние раздела: пока данных нет — «Загрузка…», при сбое — сообщение
+// с кнопкой «Повторить», иначе обычное «Ничего не найдено».
+function emptyHTML() {
+	if (loadState.status === 'error') {
+		return '<p class="empty">Не удалось загрузить данные с сервера. '
+			+ '<button type="button" class="btn btn--action" data-action="retry-load"><span class="btn__label">Повторить</span></button></p>';
+	}
+	if (!dataLoaded) return '<p class="empty">Загрузка…</p>';
+	return '<p class="empty">Ничего не найдено</p>';
+}
+
+// Кэш в localStorage: повторный визит рисуется мгновенно, свежие данные
+// подтягиваются в фоне (stale-while-revalidate) — маскирует медленный Supabase.
+function cacheSave() {
+	try { localStorage.setItem(CACHE_KEY, JSON.stringify({ markers, quests, branches, factions, at: Date.now() })); }
+	catch (e) { /* приватный режим / переполнен localStorage — не критично */ }
+}
+function cacheLoad() {
+	try {
+		const raw = localStorage.getItem(CACHE_KEY);
+		if (!raw) return false;
+		const d = JSON.parse(raw);
+		if (!Array.isArray(d.markers) || !Array.isArray(d.quests)) return false;
+		markers = d.markers;
+		quests = d.quests;
+		branches = Array.isArray(d.branches) ? d.branches : [];
+		factions = Array.isArray(d.factions) ? d.factions : [];
+		quests.forEach(x => { if (x.status === 'active') x.status = 'known'; });
+		return true;
+	} catch (e) { return false; }
+}
+
 function indexData() {
 	[markerById, branchById, questsByBranch, questsByLocation].forEach(m => m.clear());
 	markers.forEach(r => markerById.set(r.id, r));
@@ -2583,21 +2651,56 @@ function indexData() {
 		if (r.anchor_kind === 'location' && r.anchor_location_id) pushTo(questsByLocation, r.anchor_location_id, r);
 	});
 }
+
+// Запрос с таймаутом: supabase-js сам fetch не прерывает, поэтому «гонка» по
+// времени — если сеть/база зависли, не висим минутами, а показываем ошибку.
+const withTimeout = (p, ms) => Promise.race([
+	p,
+	new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), ms)),
+]);
+
+let loadSeq = 0; // последний запуск побеждает — старый ответ не перетирает свежий
 async function load() {
-	const [m, q, b, f] = await Promise.all([
-		supabaseClient.from('markers').select('*').order('runame'),
-		supabaseClient.from('quests').select('*').order('runame'),
-		supabaseClient.from('quest_branches').select('*').order('runame'),
-		supabaseClient.from('factions').select('*'),
-	]);
-	for (const r of [m, q, b, f]) if (r.error) console.error(r.error);
-	markers = m.data || [];
-	quests = q.data || [];
-	quests.forEach(x => { if (x.status === 'active') x.status = 'known'; }); // «Активно» упразднён
-	branches = b.data || [];
-	factions = f.data || [];
+	const seq = ++loadSeq;
+	loadState.status = 'loading';
+	loadState.error = '';
+	if (!dataLoaded) refreshAll(); // показать «Загрузка…» вместо пустых разделов
+	try {
+		const [m, q, b, f] = await withTimeout(Promise.all([
+			supabaseClient.from('markers').select('*').order('runame'),
+			supabaseClient.from('quests').select('*').order('runame'),
+			supabaseClient.from('quest_branches').select('*').order('runame'),
+			supabaseClient.from('factions').select('*'),
+		]), LOAD_TIMEOUT_MS);
+		if (seq !== loadSeq) return;
+		const err = [m, q, b, f].find(r => r.error);
+		if (err) throw new Error(err.error.message || 'ошибка запроса');
+		markers = m.data || [];
+		quests = q.data || [];
+		quests.forEach(x => { if (x.status === 'active') x.status = 'known'; }); // «Активно» упразднён
+		branches = b.data || [];
+		factions = f.data || [];
+		dataLoaded = true;
+		loadState.status = 'ready';
+		cacheSave();
+	} catch (err) {
+		if (seq !== loadSeq) return;
+		loadState.status = 'error';
+		loadState.error = err?.message || 'Неизвестная ошибка';
+		console.error('Haven: load failed:', loadState.error);
+		// Есть что показывать (кэш/прошлые данные) — не пугаем пустотой, только тост.
+		if (dataLoaded) showToast('Не удалось обновить данные — показаны сохранённые (Ctrl+F5 — повторить)');
+	}
 	refreshAll();
 }
-renderAll();
+
+// Кэш — мгновенный первый рендер; свежие данные придут следом из load().
+if (cacheLoad()) {
+	dataLoaded = true;
+	loadState.status = 'ready';
+	refreshAll();
+} else {
+	renderAll();
+}
 // Если сессия так и не пришла (сбой сети при старте) — всё равно загрузить.
 setTimeout(() => { if (!authKnown) { authKnown = true; load(); } }, 3000);
