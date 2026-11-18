@@ -1598,7 +1598,7 @@ const EDITORS = {
 				+ imageFieldHTML(r)
 				+ `<div class="field">${fieldLabel('Координаты', null, true)}${coordsHTML(r.lng, r.lat)}${hintHTML('Кликните по карте или перетащите метку')}</div>`
 				// у локаций, что были в проекте до админки, — «как было» (default_data)
-				+ (r.is_default && r.default_data ? `<div class="field"><button type="button" class="btn btn--action" data-action="edit-revert"><span class="btn__label">Восстановить по умолчанию</span></button>`
+				+ (r.is_default ? `<div class="field"><button type="button" class="btn btn--action" data-action="edit-revert"><span class="btn__label">Восстановить по умолчанию</span></button>`
 					+ `${hintHTML('Какой локация была в проекте изначально — сначала покажет отличия')}</div>` : '');
 		},
 		init(r) {
@@ -1960,8 +1960,17 @@ function revertText(key, v) {
 	if (key === 'traits') return (v || []).map(t => TRAITS.find(x => x.key === t)?.label ?? t).join(', ');
 	return v ?? '';
 }
-function openRevertDialog() {
-	const row = markerById.get(edit?.id), def = row?.default_data;
+async function openRevertDialog() {
+	const row = markerById.get(edit?.id);
+	if (!row) return;
+	let def = row.default_data;
+	if (!def) {
+		// default_data больше не грузится со списком локаций (он тяжёлый) — берём по требованию.
+		const { data, error } = await supabaseClient.from('markers').select('default_data').eq('id', row.id).single();
+		if (edit?.id !== row.id) return;
+		if (error) { showToast(`Не удалось загрузить данные по умолчанию: ${error.message}`); return; }
+		def = data?.default_data;
+	}
 	if (!def) return;
 	const cell = (text, diff) => `<span class="compare__value${diff ? ' is-diff' : ''}">${esc(text) || '—'}</span>`;
 	let diffs = 0;
@@ -2660,14 +2669,15 @@ supabaseClient.auth.onAuthStateChange((_event, session) => {
 // status: 'loading' — данные ещё не пришли, 'ready' — всё ок, 'error' — сбой.
 const loadState = { status: 'loading', error: '' };
 let dataLoaded = false;    // была ли хоть одна успешная загрузка (или кэш)
-const LOAD_TIMEOUT_MS = 20000; // дольше — считаем сеть/базу зависшими и даём повторить
+const LOAD_TIMEOUT_MS = 40000; // дольше — считаем сеть/базу зависшими; запас под медленный канал
 const CACHE_KEY = 'haven-map:data:v3'; // v3 — сброс устаревшего кэша (битые ссылки на гербы, старые отметки)
 
 // Пустое состояние раздела: пока данных нет — «Загрузка…», при сбое — сообщение
 // с кнопкой «Повторить», иначе обычное «Ничего не найдено».
 function emptyHTML() {
 	if (loadState.status === 'error') {
-		return '<p class="empty">Не удалось загрузить данные с сервера. '
+		const why = /timeout/i.test(loadState.error) ? 'превышено время ожидания' : (loadState.error || 'ошибка запроса');
+		return `<p class="empty">Не удалось загрузить данные с сервера (${esc(why)}). `
 			+ '<button type="button" class="btn btn--action" data-action="retry-load"><span class="btn__label">Повторить</span></button></p>';
 	}
 	if (!dataLoaded) return '<p class="empty">Загрузка…</p>';
@@ -2720,20 +2730,24 @@ async function load() {
 	loadState.error = '';
 	if (!dataLoaded) refreshAll(); // показать «Загрузка…» вместо пустых разделов
 	const runQueries = () => Promise.all([
-		supabaseClient.from('markers').select('*').order('runame'),
+		// default_data (дублирует описание) в общий список не берём — он нужен только
+		// в окне «Восстановить по умолчанию», там и запрашиваем по требованию.
+		supabaseClient.from('markers')
+			.select('id,runame,engname,description,faction,province,location_type,traits,image,image_view,lat,lng,visited,is_default')
+			.order('runame'),
 		supabaseClient.from('quests').select('*').order('runame'),
 		supabaseClient.from('quest_branches').select('*').order('runame'),
 		supabaseClient.from('factions').select('*'),
 	]);
 	try {
-		// До трёх попыток: если проект Supabase «заснул» после простоя, первый
+		// До двух попыток: если проект Supabase «заснул» после простоя, первый
 		// запрос будит его и может не уложиться в таймаут — повтор уже быстрый.
 		let res;
 		for (let attempt = 1; ; attempt++) {
 			try { res = await withTimeout(runQueries(), LOAD_TIMEOUT_MS); break; }
 			catch (e) {
 				if (seq !== loadSeq) return;
-				if (attempt >= 3) throw e;
+				if (attempt >= 2) throw e;
 				await new Promise(r => setTimeout(r, 1200));
 			}
 		}
