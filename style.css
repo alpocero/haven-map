@@ -170,6 +170,10 @@ button, input, select, textarea, optgroup, option {
 #map.show-location-names .leaflet-tooltip.location-name-label.visited-location-label {
 	opacity: .6 !important;
 }
+/* Подпись «завершённого» задания — тоже .6 (аналогично посещённым локациям). */
+#map.show-location-names .leaflet-tooltip.location-name-label.done-quest-label {
+	opacity: .6 !important;
+}
 .leaflet-zoom-anim .leaflet-tooltip.location-name-label {
 	transition: none;
 }
@@ -1285,6 +1289,9 @@ path.region-shape.drop-target { fill: var(--brass-500) !important; fill-opacity:
 	color: var(--brass-50);
 }
 .pop__title-row img { flex-shrink: 0; width: 14px; height: 14px; object-fit: cover; }
+/* Чекбокс «посещено» в заголовке попапа — вернуть родной размер галочки:
+   правило выше сжимает все картинки в строке заголовка до 14px. */
+.pop__title-row .checkbox__box img { width: auto; height: auto; }
 .pop__eng {
 	margin: 0;
 	font: 700 12px/normal 'Beaufort for LoL', sans-serif;
@@ -1345,12 +1352,6 @@ path.region-shape.drop-target { fill: var(--brass-500) !important; fill-opacity:
 	color: color-mix(in srgb, var(--olive-400) 60%, transparent);
 	text-box-trim: trim-both;
 	text-box-edge: cap alphabetic;
-}
-
-/* Кнопка «Отметить посещённым / Посещено» в попапе локации (админ). */
-.pop__visited {
-	display: flex;
-	padding: 8px 18px 12px;
 }
 
 /* ─── Кнопки карты (вне сайдбара) ─── */

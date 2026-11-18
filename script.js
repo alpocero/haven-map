@@ -85,6 +85,7 @@ const markerById = new Map();
 const branchById = new Map();
 const questsByBranch = new Map();
 const questsByLocation = new Map();
+const questsByProvince = new Map();
 const provinceMeta = {};      // название -> { id, owner, engname, feature }
 const provinceNameById = {};  // id -> название
 regionsProvinces.features.forEach(f => {
@@ -347,6 +348,7 @@ const politicalLayer = new PoliticalLayer();
 
 const markerLayerById = new Map();   // id локации -> L.Marker
 const questPointLayers = new Map();  // id задания (точка) -> L.Marker
+const provinceQuestLayers = new Map(); // id провинции -> L.Marker (задания внутри провинции)
 
 function makeIcon(type) {
 	const s = MARKER_SIZE[type] ?? 24;
@@ -367,12 +369,28 @@ function buildMarkers() {
 		m.on('click', () => { if (!edit) openQuestPopup(q, { fly: false }); });
 		questPointLayers.set(q.id, m);
 	}
+	// Задания, привязанные к провинции, — одна иконка в центре её полигона.
+	for (const q of quests) {
+		if (q.anchor_kind !== 'province' || provinceQuestLayers.has(q.anchor_province_id)) continue;
+		const latlng = questLatLng(q);
+		if (!latlng) continue;
+		const pid = q.anchor_province_id;
+		const m = L.marker(latlng, { icon: makeIcon('quest') });
+		m.bindTooltip(provinceNameById[pid] ?? '', { permanent: true, direction: 'bottom', offset: [0, 12], className: 'location-name-label', interactive: false });
+		m.on('click', () => {
+			if (edit) return;
+			const layer = regionLayerById.get(String(pid));
+			if (layer) openRegionPopup(layer, latlng);
+		});
+		provinceQuestLayers.set(pid, m);
+	}
 }
 // После загрузки или правки — всё заново: индексы, метки на карте, разделы.
 function clearMapMarkers() {
-	[...markerLayerById.values(), ...questPointLayers.values()].forEach(m => m.remove());
+	[...markerLayerById.values(), ...questPointLayers.values(), ...provinceQuestLayers.values()].forEach(m => m.remove());
 	markerLayerById.clear();
 	questPointLayers.clear();
+	provinceQuestLayers.clear();
 }
 function refreshAll() {
 	indexData();
@@ -387,25 +405,51 @@ function refreshAll() {
 function updateMarkers() {
 	const questsOn = state.typesOn.has('quest');
 	const editing = kind => edit?.kind === kind ? edit.id : null;
+	// Задание видно на карте, если тип «Задания» включён, оно проходит поиск/фильтры
+	// и его статус выбран в журнале (state.status). Выполненные/проваленные
+	// (statusGroup = 'done') показываются только при включённом «Завершено».
+	const questOnMap = q => questsOn && questPasses(q) && state.status[statusGroup(q.status)];
+	const allDone = qs => qs.every(q => isClosedStatus(q.status));
+
 	for (const row of markers) {
 		const m = markerLayerById.get(row.id);
 		if (!m) continue;
-		const hasQuest = (questsByLocation.get(row.id) || []).some(questVisibleBase);
-		const asQuest = questsOn && hasQuest;
+		const visible = (questsByLocation.get(row.id) || []).filter(questOnMap);
+		const asQuest = visible.length > 0;
 		const group = asQuest ? 'quest' : TYPE_GROUP(row.location_type);
 		if (m._asQuest !== asQuest) { m.setIcon(makeIcon(asQuest ? 'quest' : row.location_type)); m._asQuest = asQuest; }
 		const show = state.typesOn.has(group) && locationPasses(row) && row.id !== editing('marker');
 		if (show !== map.hasLayer(m)) show ? m.addTo(map) : m.remove();
-		// «Посещённая» локация приглушается для всех (иконка + подпись под ней).
+		// Как задание — прозрачность по завершённости (все видимые закрыты → .6,
+		// иначе непрозрачна — внутри есть невыполненное); как обычная локация —
+		// по «посещено». Подпись приглушается вместе с иконкой.
 		const visited = !!row.visited;
-		m.setOpacity(visited ? 0.6 : 1);
+		const done = asQuest && allDone(visible);
+		const dimmed = asQuest ? done : visited;
+		m.setOpacity(dimmed ? 0.6 : 1);
 		const tip = m.getTooltip()?.getElement();
-		if (tip) tip.classList.toggle('visited-location-label', visited);
+		if (tip) {
+			tip.classList.toggle('visited-location-label', !asQuest && visited);
+			tip.classList.toggle('done-quest-label', asQuest && done);
+		}
 	}
 	for (const [id, m] of questPointLayers) {
 		const q = quests.find(x => x.id === id);
-		const show = questsOn && questPasses(q) && id !== editing('quest');
+		const show = questOnMap(q) && id !== editing('quest');
 		if (show !== map.hasLayer(m)) show ? m.addTo(map) : m.remove();
+		const done = isClosedStatus(q.status);
+		m.setOpacity(done ? 0.6 : 1);
+		const tip = m.getTooltip()?.getElement();
+		if (tip) tip.classList.toggle('done-quest-label', done);
+	}
+	for (const [pid, m] of provinceQuestLayers) {
+		const visible = (questsByProvince.get(pid) || []).filter(questOnMap);
+		const show = visible.length > 0;
+		if (show !== map.hasLayer(m)) show ? m.addTo(map) : m.remove();
+		const done = allDone(visible);
+		m.setOpacity(done ? 0.6 : 1);
+		const tip = m.getTooltip()?.getElement();
+		if (tip) tip.classList.toggle('done-quest-label', done);
 	}
 }
 function updateLayers() {
@@ -502,11 +546,11 @@ function locationPopupHTML(row, { preview = false } = {}) {
 		.map(t => `<img src="images/icons/${t}.png" alt="" title="${esc(TRAITS.find(x => x.key === t).label)}">`).join('');
 	const qs = preview ? [] : (questsByLocation.get(row.id) || []).filter(questVisibleBase).sort(byName);
 	const addQuest = state.isAdmin && !preview ? addButtonHTML('Новое задание', 'new-quest', `location:${row.id}`) : '';
-	const visitedBtn = state.isAdmin && !preview
-		? `<div class="pop__visited"><button type="button" class="btn${row.visited ? ' selected' : ''}" data-action="toggle-visited" data-id="${row.id}"><span class="btn__label">${row.visited ? 'Посещено' : 'Отметить посещённым'}</span></button></div>` : '';
+	const visitedCheck = state.isAdmin && !preview
+		? `<span class="checkbox${row.visited ? ' selected' : ''}" data-action="toggle-visited" data-id="${row.id}" role="checkbox" aria-checked="${row.visited}" title="${row.visited ? 'Отметить локацию не посещённой' : 'Отметить локацию посещённой'}"><span class="checkbox__box"><span class="checkbox__frame"></span><img src="images/ui/checkbox--checked.svg" alt=""></span></span>` : '';
 	return `<div class="pop">`
 		+ popBgHTML(row)
-		+ `<div class="pop__head"><div class="pop__title-row"><h2 class="pop__title">${esc(row.runame)}</h2>${preview ? '' : popEditHTML('edit-marker', row.id, 'Редактировать локацию')}${traits}</div>`
+		+ `<div class="pop__head"><div class="pop__title-row"><h2 class="pop__title">${esc(row.runame)}</h2>${preview ? '' : popEditHTML('edit-marker', row.id, 'Редактировать локацию')}${traits}${visitedCheck}</div>`
 		+ (row.engname ? `<p class="pop__eng">${esc(row.engname)}</p>` : '')
 		+ `</div>`
 		+ infoGridHTML([
@@ -514,7 +558,6 @@ function locationPopupHTML(row, { preview = false } = {}) {
 			row.province && { label: 'Провинция', value: row.province, action: 'open-province', id: row.province },
 		])
 		+ (row.description ? `<div class="pop__desc">${renderDescription(row.description)}</div>` : '')
-		+ visitedBtn
 		+ questsBlockHTML(qs, addQuest)
 		+ `</div>`;
 }
@@ -632,10 +675,12 @@ function addButtonHTML(label, action, key = '') {
 	return `<button type="button" class="btn btn--icon btn--add" data-action="${action}" data-key="${esc(key)}"><span class="btn__icon"><img src="images/ui/plus.svg" alt=""></span><span class="btn__label">${label}</span></button>`;
 }
 
+// Сколько заданий сейчас выбрано статусами журнала (слух/известно/завершено).
+const visibleQuestCount = () => quests.filter(q => questVisibleBase(q) && state.status[statusGroup(q.status)]).length;
 function renderLocations() {
 	const typeCount = {};
 	markers.forEach(r => { const g = TYPE_GROUP(r.location_type); typeCount[g] = (typeCount[g] || 0) + 1; });
-	typeCount.quest = quests.filter(questVisibleBase).length;
+	typeCount.quest = visibleQuestCount();
 	setContent('locations', `<div class="btn-row">${LOCATION_TYPES.map(t => iconButtonHTML({
 		icon: `images/icons/${t.key}.png`, label: t.label, count: typeCount[t.key] ?? 0, large: t.large,
 		selected: state.typesOn.has(t.key), action: 'type', key: t.key,
@@ -647,6 +692,12 @@ function renderLocations() {
 function syncLocations() {
 	sectionEls.locations.querySelectorAll('[data-action="type"]').forEach(b => b.classList.toggle('selected', state.typesOn.has(b.dataset.key)));
 	setCount('locations', `${state.typesOn.size}/${LOCATION_TYPES.length}`);
+}
+// Обновить только счётчик у кнопки «Задания» (зависит от статусов журнала).
+function syncQuestCount() {
+	const btn = sectionEls.locations.querySelector('[data-action="type"][data-key="quest"]');
+	const count = btn?.querySelector('.btn__count');
+	if (count) count.textContent = String(visibleQuestCount());
 }
 
 function renderLayers() {
@@ -2344,13 +2395,15 @@ async function toggleVisited(id) {
 	if (!res.ok) { showToast(`Не удалось обновить «посещено»: ${res.message}`); return; }
 	row.visited = !!res.row.visited;
 	updateMarkers();
-	// Кнопка в открытом попапе — на месте, без перерисовки (как прочие переключатели).
-	const popup = map.getPopup();
-	if (popup?.isOpen() && popupPlace?.kind === 'location' && popupPlace.id === row.id) {
-		const btn = popup.getElement()?.querySelector('[data-action="toggle-visited"]');
-		btn?.classList.toggle('selected', row.visited);
-		const label = btn?.querySelector('.btn__label');
-		if (label) label.textContent = row.visited ? 'Посещено' : 'Отметить посещённым';
+	cacheSave(); // сразу в кэш, чтобы отметка не терялась при перезагрузке
+	// Чекбокс в открытом попапе — на месте, без перерисовки (как прочие переключатели).
+	// document.querySelector: чекбокс «посещено» в данный момент один (в попапе локации),
+	// поэтому ищем его напрямую — цепочка map.getPopup()/getElement() оказалась хрупкой.
+	const box = document.querySelector('[data-action="toggle-visited"]');
+	if (box) {
+		box.classList.toggle('selected', row.visited);
+		box.setAttribute('aria-checked', String(row.visited));
+		box.title = row.visited ? 'Отметить локацию не посещённой' : 'Отметить локацию посещённой';
 	}
 }
 // Захват — на погружении: попапы Leaflet гасят всплытие нажатий.
@@ -2379,7 +2432,7 @@ document.addEventListener('click', e => {
 		case 'section': openSection(el.closest('.sb-section').dataset.section); break;
 		case 'type': toggleInSet(state.typesOn, key); syncLocations(); updateMarkers(); break;
 		case 'layer': state.layers[key] = !state.layers[key]; syncLayers(); updateLayers(); break;
-		case 'status': state.status[key] = !state.status[key]; renderJournal(); break;
+		case 'status': state.status[key] = !state.status[key]; renderJournal(); updateMarkers(); syncQuestCount(); break;
 		case 'chain': switchChain(state.openChainId === id ? null : id); break;
 		case 'chain-tab': state.chainTab[id] = key; delete state.chainQuest[id]; refreshChainBody(id); break;
 		case 'chain-quest': state.chainQuest[id] = key; refreshChainBody(id); break;
@@ -2608,7 +2661,7 @@ supabaseClient.auth.onAuthStateChange((_event, session) => {
 const loadState = { status: 'loading', error: '' };
 let dataLoaded = false;    // была ли хоть одна успешная загрузка (или кэш)
 const LOAD_TIMEOUT_MS = 20000; // дольше — считаем сеть/базу зависшими и даём повторить
-const CACHE_KEY = 'haven-map:data:v1';
+const CACHE_KEY = 'haven-map:data:v3'; // v3 — сброс устаревшего кэша (битые ссылки на гербы, старые отметки)
 
 // Пустое состояние раздела: пока данных нет — «Загрузка…», при сбое — сообщение
 // с кнопкой «Повторить», иначе обычное «Ничего не найдено».
@@ -2643,12 +2696,13 @@ function cacheLoad() {
 }
 
 function indexData() {
-	[markerById, branchById, questsByBranch, questsByLocation].forEach(m => m.clear());
+	[markerById, branchById, questsByBranch, questsByLocation, questsByProvince].forEach(m => m.clear());
 	markers.forEach(r => markerById.set(r.id, r));
 	branches.forEach(r => branchById.set(r.id, r));
 	quests.forEach(r => {
 		if (r.branch_id) pushTo(questsByBranch, r.branch_id, r);
 		if (r.anchor_kind === 'location' && r.anchor_location_id) pushTo(questsByLocation, r.anchor_location_id, r);
+		if (r.anchor_kind === 'province' && r.anchor_province_id) pushTo(questsByProvince, r.anchor_province_id, r);
 	});
 }
 
@@ -2665,16 +2719,28 @@ async function load() {
 	loadState.status = 'loading';
 	loadState.error = '';
 	if (!dataLoaded) refreshAll(); // показать «Загрузка…» вместо пустых разделов
+	const runQueries = () => Promise.all([
+		supabaseClient.from('markers').select('*').order('runame'),
+		supabaseClient.from('quests').select('*').order('runame'),
+		supabaseClient.from('quest_branches').select('*').order('runame'),
+		supabaseClient.from('factions').select('*'),
+	]);
 	try {
-		const [m, q, b, f] = await withTimeout(Promise.all([
-			supabaseClient.from('markers').select('*').order('runame'),
-			supabaseClient.from('quests').select('*').order('runame'),
-			supabaseClient.from('quest_branches').select('*').order('runame'),
-			supabaseClient.from('factions').select('*'),
-		]), LOAD_TIMEOUT_MS);
+		// До трёх попыток: если проект Supabase «заснул» после простоя, первый
+		// запрос будит его и может не уложиться в таймаут — повтор уже быстрый.
+		let res;
+		for (let attempt = 1; ; attempt++) {
+			try { res = await withTimeout(runQueries(), LOAD_TIMEOUT_MS); break; }
+			catch (e) {
+				if (seq !== loadSeq) return;
+				if (attempt >= 3) throw e;
+				await new Promise(r => setTimeout(r, 1200));
+			}
+		}
 		if (seq !== loadSeq) return;
-		const err = [m, q, b, f].find(r => r.error);
+		const err = res.find(r => r.error);
 		if (err) throw new Error(err.error.message || 'ошибка запроса');
+		const [m, q, b, f] = res;
 		markers = m.data || [];
 		quests = q.data || [];
 		quests.forEach(x => { if (x.status === 'active') x.status = 'known'; }); // «Активно» упразднён
