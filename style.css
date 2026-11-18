@@ -165,13 +165,9 @@ button, input, select, textarea, optgroup, option {
 	translate: 0 0;
 	transition: opacity .2s ease-out .15s, translate .2s ease-out .15s, visibility 0s;
 }
-/* Подпись «посещённой» локации — та же непрозрачность, что у иконки (.6).
+/* Подпись у зачищенной локации гаснет до .6; у посещённой и без галочек — полная.
    Класс ставится в updateMarkers (script.js) на сам тултип. */
-#map.show-location-names .leaflet-tooltip.location-name-label.visited-location-label {
-	opacity: .6 !important;
-}
-/* Подпись «завершённого» задания — тоже .6 (аналогично посещённым локациям). */
-#map.show-location-names .leaflet-tooltip.location-name-label.done-quest-label {
+#map.show-location-names .leaflet-tooltip.location-name-label.dimmed-label {
 	opacity: .6 !important;
 }
 .leaflet-zoom-anim .leaflet-tooltip.location-name-label {
@@ -193,11 +189,50 @@ button, input, select, textarea, optgroup, option {
 	}
 }
 
-/* Метки локаций: приглушение «посещённых» до 0.6 (script.js → updateMarkers,
-   m.setOpacity) — та же анимация, что у остальных смен состояний. */
-.leaflet-marker-icon {
-	transition: opacity var(--duration) var(--easing);
+/* ─── Отметки посещения (script.js → makeIcon / updateMarkers) ───
+   Галочка одна: выровнена по правому и нижнему краю иконки, затем на 3px
+   ниже и на 2px правее. Уровень — data-visit на самом div маркера:
+   1 — посещено (галочка, полная непрозрачность),
+   2 — зачищено (галочка + весь элемент гаснет до .6). */
+.haven-marker__img { display: block; width: 100%; height: 100%; }
+.visit-mark {
+	position: absolute;
+	right: -2px;
+	bottom: -3px;
+	display: none;
+	pointer-events: none;
 }
+.visit-mark img { display: block; }
+.haven-marker[data-visit="1"] .visit-mark,
+.haven-marker[data-visit="2"] .visit-mark { display: block; }
+/* «Зачищено»: весь элемент гаснет до .6; иконка локации — ч/б наполовину и
+   заметно темнее; галочка — менее насыщенная и темнее. */
+.haven-marker[data-visit="2"] { opacity: .6; }
+.haven-marker[data-visit="2"] .haven-marker__img { filter: grayscale(.5) brightness(.6); }
+.haven-marker[data-visit="2"] .visit-mark img { filter: saturate(.8) brightness(.8); }
+
+/* Кнопка отметки в попапе: бейдж + подпись состояния, клик листает
+   0 → посещено → зачищено → 0. */
+.visit-toggle {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: none;
+	cursor: pointer;
+	font: 500 12px/normal 'Beaufort for LoL', sans-serif;
+	letter-spacing: .24px;
+	color: var(--chamomile-500);
+	white-space: nowrap;
+}
+.visit-toggle img { display: block; flex-shrink: 0; }
+.visit-toggle--0 { color: var(--chamomile-700); }
+.visit-toggle--0 img { opacity: .3; }
+.visit-toggle--2 img { filter: saturate(.8) brightness(.8); }
+.visit-toggle:is(:hover, :focus-visible) { color: var(--chamomile-300); }
+.visit-toggle:is(:hover, :focus-visible) img { opacity: 1; }
 
 /* ─── Регионы политической карты (script.js, makeRegionLayer) ───
    Области ловят наведение и клики всей заливкой (даже прозрачной); фракции
@@ -1289,9 +1324,9 @@ path.region-shape.drop-target { fill: var(--brass-500) !important; fill-opacity:
 	color: var(--brass-50);
 }
 .pop__title-row img { flex-shrink: 0; width: 14px; height: 14px; object-fit: cover; }
-/* Чекбокс «посещено» в заголовке попапа — вернуть родной размер галочки:
-   правило выше сжимает все картинки в строке заголовка до 14px. */
-.pop__title-row .checkbox__box img { width: auto; height: auto; }
+/* Бейдж отметки в заголовке попапа — вернуть родной размер: правило выше
+   сжимает все картинки в строке заголовка до 14px и обрезает их. */
+.pop__title-row .visit-toggle img { width: auto; height: auto; object-fit: none; }
 .pop__eng {
 	margin: 0;
 	font: 700 12px/normal 'Beaufort for LoL', sans-serif;

@@ -350,9 +350,17 @@ const markerLayerById = new Map();   // id локации -> L.Marker
 const questPointLayers = new Map();  // id задания (точка) -> L.Marker
 const provinceQuestLayers = new Map(); // id провинции -> L.Marker (задания внутри провинции)
 
+// Иконка метки — divIcon: внутри картинка локации и бейдж отметки (галочка).
+// Leaflet даёт div классы «leaflet-marker-icon haven-marker», поэтому
+// позиционирование маркера не меняется; бейдж показывается по data-visit.
 function makeIcon(type) {
 	const s = MARKER_SIZE[type] ?? 24;
-	return L.icon({ iconUrl: markerIconUrl(type), iconSize: [s, s] });
+	return L.divIcon({
+		className: 'haven-marker',
+		html: `<img class="haven-marker__img" src="${markerIconUrl(type)}" alt="">`
+			+ `<span class="visit-mark"><img src="images/ui/visited/check-visited.png" alt=""></span>`,
+		iconSize: [s, s],
+	});
 }
 function buildMarkers() {
 	for (const row of markers) {
@@ -410,6 +418,14 @@ function updateMarkers() {
 	// (statusGroup = 'done') показываются только при включённом «Завершено».
 	const questOnMap = q => questsOn && questPasses(q) && state.status[statusGroup(q.status)];
 	const allDone = qs => qs.every(q => isClosedStatus(q.status));
+	// Отметка: 0 — нет, 1 — посещено, 2 — зачищено. Ставится на сам div
+	// маркера (data-visit); у зачищенной ещё гаснет подпись.
+	const mark = (m, level) => {
+		const el = m.getElement();
+		if (el) el.dataset.visit = String(level);
+		const tip = m.getTooltip()?.getElement();
+		if (tip) tip.classList.toggle('dimmed-label', level === 2);
+	};
 
 	for (const row of markers) {
 		const m = markerLayerById.get(row.id);
@@ -420,36 +436,22 @@ function updateMarkers() {
 		if (m._asQuest !== asQuest) { m.setIcon(makeIcon(asQuest ? 'quest' : row.location_type)); m._asQuest = asQuest; }
 		const show = state.typesOn.has(group) && locationPasses(row) && row.id !== editing('marker');
 		if (show !== map.hasLayer(m)) show ? m.addTo(map) : m.remove();
-		// Как задание — прозрачность по завершённости (все видимые закрыты → .6,
-		// иначе непрозрачна — внутри есть невыполненное); как обычная локация —
-		// по «посещено». Подпись приглушается вместе с иконкой.
-		const visited = !!row.visited;
-		const done = asQuest && allDone(visible);
-		const dimmed = asQuest ? done : visited;
-		m.setOpacity(dimmed ? 0.6 : 1);
-		const tip = m.getTooltip()?.getElement();
-		if (tip) {
-			tip.classList.toggle('visited-location-label', !asQuest && visited);
-			tip.classList.toggle('done-quest-label', asQuest && done);
-		}
+		// Своя иконка — отметка из visit_state; иконка задания — по завершённости:
+		// все видимые задания закрыты → зачищено (галочка), иначе без галочки.
+		const level = asQuest ? (allDone(visible) ? 2 : 0) : (Number(row.visit_state) || 0);
+		mark(m, level);
 	}
 	for (const [id, m] of questPointLayers) {
 		const q = quests.find(x => x.id === id);
 		const show = questOnMap(q) && id !== editing('quest');
 		if (show !== map.hasLayer(m)) show ? m.addTo(map) : m.remove();
-		const done = isClosedStatus(q.status);
-		m.setOpacity(done ? 0.6 : 1);
-		const tip = m.getTooltip()?.getElement();
-		if (tip) tip.classList.toggle('done-quest-label', done);
+		mark(m, isClosedStatus(q.status) ? 2 : 0);
 	}
 	for (const [pid, m] of provinceQuestLayers) {
 		const visible = (questsByProvince.get(pid) || []).filter(questOnMap);
 		const show = visible.length > 0;
 		if (show !== map.hasLayer(m)) show ? m.addTo(map) : m.remove();
-		const done = allDone(visible);
-		m.setOpacity(done ? 0.6 : 1);
-		const tip = m.getTooltip()?.getElement();
-		if (tip) tip.classList.toggle('done-quest-label', done);
+		mark(m, allDone(visible) ? 2 : 0);
 	}
 }
 function updateLayers() {
@@ -540,17 +542,26 @@ const popBgHTML = row => row.image
 const popEditHTML = (action, id, title) => state.isAdmin
 	? `<img class="pop__edit" src="images/ui/edit.svg" alt="" title="${title}" data-action="${action}" data-id="${id}">` : '';
 
+// Отметка посещения в попапе: клик листает 0 → посещено → зачищено → 0.
+const VISIT_TIP = ['Отметить посещённым', 'Посещено — отметить зачищенным', 'Зачищено — снять отметку'];
+const VISIT_LABEL = ['Отметить', 'Посещено', 'Зачищено'];
+const visitBadgeSrc = () => 'images/ui/visited/check-visited.png';
+function visitToggleHTML(row) {
+	const level = Number(row.visit_state) || 0;
+	return `<button type="button" class="visit-toggle visit-toggle--${level}" data-action="cycle-visit" data-id="${row.id}" title="${VISIT_TIP[level]}" aria-label="${VISIT_TIP[level]}">`
+		+ `<img src="${visitBadgeSrc()}" alt=""><span class="visit-toggle__label">${VISIT_LABEL[level]}</span></button>`;
+}
+
 // preview — живой вид в форме локации: без заданий и админских кнопок.
 function locationPopupHTML(row, { preview = false } = {}) {
 	const traits = (row.traits || []).filter(t => TRAITS.some(x => x.key === t))
 		.map(t => `<img src="images/icons/${t}.png" alt="" title="${esc(TRAITS.find(x => x.key === t).label)}">`).join('');
 	const qs = preview ? [] : (questsByLocation.get(row.id) || []).filter(questVisibleBase).sort(byName);
 	const addQuest = state.isAdmin && !preview ? addButtonHTML('Новое задание', 'new-quest', `location:${row.id}`) : '';
-	const visitedCheck = state.isAdmin && !preview
-		? `<span class="checkbox${row.visited ? ' selected' : ''}" data-action="toggle-visited" data-id="${row.id}" role="checkbox" aria-checked="${row.visited}" title="${row.visited ? 'Отметить локацию не посещённой' : 'Отметить локацию посещённой'}"><span class="checkbox__box"><span class="checkbox__frame"></span><img src="images/ui/checkbox--checked.svg" alt=""></span></span>` : '';
+	const visitBtn = state.isAdmin && !preview ? visitToggleHTML(row) : '';
 	return `<div class="pop">`
 		+ popBgHTML(row)
-		+ `<div class="pop__head"><div class="pop__title-row"><h2 class="pop__title">${esc(row.runame)}</h2>${preview ? '' : popEditHTML('edit-marker', row.id, 'Редактировать локацию')}${traits}${visitedCheck}</div>`
+		+ `<div class="pop__head"><div class="pop__title-row"><h2 class="pop__title">${esc(row.runame)}</h2>${preview ? '' : popEditHTML('edit-marker', row.id, 'Редактировать локацию')}${traits}${visitBtn}</div>`
 		+ (row.engname ? `<p class="pop__eng">${esc(row.engname)}</p>` : '')
 		+ `</div>`
 		+ infoGridHTML([
@@ -2402,25 +2413,30 @@ async function applyQuestDrop(q, drop) {
 	await load();
 }
 
-// ─── «Посещено» (админ): общий флаг группы на локации ───
-// Один флаг markers.visited на всю кампанию (не per-user): читают все,
-// пишет только админ. Приглушение метки — m.setOpacity в updateMarkers.
-async function toggleVisited(id) {
+// ─── Отметки посещения (админ): 0 — нет, 1 — посещено, 2 — зачищено ───
+// Общий уровень на всю кампанию (не per-user): читают все, пишет админ.
+// Клик листает 0 → посещено → зачищено → 0; у зачищенной весь элемент
+// гаснет до .6, иконка становится ч/б, галочка — менее насыщенной.
+async function cycleVisitState(id) {
 	const row = markerById.get(id);
 	if (!row || !state.isAdmin) return;
-	const res = await runWrite(db('markers').update({ visited: !row.visited }).eq('id', id));
-	if (!res.ok) { showToast(`Не удалось обновить «посещено»: ${res.message}`); return; }
-	row.visited = !!res.row.visited;
+	const level = ((Number(row.visit_state) || 0) + 1) % 3;
+	const res = await runWrite(db('markers').update({ visit_state: level }).eq('id', id));
+	if (!res.ok) { showToast(`Не удалось обновить отметку: ${res.message}`); return; }
+	row.visit_state = Number(res.row.visit_state) || 0;
 	updateMarkers();
 	cacheSave(); // сразу в кэш, чтобы отметка не терялась при перезагрузке
-	// Чекбокс в открытом попапе — на месте, без перерисовки (как прочие переключатели).
-	// document.querySelector: чекбокс «посещено» в данный момент один (в попапе локации),
-	// поэтому ищем его напрямую — цепочка map.getPopup()/getElement() оказалась хрупкой.
-	const box = document.querySelector('[data-action="toggle-visited"]');
-	if (box) {
-		box.classList.toggle('selected', row.visited);
-		box.setAttribute('aria-checked', String(row.visited));
-		box.title = row.visited ? 'Отметить локацию не посещённой' : 'Отметить локацию посещённой';
+	// Кнопка в открытом попапе — на месте, без перерисовки.
+	const btn = document.querySelector('[data-action="cycle-visit"]');
+	if (btn) {
+		const lv = row.visit_state;
+		btn.className = `visit-toggle visit-toggle--${lv}`;
+		btn.title = VISIT_TIP[lv];
+		btn.setAttribute('aria-label', VISIT_TIP[lv]);
+		const img = btn.querySelector('img');
+		if (img) img.src = visitBadgeSrc();
+		const label = btn.querySelector('.visit-toggle__label');
+		if (label) label.textContent = VISIT_LABEL[lv];
 	}
 }
 // Захват — на погружении: попапы Leaflet гасят всплытие нажатий.
@@ -2490,7 +2506,7 @@ document.addEventListener('click', e => {
 			else focusRegion(refId);
 		} break;
 		case 'focus-region': focusRegion(id); break;
-		case 'toggle-visited': toggleVisited(id); break;
+		case 'cycle-visit': cycleVisitState(id); break;
 		case 'retry-load': load(); break;
 		// ─── админка (см. «Админка: формы правки») ───
 		case 'new-marker': openEditor('marker'); break;
@@ -2781,7 +2797,7 @@ async function load() {
 	// default_data (дублирует описание) в общий список не берём — он нужен только
 	// в окне «Восстановить по умолчанию», там и запрашиваем по требованию.
 	const runQueries = () => restGet([
-		'markers?select=id,runame,engname,description,faction,province,location_type,traits,image,image_view,lat,lng,visited,is_default&order=runame',
+		'markers?select=id,runame,engname,description,faction,province,location_type,traits,image,image_view,lat,lng,visit_state,is_default&order=runame',
 		'quests?select=*&order=runame',
 		'quest_branches?select=*&order=runame',
 		'factions?select=*',
