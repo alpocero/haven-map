@@ -1491,7 +1491,10 @@ const SIDEBAR_HEAD = { title: sidebarTitle.textContent, year: sidebarYear.textCo
 // Если сессия истекла, база молча ничего не меняет — пустой ответ тоже
 // ошибка (как на прежнем сайте).
 const SESSION_EXPIRED_MSG = 'нет прав на изменение (сессия могла истечь — войдите заново)';
-const db = table => supabaseClient.from(table);
+const db = table => {
+	if (!supabaseClient) throw new Error('библиотека Supabase не загрузилась — запись недоступна');
+	return supabaseClient.from(table);
+};
 const now = () => new Date().toISOString();
 async function runWrite(query) {
 	const { data, error } = await query.select();
@@ -1966,10 +1969,14 @@ async function openRevertDialog() {
 	let def = row.default_data;
 	if (!def) {
 		// default_data больше не грузится со списком локаций (он тяжёлый) — берём по требованию.
-		const { data, error } = await supabaseClient.from('markers').select('default_data').eq('id', row.id).single();
-		if (edit?.id !== row.id) return;
-		if (error) { showToast(`Не удалось загрузить данные по умолчанию: ${error.message}`); return; }
-		def = data?.default_data;
+		try {
+			const [rows] = await restGet([`markers?select=default_data&id=eq.${encodeURIComponent(row.id)}`], 15000);
+			if (edit?.id !== row.id) return;
+			def = rows?.[0]?.default_data;
+		} catch (e) {
+			showToast(`Не удалось загрузить данные по умолчанию: ${e.message}`);
+			return;
+		}
 	}
 	if (!def) return;
 	const cell = (text, diff) => `<span class="compare__value${diff ? ' is-diff' : ''}">${esc(text) || '—'}</span>`;
@@ -2114,7 +2121,8 @@ async function uploadPendingImage(src, folder) {
 	if (!ext) return { error: 'Хранилище принимает только PNG, JPEG, WebP, GIF и AVIF' };
 	if (file.size > IMAGE_MAX_MB * 1024 * 1024) return { error: `Картинка больше ${IMAGE_MAX_MB} МБ — хранилище её не примет` };
 	const path = `${folder}/${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-	const bucket = supabaseClient.storage.from('images');
+	const bucket = supabaseClient?.storage.from('images');
+	if (!bucket) return { error: 'Библиотека Supabase не загрузилась — картинку не загрузить' };
 	const { error } = await bucket.upload(path, file, { contentType: file.type, cacheControl: '31536000' });
 	if (error) return { error: `Не удалось загрузить картинку: ${error.message}` };
 	pending.url = bucket.getPublicUrl(path).data.publicUrl;
@@ -2637,12 +2645,14 @@ function applyAdmin(admin) {
 	map.closePopup();
 }
 loginBtn.addEventListener('click', () => {
+	if (!supabaseClient) { showToast('Библиотека Supabase не загрузилась — вход недоступен'); return; }
 	if (state.isAdmin) supabaseClient.auth.signOut(); // дальше — onAuthStateChange
 	else setLoginOpen(loginForm.hidden);
 });
 loginForm.addEventListener('submit', async e => {
 	e.preventDefault();
 	loginError.textContent = '';
+	if (!supabaseClient) { loginError.textContent = 'Библиотека Supabase не загрузилась — вход недоступен'; return; }
 	const { email, password } = loginForm.elements;
 	const { error } = await supabaseClient.auth.signInWithPassword({ email: email.value.trim(), password: password.value });
 	if (error) { loginError.textContent = 'Неверная почта или пароль'; return; }
@@ -2657,7 +2667,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && !loginForm
 // Внутри обработчика к базе не обращаемся (Supabase советует не делать этого) —
 // загрузка отложена на тик.
 let authKnown = false;
-supabaseClient.auth.onAuthStateChange((_event, session) => {
+if (supabaseClient) supabaseClient.auth.onAuthStateChange((_event, session) => {
 	const admin = !!session;
 	if (authKnown && admin === state.isAdmin) return;
 	authKnown = true;
@@ -2716,12 +2726,51 @@ function indexData() {
 	});
 }
 
-// Запрос с таймаутом: supabase-js сам fetch не прерывает, поэтому «гонка» по
-// времени — если сеть/база зависли, не висим минутами, а показываем ошибку.
-const withTimeout = (p, ms) => Promise.race([
-	p,
-	new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), ms)),
-]);
+// Чтение — прямым fetch к PostgREST, ключ в query-параметре (как при открытии
+// ссылки в браузере): без кастомных заголовков и preflight. supabase-js в этой
+// сборке зависает на своих запросах (auth-lock), хотя база отвечает мгновенно.
+async function accessToken() {
+	if (!supabaseClient) return null;
+	try {
+		const { data } = await Promise.race([
+			supabaseClient.auth.getSession(),
+			new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000)),
+		]);
+		return data?.session?.access_token || null;
+	} catch (e) { return null; }
+}
+async function restGet(paths, ms) {
+	const ctrl = new AbortController();
+	const timer = setTimeout(() => ctrl.abort(), ms);
+	const key = encodeURIComponent(SUPABASE_ANON_KEY);
+	// apikey — всегда ключ проекта; JWT вошедшего идёт отдельным заголовком
+	// Authorization (иначе Supabase отвечает 401: в apikey он не принимается).
+	const one = async (path, token) => {
+		const sep = path.includes('?') ? '&' : '?';
+		const headers = token ? { Authorization: `Bearer ${token}` } : {};
+		const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}${sep}apikey=${key}`, { headers, signal: ctrl.signal });
+		if (!res.ok) {
+			let msg = `HTTP ${res.status}`;
+			try { const j = await res.json(); if (j?.message) msg = j.message; } catch (e) { /* тело не JSON */ }
+			throw new Error(msg);
+		}
+		return res.json();
+	};
+	try {
+		const token = await accessToken();
+		if (token) {
+			// С токеном видны слухи (RLS). Не подошёл токен/сессия — читаем анонимно.
+			try { return await Promise.all(paths.map(p => one(p, token))); }
+			catch (e) { if (e.name === 'AbortError') throw e; }
+		}
+		return await Promise.all(paths.map(p => one(p, null)));
+	} catch (e) {
+		if (e.name === 'AbortError') throw new Error('timeout');
+		throw e;
+	} finally {
+		clearTimeout(timer);
+	}
+}
 
 let loadSeq = 0; // последний запуск побеждает — старый ответ не перетирает свежий
 async function load() {
@@ -2729,22 +2778,20 @@ async function load() {
 	loadState.status = 'loading';
 	loadState.error = '';
 	if (!dataLoaded) refreshAll(); // показать «Загрузка…» вместо пустых разделов
-	const runQueries = () => Promise.all([
-		// default_data (дублирует описание) в общий список не берём — он нужен только
-		// в окне «Восстановить по умолчанию», там и запрашиваем по требованию.
-		supabaseClient.from('markers')
-			.select('id,runame,engname,description,faction,province,location_type,traits,image,image_view,lat,lng,visited,is_default')
-			.order('runame'),
-		supabaseClient.from('quests').select('*').order('runame'),
-		supabaseClient.from('quest_branches').select('*').order('runame'),
-		supabaseClient.from('factions').select('*'),
-	]);
+	// default_data (дублирует описание) в общий список не берём — он нужен только
+	// в окне «Восстановить по умолчанию», там и запрашиваем по требованию.
+	const runQueries = () => restGet([
+		'markers?select=id,runame,engname,description,faction,province,location_type,traits,image,image_view,lat,lng,visited,is_default&order=runame',
+		'quests?select=*&order=runame',
+		'quest_branches?select=*&order=runame',
+		'factions?select=*',
+	], LOAD_TIMEOUT_MS);
 	try {
 		// До двух попыток: если проект Supabase «заснул» после простоя, первый
 		// запрос будит его и может не уложиться в таймаут — повтор уже быстрый.
 		let res;
 		for (let attempt = 1; ; attempt++) {
-			try { res = await withTimeout(runQueries(), LOAD_TIMEOUT_MS); break; }
+			try { res = await runQueries(); break; }
 			catch (e) {
 				if (seq !== loadSeq) return;
 				if (attempt >= 2) throw e;
@@ -2752,14 +2799,12 @@ async function load() {
 			}
 		}
 		if (seq !== loadSeq) return;
-		const err = res.find(r => r.error);
-		if (err) throw new Error(err.error.message || 'ошибка запроса');
 		const [m, q, b, f] = res;
-		markers = m.data || [];
-		quests = q.data || [];
+		markers = m || [];
+		quests = q || [];
 		quests.forEach(x => { if (x.status === 'active') x.status = 'known'; }); // «Активно» упразднён
-		branches = b.data || [];
-		factions = f.data || [];
+		branches = b || [];
+		factions = f || [];
 		dataLoaded = true;
 		loadState.status = 'ready';
 		cacheSave();
@@ -2782,5 +2827,7 @@ if (cacheLoad()) {
 } else {
 	renderAll();
 }
+// Библиотека Supabase не загрузилась (CDN недоступен) — читаем анонимно сразу.
+if (!supabaseClient) { authKnown = true; load(); }
 // Если сессия так и не пришла (сбой сети при старте) — всё равно загрузить.
 setTimeout(() => { if (!authKnown) { authKnown = true; load(); } }, 3000);

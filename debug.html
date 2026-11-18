@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Haven — диагностика загрузки</title>
+<style>
+	body { margin: 0; padding: 16px; background: #111318; color: #c4b998; font: 14px/1.45 ui-monospace, Consolas, monospace; }
+	h1 { color: #f0e6d2; font-size: 18px; margin: 0 0 8px; }
+	p { color: #8c8469; margin: 0 0 14px; }
+	pre { white-space: pre-wrap; word-break: break-word; background: #0a0a0c; border: 1px solid #31271e; padding: 12px; }
+</style>
+</head>
+<body>
+<h1>Диагностика загрузки данных</h1>
+<p>Подожди ~20 секунд, потом скопируй весь текст ниже.</p>
+<pre id="log">Запуск…</pre>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+	if (typeof supabase === 'undefined') {
+		document.write('<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js"><\/script>');
+	}
+</script>
+<script src="supabase-config.js"></script>
+<script>
+	const log = document.getElementById('log');
+	const out = s => { log.textContent += '\n' + s; };
+	async function timed(label, ms, fn) {
+		const t = performance.now();
+		const ctrl = new AbortController();
+		const timer = setTimeout(() => ctrl.abort(), ms);
+		try {
+			const r = await fn(ctrl.signal);
+			out(`${label}: OK за ${Math.round(performance.now() - t)} мс — ${r}`);
+		} catch (e) {
+			out(`${label}: ОШИБКА за ${Math.round(performance.now() - t)} мс — ${e.name}: ${e.message}`);
+		} finally {
+			clearTimeout(timer);
+		}
+	}
+	(async () => {
+		log.textContent = 'Старт';
+		out('origin: ' + location.origin);
+		out('online: ' + navigator.onLine);
+		out('SUPABASE_URL: ' + (typeof SUPABASE_URL !== 'undefined' ? SUPABASE_URL : 'НЕ ЗАГРУЖЕН'));
+		out('SUPABASE_ANON_KEY: ' + (typeof SUPABASE_ANON_KEY !== 'undefined' ? 'есть' : 'НЕТ'));
+		out('библиотека Supabase (UMD): ' + (typeof supabase !== 'undefined' ? 'есть' : 'НЕ ЗАГРУЗИЛАСЬ'));
+		out('клиент supabaseClient: ' + (typeof supabaseClient !== 'undefined' && supabaseClient ? 'есть' : 'НЕТ'));
+		if (typeof SUPABASE_URL === 'undefined' || typeof SUPABASE_ANON_KEY === 'undefined') {
+			out('\nКонфиг Supabase не загрузился — дальше проверять нечего.');
+			return;
+		}
+		const key = encodeURIComponent(SUPABASE_ANON_KEY);
+		const url = p => `${SUPABASE_URL}/rest/v1/${p}${p.includes('?') ? '&' : '?'}apikey=${key}`;
+		const get = async (signal, p) => {
+			const res = await fetch(url(p), { signal });
+			const text = await res.text();
+			return `HTTP ${res.status}, ${text.length} байт`;
+		};
+
+		await timed('fetch factions (6 строк)', 15000, signal => get(signal, 'factions?select=runame&limit=6'));
+		await timed('fetch quests (37 строк)', 15000, signal => get(signal, 'quests?select=*&order=runame'));
+		await timed('fetch markers (450 строк)', 15000, signal => get(signal,
+			'markers?select=id,runame,engname,description,faction,province,location_type,traits,image,image_view,lat,lng,visited,is_default&order=runame'));
+		await timed('fetch markers (только id,runame)', 15000, signal => get(signal, 'markers?select=id,runame&order=runame'));
+
+		if (typeof supabaseClient !== 'undefined' && supabaseClient) {
+			await timed('supabase.auth.getSession()', 6000, async () => {
+				const t = performance.now();
+				const r = await Promise.race([
+					supabaseClient.auth.getSession(),
+					new Promise((_, rej) => setTimeout(() => rej(new Error('нет ответа за 5с')), 5000)),
+				]);
+				return `сессия ${r.data?.session ? 'есть' : 'нет'} (${Math.round(performance.now() - t)} мс)`;
+			});
+		} else {
+			out('supabase-js тесты: пропущены (библиотеки нет)');
+		}
+		out('\nГотово.');
+	})();
+</script>
+</body>
+</html>

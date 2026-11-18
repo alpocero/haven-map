@@ -14,6 +14,13 @@
 
 	<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 	<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+	<script>
+		// Резервный CDN, если jsdelivr недоступен (библиотека нужна для входа и записи;
+		// чтение данных идёт прямым fetch и работает без неё).
+		if (typeof supabase === 'undefined') {
+			document.write('<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js"><\/script>');
+		}
+	</script>
 	<script src="supabase-config.js"></script>
 	<script src="regions_factions.js" defer></script>
 	<script src="regions_provinces.js" defer></script>
